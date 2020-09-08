@@ -1,0 +1,48 @@
+FILE: illegalRunIf.kt
+    public final infix fun R|kotlin/Boolean|.trueIn(target: R|kotlin/Any|): R|kotlin/Unit|
+    public final inline fun <R> runElse(cond: R|kotlin/Boolean|, block: R|() -> R|): R|R?|
+        [R|Contract description]
+         <
+            cond trueIn block
+            CallsInPlace(block, AT_MOST_ONCE)
+        >
+     {
+        [StubStatement]
+        ^runElse when () {
+            R|<local>/cond| ->  {
+                Null(null)
+            }
+            else ->  {
+                R|<local>/block|.R|FakeOverride<kotlin/Function0.invoke: R|R|>|()
+            }
+        }
+
+    }
+    public final inline fun <R> runAlways(cond: R|kotlin/Boolean|, block: R|() -> R|): R|R?|
+        [R|Contract description]
+         <
+            cond trueIn block
+            CallsInPlace(block, AT_MOST_ONCE)
+        >
+     {
+        [StubStatement]
+        ^runAlways R|<local>/block|.R|FakeOverride<kotlin/Function0.invoke: R|R|>|()
+    }
+    public final inline fun <R> runBoth(cond: R|kotlin/Boolean|, block: R|() -> R|): R|R?|
+        [R|Contract description]
+         <
+            cond trueIn block
+            CallsInPlace(block, AT_MOST_ONCE)
+        >
+     {
+        [StubStatement]
+        ^runBoth when () {
+            R|<local>/cond| ->  {
+                R|<local>/block|.R|FakeOverride<kotlin/Function0.invoke: R|R|>|()
+            }
+            else ->  {
+                R|<local>/block|.R|FakeOverride<kotlin/Function0.invoke: R|R|>|()
+            }
+        }
+
+    }
