@@ -270,6 +270,12 @@ private val kotlinNothingValueExceptionPhase = makeIrFilePhase<CommonBackendCont
     description = "Throw proper exception for calls returning value of type 'kotlin.Nothing'"
 )
 
+private val objectInstanceEqualsLowering = makeIrFilePhase(
+    ::ObjectInstanceEqualsLowering,
+    name = "ObjectInstanceEquals",
+    description = "Optimize equals calls for object instances"
+)
+
 private val jvmFilePhases = listOf(
     typeAliasAnnotationMethodsPhase,
     provisionalFunctionExpressionPhase,
@@ -314,6 +320,7 @@ private val jvmFilePhases = listOf(
     // makePatchParentsPhase(),
 
     enumWhenPhase,
+    objectInstanceEqualsLowering,
     singletonReferencesPhase,
 
     assertionPhase,
