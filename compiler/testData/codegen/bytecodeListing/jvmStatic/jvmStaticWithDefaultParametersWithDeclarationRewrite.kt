@@ -1,5 +1,6 @@
 // TARGET_BACKEND: JVM_IR
 // WITH_STDLIB
+// REWRITE_JVM_STATIC_IN_COMPANION
 
 class WithCompanion {
     companion object {

@@ -1859,12 +1859,6 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
         }
 
         @Test
-        @TestMetadata("jvmStaticWithDefaultParameters.kt")
-        public void testJvmStaticWithDefaultParameters() throws Exception {
-            runTest("compiler/testData/codegen/bytecodeListing/jvmStatic/jvmStaticWithDefaultParameters.kt");
-        }
-
-        @Test
         @TestMetadata("kt31389.kt")
         public void testKt31389() throws Exception {
             runTest("compiler/testData/codegen/bytecodeListing/jvmStatic/kt31389.kt");

@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.ir.isEffectivelyInlineOnly
 import org.jetbrains.kotlin.backend.jvm.ir.isInlineFunctionCall
 import org.jetbrains.kotlin.backend.jvm.ir.replaceThisByStaticReference
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrStatement
@@ -112,8 +113,6 @@ class SingletonObjectJvmStaticTransformer(
 }
 
 private class CompanionObjectJvmStaticTransformer(val context: JvmBackendContext) : IrElementTransformerVoid() {
-    // TODO: would be nice to add a mode that *only* leaves static versions for all annotated methods, with nothing
-    //  in companions - this would reduce the number of classes if the companion only has `@JvmStatic` declarations.
     private fun IrSimpleFunction.needsStaticProxy(): Boolean = when {
         // Case 1: `external` static methods are moved to the outer class. JNI code does not care about visibility.
         isExternal -> true
@@ -128,14 +127,32 @@ private class CompanionObjectJvmStaticTransformer(val context: JvmBackendContext
         else -> !origin.isSynthetic
     }
 
+    private fun shouldReplaceDeclarations(): Boolean =
+        context.configuration.getBoolean(JVMConfigurationKeys.REWRITE_JVM_STATIC_IN_COMPANION)
+
+    // TODO: We avoid trying to replace property accessors because it's not worth it for now, as it would require us to manually rewrite
+    //  the whole function body and stop the accessors getting generated. Is it worth trying this in the future?
+    private fun IrSimpleFunction.shouldReplaceDeclaration(): Boolean =
+        shouldReplaceDeclarations() && origin != IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
+
     override fun visitClass(declaration: IrClass): IrStatement =
         super.visitClass(declaration).also {
-            declaration.companionObject()?.declarations?.transformInPlace {
-                if (it is IrSimpleFunction && it.isJvmStaticDeclaration() && it.needsStaticProxy()) {
-                    val (static, companionFun) = context.cachedDeclarations.getStaticAndCompanionDeclaration(it)
-                    declaration.declarations.add(static)
-                    companionFun
-                } else it
+            val iterator = declaration.companionObject()?.declarations?.listIterator() ?: return@also
+            while (iterator.hasNext()) {
+                val function = iterator.next()
+                // Skip all non-functions as we shouldn't be doing anything with them.
+                if (function !is IrSimpleFunction) continue
+                if (function.isJvmStaticDeclaration() && function.needsStaticProxy()) {
+                    if (function.shouldReplaceDeclaration()) {
+                        val replacement = context.cachedDeclarations.getStaticCompanionReplacementDeclaration(function)
+                        declaration.declarations.add(replacement)
+                        iterator.remove()
+                    } else {
+                        val (static, companionFun) = context.cachedDeclarations.getStaticAndCompanionDeclaration(function)
+                        declaration.declarations.add(static)
+                        iterator.set(companionFun)
+                    }
+                }
             }
         }
 
@@ -146,8 +163,14 @@ private class CompanionObjectJvmStaticTransformer(val context: JvmBackendContext
         val callee = expression.symbol.owner
         return when {
             shouldReplaceWithStaticCall(callee) -> {
-                val (staticProxy, _) = context.cachedDeclarations.getStaticAndCompanionDeclaration(callee)
-                expression.makeStatic(context.irBuiltIns, staticProxy)
+                val static = if (callee.shouldReplaceDeclaration()) {
+                    // If this is true, we know that companion jvm statics were replaced with actual static methods, so we know we need to
+                    // replace the calls with the corresponding static replacement methods.
+                    context.cachedDeclarations.getStaticCompanionReplacementDeclaration(callee)
+                } else {
+                    context.cachedDeclarations.getStaticAndCompanionDeclaration(callee).first
+                }
+                expression.makeStatic(context.irBuiltIns, static)
             }
             callee.symbol == context.ir.symbols.indyLambdaMetafactoryIntrinsic -> {
                 val implFunRef = expression.getValueArgument(1) as? IrFunctionReference
@@ -174,7 +197,7 @@ private class CompanionObjectJvmStaticTransformer(val context: JvmBackendContext
     }
 
     private fun shouldReplaceWithStaticCall(callee: IrSimpleFunction) =
-        callee.isJvmStaticInCompanion() &&
+        callee.isJvmStaticInCompanion() && callee.shouldReplaceDeclaration() ||
                 callee.visibility == DescriptorVisibilities.PROTECTED &&
                 !callee.isInlineFunctionCall(context)
 }
