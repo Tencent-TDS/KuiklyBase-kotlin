@@ -27649,6 +27649,18 @@ public class IrJsES6CodegenBoxTestGenerated extends AbstractIrJsES6CodegenBoxTes
             runTest("compiler/testData/codegen/box/ranges/safeCallRangeTo.kt");
         }
 
+        @Test
+        @TestMetadata("stepUntilMinValue.kt")
+        public void testStepUntilMinValue() throws Exception {
+            runTest("compiler/testData/codegen/box/ranges/stepUntilMinValue.kt");
+        }
+
+        @Test
+        @TestMetadata("stepUntilSimpleConst.kt")
+        public void testStepUntilSimpleConst() throws Exception {
+            runTest("compiler/testData/codegen/box/ranges/stepUntilSimpleConst.kt");
+        }
+
         @Nested
         @TestMetadata("compiler/testData/codegen/box/ranges/contains")
         @TestDataPath("$PROJECT_ROOT")

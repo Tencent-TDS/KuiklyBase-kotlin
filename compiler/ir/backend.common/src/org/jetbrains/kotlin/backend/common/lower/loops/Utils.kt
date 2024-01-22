@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.common.lower.loops
 
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.builtins.PrimitiveType
+import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -50,6 +51,8 @@ internal fun IrExpression.decrement(): IrExpression {
         is Int -> IrConstImpl(startOffset, endOffset, type, IrConstKind.Int, thisValue - 1)
         is Long -> IrConstImpl(startOffset, endOffset, type, IrConstKind.Long, thisValue - 1)
         is Char -> IrConstImpl(startOffset, endOffset, type, IrConstKind.Char, thisValue - 1)
+        is Short -> IrConstImpl(startOffset, endOffset, type, IrConstKind.Short, (thisValue - 1).toShort())
+        is Byte -> IrConstImpl(startOffset, endOffset, type, IrConstKind.Byte, (thisValue - 1).toByte())
         else -> {
             val decFun = type.getClass()!!.functions.single {
                 it.name == OperatorNameConventions.DEC &&
@@ -166,12 +169,12 @@ internal fun DeclarationIrBuilder.createLoopTemporaryVariableIfNecessary(
         Pair(null, expression)
     }
 
-internal fun IrExpression.castIfNecessary(targetClass: IrClass) =
-    when {
+internal fun IrExpression.castIfNecessary(targetClass: IrClass): IrExpression {
+    val targetType = targetClass.defaultType
+    return when {
         // This expression's type could be Nothing from an exception throw.
-        type == targetClass.defaultType || type.isNothing() -> this
-        this is IrConst<*> && targetClass.defaultType.isPrimitiveType() -> { // TODO: convert unsigned too?
-            val targetType = targetClass.defaultType
+        type == targetType || type.isNothing() -> this
+        this is IrConst<*> && targetType.isPrimitiveType() -> {
             when (targetType.getPrimitiveType()) {
                 PrimitiveType.BYTE -> IrConstImpl.byte(startOffset, endOffset, targetType, value.toByte()!!)
                 PrimitiveType.SHORT -> IrConstImpl.short(startOffset, endOffset, targetType, value.toShort()!!)
@@ -179,6 +182,15 @@ internal fun IrExpression.castIfNecessary(targetClass: IrClass) =
                 PrimitiveType.LONG -> IrConstImpl.long(startOffset, endOffset, targetType, value.toLong()!!)
                 PrimitiveType.FLOAT -> IrConstImpl.float(startOffset, endOffset, targetType, value.toFloat()!!)
                 PrimitiveType.DOUBLE -> IrConstImpl.double(startOffset, endOffset, targetType, value.toDouble()!!)
+                else -> error("Cannot cast expression of type ${type.render()} to ${targetType.render()}")
+            }
+        }
+        this is IrConst<*> && targetType.isUnsignedType() -> {
+            when (targetType.getUnsignedType()) {
+                UnsignedType.UBYTE -> IrConstImpl.byte(startOffset, endOffset, targetType, value.toByte()!!)
+                UnsignedType.USHORT -> IrConstImpl.short(startOffset, endOffset, targetType, value.toShort()!!)
+                UnsignedType.UINT -> IrConstImpl.int(startOffset, endOffset, targetType, value.toInt()!!)
+                UnsignedType.ULONG -> IrConstImpl.long(startOffset, endOffset, targetType, value.toLong()!!)
                 else -> error("Cannot cast expression of type ${type.render()} to ${targetType.render()}")
             }
         }
@@ -197,3 +209,4 @@ internal fun IrExpression.castIfNecessary(targetClass: IrClass) =
             ).apply { dispatchReceiver = this@castIfNecessary }
         }
     }
+}
