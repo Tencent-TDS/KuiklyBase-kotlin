@@ -1,5 +1,7 @@
 // IGNORE_BACKEND_K2: JVM_IR
 // ISSUE: KT-74999
+// IGNORE_NATIVE: optimizationMode=DEBUG
+// IGNORE_NATIVE: optimizationMode=NO
 
 interface Traversable {
     fun foo(): String = "fail"
