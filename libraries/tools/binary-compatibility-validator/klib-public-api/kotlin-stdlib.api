@@ -1662,6 +1662,98 @@ final class kotlin.concurrent.atomics/AtomicLongArray { // kotlin.concurrent.ato
     final fun set(kotlin/Int, kotlin/Long) // kotlin.concurrent.atomics/AtomicLongArray.set|set(kotlin.Int;kotlin.Long){}[0]
 }
 
+final class kotlin.internal/Ref { // kotlin.internal/Ref|null[0]
+    final class <#A1: kotlin/Any> ObjectRef : kotlin.io/Serializable { // kotlin.internal/Ref.ObjectRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.ObjectRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.ObjectRef.element|{}element[0]
+            final fun <get-element>(): #A1? // kotlin.internal/Ref.ObjectRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(#A1?) // kotlin.internal/Ref.ObjectRef.element.<set-element>|<set-element>(1:0?){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.ObjectRef.toString|toString(){}[0]
+    }
+
+    final class BooleanRef : kotlin.io/Serializable { // kotlin.internal/Ref.BooleanRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.BooleanRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.BooleanRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Boolean // kotlin.internal/Ref.BooleanRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Boolean) // kotlin.internal/Ref.BooleanRef.element.<set-element>|<set-element>(kotlin.Boolean){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.BooleanRef.toString|toString(){}[0]
+    }
+
+    final class ByteRef : kotlin.io/Serializable { // kotlin.internal/Ref.ByteRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.ByteRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.ByteRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Byte // kotlin.internal/Ref.ByteRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Byte) // kotlin.internal/Ref.ByteRef.element.<set-element>|<set-element>(kotlin.Byte){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.ByteRef.toString|toString(){}[0]
+    }
+
+    final class CharRef : kotlin.io/Serializable { // kotlin.internal/Ref.CharRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.CharRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.CharRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Char // kotlin.internal/Ref.CharRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Char) // kotlin.internal/Ref.CharRef.element.<set-element>|<set-element>(kotlin.Char){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.CharRef.toString|toString(){}[0]
+    }
+
+    final class DoubleRef : kotlin.io/Serializable { // kotlin.internal/Ref.DoubleRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.DoubleRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.DoubleRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Double // kotlin.internal/Ref.DoubleRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Double) // kotlin.internal/Ref.DoubleRef.element.<set-element>|<set-element>(kotlin.Double){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.DoubleRef.toString|toString(){}[0]
+    }
+
+    final class FloatRef : kotlin.io/Serializable { // kotlin.internal/Ref.FloatRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.FloatRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.FloatRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Float // kotlin.internal/Ref.FloatRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Float) // kotlin.internal/Ref.FloatRef.element.<set-element>|<set-element>(kotlin.Float){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.FloatRef.toString|toString(){}[0]
+    }
+
+    final class IntRef : kotlin.io/Serializable { // kotlin.internal/Ref.IntRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.IntRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.IntRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Int // kotlin.internal/Ref.IntRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Int) // kotlin.internal/Ref.IntRef.element.<set-element>|<set-element>(kotlin.Int){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.IntRef.toString|toString(){}[0]
+    }
+
+    final class LongRef : kotlin.io/Serializable { // kotlin.internal/Ref.LongRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.LongRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.LongRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Long // kotlin.internal/Ref.LongRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Long) // kotlin.internal/Ref.LongRef.element.<set-element>|<set-element>(kotlin.Long){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.LongRef.toString|toString(){}[0]
+    }
+
+    final class ShortRef : kotlin.io/Serializable { // kotlin.internal/Ref.ShortRef|null[0]
+        constructor <init>() // kotlin.internal/Ref.ShortRef.<init>|<init>(){}[0]
+
+        final var element // kotlin.internal/Ref.ShortRef.element|{}element[0]
+            final fun <get-element>(): kotlin/Short // kotlin.internal/Ref.ShortRef.element.<get-element>|<get-element>(){}[0]
+            final fun <set-element>(kotlin/Short) // kotlin.internal/Ref.ShortRef.element.<set-element>|<set-element>(kotlin.Short){}[0]
+
+        final fun toString(): kotlin/String // kotlin.internal/Ref.ShortRef.toString|toString(){}[0]
+    }
+}
+
 final class kotlin.ranges/CharRange : kotlin.ranges/CharProgression, kotlin.ranges/ClosedRange<kotlin/Char>, kotlin.ranges/OpenEndRange<kotlin/Char> { // kotlin.ranges/CharRange|null[0]
     constructor <init>(kotlin/Char, kotlin/Char) // kotlin.ranges/CharRange.<init>|<init>(kotlin.Char;kotlin.Char){}[0]
 

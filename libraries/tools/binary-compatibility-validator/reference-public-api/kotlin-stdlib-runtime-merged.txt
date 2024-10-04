@@ -3218,6 +3218,63 @@ public final class kotlin/internal/ProgressionUtilKt {
 	public static final fun getProgressionLastElement (JJJ)J
 }
 
+public final class kotlin/internal/Ref {
+}
+
+public final class kotlin/internal/Ref$BooleanRef : java/io/Serializable {
+	public field element Z
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$ByteRef : java/io/Serializable {
+	public field element B
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$CharRef : java/io/Serializable {
+	public field element C
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$DoubleRef : java/io/Serializable {
+	public field element D
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$FloatRef : java/io/Serializable {
+	public field element F
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$IntRef : java/io/Serializable {
+	public field element I
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$LongRef : java/io/Serializable {
+	public field element J
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$ObjectRef : java/io/Serializable {
+	public field element Ljava/lang/Object;
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class kotlin/internal/Ref$ShortRef : java/io/Serializable {
+	public field element S
+	public fun <init> ()V
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class kotlin/internal/UProgressionUtilKt {
 	public static final fun getProgressionLastElement-7ftBX0g (JJJ)J
 	public static final fun getProgressionLastElement-Nkh28Cs (III)I
