@@ -68,7 +68,7 @@ public class AsmTypes {
 
     public static final String REFLECTION = "kotlin/jvm/internal/Reflection";
 
-    private static final String REF_TYPE_PREFIX = "kotlin/jvm/internal/Ref$";
+    private static final String REF_TYPE_PREFIX = "kotlin/internal/Ref$";
     public static final Type OBJECT_REF_TYPE = Type.getObjectType(REF_TYPE_PREFIX + "ObjectRef");
 
     public static final Type ENUM_ENTRIES = Type.getObjectType("kotlin/enums/EnumEntries");

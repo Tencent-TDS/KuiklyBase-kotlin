@@ -20,4 +20,4 @@ fun doIt(block: () -> Unit) {
 }
 
 // 0 ISTORE 0
-// 1 LOCALVARIABLE c Lkotlin/jvm/internal/Ref\$CharRef;
+// 1 LOCALVARIABLE c Lkotlin/internal/Ref\$CharRef;

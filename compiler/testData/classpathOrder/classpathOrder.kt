@@ -1,7 +1,7 @@
 package test
 
 import kotlin.jvm.internal.Intrinsics
-import kotlin.jvm.internal.Ref
+import kotlin.internal.Ref
 
 fun foo(): String {
     // This method call should be resolved to kotlin-runtime.jar

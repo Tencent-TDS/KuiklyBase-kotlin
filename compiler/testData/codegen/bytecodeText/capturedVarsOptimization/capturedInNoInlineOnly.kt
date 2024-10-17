@@ -5,6 +5,6 @@ fun test() {
     runNoInline { ++x }
 }
 
-// 1 NEW kotlin/jvm/internal/Ref\$IntRef
-// 2 GETFIELD kotlin/jvm/internal/Ref\$IntRef\.element
-// 2 PUTFIELD kotlin/jvm/internal/Ref\$IntRef\.element
+// 1 NEW kotlin/internal/Ref\$IntRef
+// 2 GETFIELD kotlin/internal/Ref\$IntRef\.element
+// 2 PUTFIELD kotlin/internal/Ref\$IntRef\.element

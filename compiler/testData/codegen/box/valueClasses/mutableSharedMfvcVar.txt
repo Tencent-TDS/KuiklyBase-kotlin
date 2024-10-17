@@ -24,5 +24,5 @@ public final class DPoint {
 public final class MutableSharedMfvcVarKt {
     // source: 'mutableSharedMfvcVar.kt'
     public final static @org.jetbrains.annotations.NotNull method box(): java.lang.String
-    public final inner class kotlin/jvm/internal/Ref$DoubleRef
+    public final inner class kotlin/internal/Ref$DoubleRef
 }

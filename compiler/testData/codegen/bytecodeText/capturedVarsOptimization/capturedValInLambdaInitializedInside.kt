@@ -10,4 +10,4 @@ fun box(): String {
 }
 
 // 2 ObjectRef
-// 1 INNERCLASS kotlin.jvm.internal.Ref\$ObjectRef kotlin.jvm.internal.Ref ObjectRef
+// 1 INNERCLASS kotlin.internal.Ref\$ObjectRef kotlin.internal.Ref ObjectRef

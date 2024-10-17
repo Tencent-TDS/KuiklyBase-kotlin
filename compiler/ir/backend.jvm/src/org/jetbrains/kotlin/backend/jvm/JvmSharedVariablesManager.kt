@@ -31,11 +31,11 @@ class JvmSharedVariablesManager(
     val irBuiltIns: IrBuiltIns,
     irFactory: IrFactory,
 ) : SharedVariablesManager {
-    private val jvmInternalPackage = createEmptyExternalPackageFragment(
-        module, FqName("kotlin.jvm.internal")
+    private val kotlinInternalPackage = createEmptyExternalPackageFragment(
+        module, FqName("kotlin.internal")
     )
 
-    private val refNamespaceClass = irFactory.addClass(jvmInternalPackage) {
+    private val refNamespaceClass = irFactory.addClass(kotlinInternalPackage) {
         name = Name.identifier("Ref")
     }
 
@@ -68,11 +68,11 @@ class JvmSharedVariablesManager(
         }.apply {
             addTypeParameter {
                 name = Name.identifier("T")
-                superTypes.add(irBuiltIns.anyNType)
+                superTypes.add(irBuiltIns.anyType)
             }
             createThisReceiverParameter()
         }
-        RefProvider(refClass, refClass.typeParameters[0].defaultType)
+        RefProvider(refClass, refClass.typeParameters[0].defaultType.makeNullable())
     }
 
     fun getProvider(valueType: IrType): RefProvider =
@@ -84,7 +84,7 @@ class JvmSharedVariablesManager(
     override fun declareSharedVariable(originalDeclaration: IrVariable): IrVariable {
         val valueType = originalDeclaration.type
         val provider = getProvider(InlineClassAbi.unboxType(valueType) ?: valueType)
-        val typeArguments = provider.refClass.typeParameters.map { valueType }
+        val typeArguments = provider.refClass.typeParameters.map { valueType.makeNotNull() }
         val refType = provider.refClass.typeWith(typeArguments)
         val refConstructorCall = IrConstructorCallImpl.fromSymbolOwner(
             originalDeclaration.startOffset, originalDeclaration.startOffset, refType, provider.refConstructor.symbol

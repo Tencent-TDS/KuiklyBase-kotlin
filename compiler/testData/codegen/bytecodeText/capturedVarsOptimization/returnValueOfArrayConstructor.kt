@@ -4,4 +4,4 @@ fun f() = IntArray(1) { run { return@IntArray 1 } }
 // The var should be optimized, but InnerClasses attribute will be added anyway.
 
 // 2 IntRef
-// 1 INNERCLASS kotlin.jvm.internal.Ref\$IntRef kotlin.jvm.internal.Ref IntRef
+// 1 INNERCLASS kotlin.internal.Ref\$IntRef kotlin.internal.Ref IntRef

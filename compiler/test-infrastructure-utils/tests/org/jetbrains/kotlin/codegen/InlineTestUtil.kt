@@ -201,7 +201,7 @@ object InlineTestUtil {
     }
 
     private fun isTopLevelOrInnerOrPackageClass(classInternalName: String, inlineInfo: InlineInfo): Boolean {
-        if (classInternalName.startsWith("kotlin/jvm/internal/"))
+        if (classInternalName.startsWith("kotlin/jvm/internal/") || classInternalName.startsWith("kotlin/internal/Ref"))
             return true
 
         return isClassOrPackagePartKind(inlineInfo.binaryClasses.getValue(classInternalName))

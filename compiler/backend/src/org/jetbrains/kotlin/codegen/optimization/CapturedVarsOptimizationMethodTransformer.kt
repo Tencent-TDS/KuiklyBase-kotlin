@@ -27,7 +27,7 @@ class CapturedVarsOptimizationMethodTransformer : MethodTransformer() {
 
     // Tracks proper usages of objects corresponding to captured variables.
     //
-    // The 'kotlin.jvm.internal.Ref.*' instance can be replaced with a local variable, if
+    // The 'kotlin.internal.Ref.*' instance can be replaced with a local variable, if
     //  * it is created inside a current method;
     //  * the only operations on it are ALOAD, ASTORE, DUP, POP, GETFIELD element, PUTFIELD element.
     //

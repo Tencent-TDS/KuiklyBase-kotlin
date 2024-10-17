@@ -34,7 +34,7 @@ public actual fun <T, K> Grouping<T, K>.eachCount(): Map<K, Int> =
 public inline fun <T, K> Grouping<T, K>.eachSumOf(valueSelector: (T) -> Int): Map<K, Int> =
         // fold(0) { acc, e -> acc + valueSelector(e)} optimized for boxing
         foldTo( destination = mutableMapOf(),
-                initialValueSelector = { _, _ -> kotlin.jvm.internal.Ref.IntRef() },
+                initialValueSelector = { _, _ -> kotlin.internal.Ref.IntRef() },
                 operation = { _, acc, e -> acc.apply { element += valueSelector(e) } })
         .mapValuesInPlace { it.value.element }
 */

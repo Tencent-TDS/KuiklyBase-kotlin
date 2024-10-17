@@ -3,10 +3,10 @@ public final class _2Kt$box$$inlined$test$1 {
     // source: '1.kt'
     enclosing method _2Kt.box()V
     synthetic final field $captured$inlined: java.lang.String
-    synthetic final field $z$inlined: kotlin.jvm.internal.Ref$ObjectRef
+    synthetic final field $z$inlined: kotlin.internal.Ref$ObjectRef
     private final field p: java.lang.String
     inner (anonymous) class _2Kt$box$$inlined$test$1
-    public method <init>(p0: kotlin.jvm.internal.Ref$ObjectRef, p1: java.lang.String): void
+    public method <init>(p0: kotlin.internal.Ref$ObjectRef, p1: java.lang.String): void
     public method a(): java.lang.String
     public final method getP(): java.lang.String
 }
@@ -27,7 +27,7 @@ public final class _2Kt {
     // source: '2.kt'
     inner (anonymous) class _2Kt$box$res$1$1$1
     public final static method box(): void
-    public final inner class kotlin/jvm/internal/Ref$ObjectRef
+    public final inner class kotlin/internal/Ref$ObjectRef
 }
 
 @kotlin.Metadata
