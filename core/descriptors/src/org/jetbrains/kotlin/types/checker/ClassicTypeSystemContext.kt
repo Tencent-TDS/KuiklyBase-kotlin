@@ -619,13 +619,12 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         errorSupportedOnlyInTypeInference()
     }
 
-    override fun typeSubstitutorByTypeConstructor(map: Map<TypeConstructorMarker, KotlinTypeMarker>): TypeSubstitutorMarker {
-        errorSupportedOnlyInTypeInference()
-    }
+    override fun typeSubstitutorByTypeConstructor(map: Map<TypeConstructorMarker, KotlinTypeMarker>): TypeSubstitutorMarker =
+        @Suppress("UNCHECKED_CAST")
+        TypeSubstitutor.create(map.mapValues { (_, v) -> v.asTypeArgument() } as Map<TypeConstructor, TypeProjection>)
 
-    override fun createEmptySubstitutor(): TypeSubstitutorMarker {
-        errorSupportedOnlyInTypeInference()
-    }
+    override fun createEmptySubstitutor(): TypeSubstitutorMarker =
+        TypeSubstitutor.EMPTY
 
     @K2Only
     override fun createSubstitutionFromSubtypingStubTypesToTypeVariables(): TypeSubstitutorMarker {

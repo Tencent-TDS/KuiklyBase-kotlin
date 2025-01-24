@@ -478,10 +478,14 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
     override fun KotlinTypeMarker.getSubstitutedUnderlyingType(): KotlinTypeMarker? =
         getUnsubstitutedUnderlyingType()?.let { type ->
             // Taking only the type parameters of the class (and not its outer classes) is OK since inner classes are always top level
-            IrTypeSubstitutor(
-                (this as IrType).getClass()!!.typeParameters.memoryOptimizedMap { it.symbol },
-                (this as? IrSimpleType)?.arguments.orEmpty(),
-            ).substitute(type as IrType)
+            val typeParameters = (this as IrType).getClass()!!.typeParameters.memoryOptimizedMap { it.symbol }
+            val typeArguments = (this as? IrSimpleType)?.arguments.orEmpty().mapIndexed { index, typeArgument ->
+                if (typeArgument is IrStarProjection) {
+                    val typeParameter = typeParameters[index]
+                    makeTypeProjection(typeParameter.getRepresentativeUpperBound() as IrType, typeParameter.owner.variance)
+                } else typeArgument
+            }
+            IrTypeSubstitutor(typeParameters, typeArguments).substitute(type as IrType)
         }
 
     override fun TypeConstructorMarker.getPrimitiveType(): PrimitiveType? =
