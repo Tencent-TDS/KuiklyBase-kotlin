@@ -123,6 +123,12 @@ internal class NewInferenceErrorImpl(
     token: KaLifetimeToken,
 ) : KaAbstractFirDiagnostic<PsiElement>(firDiagnostic, token), KaFirDiagnostic.NewInferenceError
 
+internal class MyErrorImpl(
+    override val content: String,
+    firDiagnostic: KtPsiDiagnostic,
+    token: KaLifetimeToken,
+) : KaAbstractFirDiagnostic<PsiElement>(firDiagnostic, token), KaFirDiagnostic.MyError
+
 internal class OtherErrorImpl(
     firDiagnostic: KtPsiDiagnostic,
     token: KaLifetimeToken,

@@ -58,6 +58,9 @@ object DIAGNOSTICS_LIST : DiagnosticList("FirErrors") {
         val NEW_INFERENCE_ERROR by error<PsiElement> {
             parameter<String>("error")
         }
+        val MY_ERROR by warning<PsiElement> {
+            parameter<String>("content")
+        }
     }
 
     val Miscellaneous by object : DiagnosticGroup("Miscellaneous") {
