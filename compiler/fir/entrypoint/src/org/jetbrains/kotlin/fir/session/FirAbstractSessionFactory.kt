@@ -195,6 +195,7 @@ abstract class FirAbstractSessionFactory<LIBRARY_CONTEXT, SOURCE_CONTEXT> {
         sessionProvider: FirProjectSessionProvider,
         extensionRegistrars: List<FirExtensionRegistrar>,
         configuration: CompilerConfiguration,
+        isForLeafHmppModule: Boolean,
         init: FirSessionConfigurator.() -> Unit,
         createProviders: (
             FirSession, FirKotlinScopeProvider, FirSymbolProvider,
