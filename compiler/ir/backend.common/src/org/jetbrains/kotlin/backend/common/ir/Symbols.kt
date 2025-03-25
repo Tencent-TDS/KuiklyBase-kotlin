@@ -13,9 +13,12 @@ import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.Name
 
@@ -162,6 +165,41 @@ open class BuiltinSymbolsBase(val irBuiltIns: IrBuiltIns) {
     val memberToString: IrSimpleFunctionSymbol get() = irBuiltIns.memberToString
     val extensionStringPlus: IrSimpleFunctionSymbol get() = irBuiltIns.extensionStringPlus
     val memberStringPlus: IrSimpleFunctionSymbol get() = irBuiltIns.memberStringPlus
+
+    data class RefProvider(
+        val refClass: IrClassSymbol,
+        val refConstructor: IrConstructorSymbol,
+        val elementProperty: IrPropertySymbol,
+        val hasTypeParameter: Boolean,
+    ) {
+        fun makeType(valueType: IrType): IrSimpleType =
+            IrSimpleTypeImpl(
+                classifier = refClass,
+                nullability = SimpleTypeNullability.NOT_SPECIFIED,
+                arguments = if (hasTypeParameter) listOf(valueType) else emptyList(),
+                annotations = emptyList(),
+            )
+    }
+
+    private val refNamespaceClass: IrClassSymbol = symbolFinder.findClass(Name.identifier("Ref"), StandardNames.KOTLIN_INTERNAL_FQ_NAME)!!
+
+    private fun createRefProvider(namePrefix: String, hasTypeParameter: Boolean): RefProvider {
+        val refClass = symbolFinder.findNestedClass(refNamespaceClass, Name.identifier("${namePrefix}Ref"))!!
+        return RefProvider(
+            refClass,
+            symbolFinder.findPrimaryConstructor(refClass)!!,
+            symbolFinder.findMemberProperty(refClass, Name.identifier("element"))!!,
+            hasTypeParameter,
+        )
+    }
+
+    private val primitiveRefProviders: Map<IrType, RefProvider> = PrimitiveType.entries.associate {
+        irBuiltIns.primitiveTypeToIrType.getValue(it) to createRefProvider(it.typeName.asString(), hasTypeParameter = false)
+    }
+
+    private val objectRefProvider: RefProvider = createRefProvider("Object", hasTypeParameter = true)
+
+    fun getRefProvider(type: IrType): RefProvider = primitiveRefProviders[type] ?: objectRefProvider
 
     fun isStringPlus(functionSymbol: IrFunctionSymbol): Boolean {
         val plusSymbol = when {

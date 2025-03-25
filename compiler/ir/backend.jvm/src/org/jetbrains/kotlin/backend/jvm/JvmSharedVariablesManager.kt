@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.backend.jvm
 
+import org.jetbrains.kotlin.backend.common.ir.BuiltinSymbolsBase
 import org.jetbrains.kotlin.backend.common.ir.SharedVariablesManager
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.declarations.*
@@ -17,81 +17,28 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrSetValue
 import org.jetbrains.kotlin.ir.expressions.impl.*
+import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
 import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.defaultValueForType
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
 
 class JvmSharedVariablesManager(
-    module: ModuleDescriptor,
     val symbols: JvmSymbols,
     val irBuiltIns: IrBuiltIns,
-    irFactory: IrFactory,
 ) : SharedVariablesManager() {
-    private val kotlinInternalPackage = createEmptyExternalPackageFragment(
-        module, FqName("kotlin.internal")
-    )
 
-    private val refNamespaceClass = irFactory.addClass(kotlinInternalPackage) {
-        name = Name.identifier("Ref")
-    }
-
-    class RefProvider(val refClass: IrClass, elementType: IrType) {
-        val refConstructor = refClass.addConstructor {
-            origin = IrDeclarationOrigin.IR_BUILTINS_STUB
-        }
-
-        val elementField = refClass.addField {
-            origin = IrDeclarationOrigin.IR_BUILTINS_STUB
-            name = Name.identifier("element")
-            type = elementType
-        }
-    }
-
-    private val primitiveRefProviders = irBuiltIns.primitiveIrTypes.associate { primitiveType ->
-        val refClass = irFactory.addClass(refNamespaceClass) {
-            origin = IrDeclarationOrigin.IR_BUILTINS_STUB
-            name = Name.identifier(primitiveType.classOrNull!!.owner.name.asString() + "Ref")
-        }.apply {
-            createThisReceiverParameter()
-        }
-        primitiveType.classifierOrFail to RefProvider(refClass, primitiveType)
-    }
-
-    private val objectRefProvider = run {
-        val refClass = irFactory.addClass(refNamespaceClass) {
-            origin = IrDeclarationOrigin.IR_BUILTINS_STUB
-            name = Name.identifier("ObjectRef")
-        }.apply {
-            addTypeParameter {
-                name = Name.identifier("T")
-                superTypes.add(irBuiltIns.anyType)
-            }
-            createThisReceiverParameter()
-        }
-        RefProvider(refClass, refClass.typeParameters[0].defaultType.makeNullable())
-    }
-
-    fun getProvider(valueType: IrType): RefProvider =
-        if (valueType.isPrimitiveType())
-            primitiveRefProviders.getValue(valueType.classifierOrFail)
-        else
-            objectRefProvider
+    private val BuiltinSymbolsBase.RefProvider.elementField: IrFieldSymbol
+        get() = elementProperty.owner.backingField!!.symbol
 
     override fun declareSharedVariable(originalDeclaration: IrVariable): IrVariable {
         val valueType = originalDeclaration.type
-        val provider = getProvider(InlineClassAbi.unboxType(valueType) ?: valueType)
-        val typeArguments = provider.refClass.typeParameters.map { valueType.makeNotNull() }
-        val refType = provider.refClass.typeWith(typeArguments)
+        val provider = symbols.getRefProvider(InlineClassAbi.unboxType(valueType) ?: valueType)
+        val refType = provider.makeType(valueType)
         val refConstructorCall = IrConstructorCallImpl.fromSymbolOwner(
-            originalDeclaration.startOffset, originalDeclaration.startOffset, refType, provider.refConstructor.symbol
+            originalDeclaration.startOffset, originalDeclaration.startOffset, refType, provider.refConstructor
         ).apply {
-            typeArguments.forEachIndexed { index, type ->
-                this.typeArguments[index] = type
-            }
+            refType.arguments.mapTo(typeArguments) { it.typeOrFail }
         }
         return with(originalDeclaration) {
             IrVariableImpl(
@@ -134,9 +81,9 @@ class JvmSharedVariablesManager(
     override fun getSharedValue(sharedVariableSymbol: IrValueSymbol, originalGet: IrGetValue): IrExpression =
         with(originalGet) {
             val unboxedType = InlineClassAbi.unboxType(symbol.owner.type)
-            val provider = getProvider(unboxedType ?: symbol.owner.type)
+            val provider = symbols.getRefProvider(unboxedType ?: symbol.owner.type)
             val receiver = IrGetValueImpl(startOffset, endOffset, sharedVariableSymbol)
-            val unboxedRead = IrGetFieldImpl(startOffset, endOffset, provider.elementField.symbol, unboxedType ?: type, receiver, origin)
+            val unboxedRead = IrGetFieldImpl(startOffset, endOffset, provider.elementField, unboxedType ?: type, receiver, origin)
             unboxedType?.let { unsafeCoerce(unboxedRead, it, symbol.owner.type) } ?: unboxedRead
         }
 
@@ -144,23 +91,12 @@ class JvmSharedVariablesManager(
         with(originalSet) {
             val unboxedType = InlineClassAbi.unboxType(symbol.owner.type)
             val unboxedValue = unboxedType?.let { unsafeCoerce(value, symbol.owner.type, it) } ?: value
-            val provider = getProvider(unboxedType ?: symbol.owner.type)
+            val provider = symbols.getRefProvider(unboxedType ?: symbol.owner.type)
             val receiver = IrGetValueImpl(startOffset, endOffset, sharedVariableSymbol)
-            IrSetFieldImpl(startOffset, endOffset, provider.elementField.symbol, receiver, unboxedValue, type, origin)
+            IrSetFieldImpl(startOffset, endOffset, provider.elementField, receiver, unboxedValue, type, origin)
         }
 
     @Suppress("MemberVisibilityCanBePrivate") // Used by FragmentSharedVariablesLowering
-    fun getIrType(originalType: IrType): IrType {
-        val provider = getProvider(InlineClassAbi.unboxType(originalType) ?: originalType)
-        val typeArguments = provider.refClass.typeParameters.map { originalType }
-        return provider.refClass.typeWith(typeArguments)
-    }
-}
-
-private inline fun IrFactory.addClass(
-    container: IrDeclarationContainer,
-    builder: IrClassBuilder.() -> Unit
-): IrClass = buildClass(builder).also {
-    it.parent = container
-    container.declarations += it
+    fun getIrType(originalType: IrType): IrType =
+        symbols.getRefProvider(InlineClassAbi.unboxType(originalType) ?: originalType).makeType(originalType)
 }

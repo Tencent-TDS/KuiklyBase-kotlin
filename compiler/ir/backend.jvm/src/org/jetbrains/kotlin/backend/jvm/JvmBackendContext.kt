@@ -80,7 +80,7 @@ class JvmBackendContext(
 
     override val symbols = JvmSymbols(this)
 
-    override val sharedVariablesManager = JvmSharedVariablesManager(state.module, symbols, irBuiltIns, irFactory)
+    override val sharedVariablesManager = JvmSharedVariablesManager(symbols, irBuiltIns)
 
     lateinit var getIntrinsic: (IrFunctionSymbol) -> IntrinsicMarker?
 
