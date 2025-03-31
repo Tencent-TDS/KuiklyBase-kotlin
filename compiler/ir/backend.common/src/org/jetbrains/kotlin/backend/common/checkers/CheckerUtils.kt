@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.isArray
 import org.jetbrains.kotlin.ir.types.isNullableArray
+import org.jetbrains.kotlin.ir.util.IdSignature.CommonSignature
 import org.jetbrains.kotlin.ir.util.fileOrNull
 import org.jetbrains.kotlin.ir.util.getPackageFragment
 import org.jetbrains.kotlin.ir.util.hasEqualFqName
@@ -78,12 +79,12 @@ internal val EXCLUDED_MODULE_NAMES: Set<Name> =
         KOTLINTEST_MODULE_NAME,
     ).mapTo(mutableSetOf()) { Name.special("<$it>") }
 
-private fun visibilityError(element: IrElement, visibility: Visibility, context: CheckerContext) {
+private fun visibilityError(element: IrElement, visibility: Visibility, context: CheckerContext, fqName: String) {
     val message = "The following element references " +
             if (visibility == Visibilities.Unknown) {
                 "a declaration with unknown visibility:"
             } else {
-                "'${visibility.name}' declaration that is invisible in the current scope:"
+                "'${visibility.name} $fqName' declaration that is invisible in the current scope:"
             }
     context.error(element, message)
 }
@@ -130,6 +131,19 @@ private val FQ_NAMES_EXCLUDED_FROM_VISIBILITY_CHECKS: Set<FqName> = listOf(
     "kotlin.native.internal.KTypeImpl",
     "kotlin.native.internal.KTypeProjectionList",
     "kotlin.native.internal.KTypeParameterImpl",
+    "kotlin.concurrent.atomicGet",
+    "kotlin.concurrent.atomicSet",
+    "kotlin.concurrent.compareAndExchange",
+    "kotlin.concurrent.getAndSet",
+    "kotlin.concurrent.getAndAdd",
+    "kotlin.concurrent.compareAndSet",
+    "kotlin.UninitializedPropertyAccessException",
+    "kotlin.coroutines.intrinsics.startCoroutineUninterceptedOrReturnFallback",
+    "kotlin.native.internal.KonanSet",
+    "kotlin.test.setAdapter",
+    "kotlin.test.test",
+    "kotlin.test.suite",
+    "kotlin.js.imul",
 ).mapTo(hashSetOf(), ::FqName)
 
 private fun IrSymbol.isExcludedFromVisibilityChecks(): Boolean {
@@ -155,6 +169,9 @@ internal fun checkVisibility(
     val referencedDeclaration = referencedDeclarationSymbol.owner as? IrDeclarationWithVisibility ?: return
     val classOfReferenced = referencedDeclaration.parentClassOrNull
     val visibility = referencedDeclaration.visibility.delegate
+    val signature = referencedDeclarationSymbol.signature as? CommonSignature
+    val fqName = "${signature?.packageFqName()}.${signature?.declarationFqName}"
+    if (!fqName.startsWith("kotlin")) return
 
     val effectiveVisibility = visibility.toEffectiveVisibilityOrNull(
         container = classOfReferenced?.symbol,
@@ -183,7 +200,7 @@ internal fun checkVisibility(
     }
 
     if (!isVisible) {
-        visibilityError(reference, visibility, context)
+        visibilityError(reference, visibility, context, fqName)
     }
 }
 
