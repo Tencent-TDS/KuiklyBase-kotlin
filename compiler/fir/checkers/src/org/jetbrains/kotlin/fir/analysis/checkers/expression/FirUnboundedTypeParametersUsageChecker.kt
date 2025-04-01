@@ -23,48 +23,56 @@ object FirUnboundedTypeParametersUsageChecker : FirBasicExpressionChecker(MppChe
     @OptIn(SymbolInternals::class, UnexpandedTypeCheck::class)
     override fun check(expression: FirStatement, context: CheckerContext, reporter: DiagnosticReporter) {
         val report: (String) -> Unit = {
+            val filename = context.containingFile?.sourceFile?.run { path ?: name } ?: "unknown"
+
+            val mapping = context.containingFile?.sourceFileLinesMapping
+            val offset = expression.source?.startOffset
+            val loc = offset?.let { mapping?.getLineAndColumnByOffset(it) }
+
             reporter.reportOn(
                 expression.source,
                 FirErrors.INVALID_USAGE_OF_UNBOUNDED_TYPE_PARAMETER,
-                "ROMANV; $it;ROMANV",
+                "ROMANV; LOC: ${filename}:${loc?.first}:${loc?.second}; $it ;ROMANV",
                 context,
             )
         }
 
         try {
-
             when (expression) {
                 is FirSafeCallExpression -> {
-                    expression.receiver.reportIfUnboundedTypeParameter(report) { "SAFE_CALL" }
+                    expression.receiver.reportIfUnboundedTypeParameter(report) { "TYPE: SAFE_CALL" }
                 }
                 is FirEqualityOperatorCall -> {
                     expression.argumentList.arguments.forEach {
-                        it.reportIfUnboundedTypeParameter(report) { "EQUALITY" }
+                        it.reportIfUnboundedTypeParameter(report) { "TYPE: EQUALITY" }
                     }
                 }
                 is FirCheckNotNullCall -> {
-                    expression.argument.reportIfUnboundedTypeParameter(report) { "BANG_BANG" }
+                    expression.argument.reportIfUnboundedTypeParameter(report) { "TYPE: BANG_BANG" }
                 }
                 is FirPropertyAccessExpression -> {
                     val prop = expression.calleeReference.resolved?.resolvedSymbol?.fir as? FirProperty ?: return
+                    val propName = "; NAME: ${prop.symbol.name.identifier}"
                     if (prop.receiverParameter?.typeRef?.isNullableAny == true) {
-                        expression.extensionReceiver?.reportIfUnboundedTypeParameter(report) { "PROP_EXTENSION_RECEIVER" }
+                        expression.extensionReceiver?.reportIfUnboundedTypeParameter(report) { "TYPE: PROP_EXTENSION_RECEIVER$propName" }
                     }
                     if (prop.dispatchReceiverType?.isNullableAny == true) {
-                        expression.dispatchReceiver?.reportIfUnboundedTypeParameter(report) { "PROP_DISPATCH_RECEIVER" }
+                        expression.dispatchReceiver?.reportIfUnboundedTypeParameter(report) { "TYPE: PROP_DISPATCH_RECEIVER$propName" }
                     }
                 }
                 is FirFunctionCall -> {
                     val func = expression.calleeReference.resolved?.resolvedSymbol?.fir as? FirFunction ?: return
+                    val funcName = "; NAME: ${func.symbol.name.identifier}"
                     if (func.receiverParameter?.typeRef?.isNullableAny == true) {
-                        expression.extensionReceiver?.reportIfUnboundedTypeParameter(report) { "FUNC_EXTENSION_RECEIVER" }
+                        expression.extensionReceiver?.reportIfUnboundedTypeParameter(report) { "TYPE: FUNC_EXTENSION_RECEIVER$funcName" }
                     }
                     if (func.dispatchReceiverType?.isNullableAny == true) {
-                        expression.dispatchReceiver?.reportIfUnboundedTypeParameter(report) { "FUNC_DISPATCH_RECEIVER" }
+                        expression.dispatchReceiver?.reportIfUnboundedTypeParameter(report) { "TYPE: FUNC_DISPATCH_RECEIVER$funcName" }
                     }
                     func.valueParameters.forEachIndexed { index, param ->
                         if (param.returnTypeRef.isNullableAny) {
-                            expression.argumentList.arguments.getOrNull(index)?.reportIfUnboundedTypeParameter(report) { "FUNC_PARAM" }
+                            expression.argumentList.arguments.getOrNull(index)
+                                ?.reportIfUnboundedTypeParameter(report) { "TYPE: FUNC_PARAM$funcName" }
                         }
                     }
                 }
