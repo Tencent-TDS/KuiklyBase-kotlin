@@ -13,7 +13,7 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.d8.D8EnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.d8.D8EnvSpec
 
 abstract class D8Extension(
     private val d8envSpec: D8EnvSpec,
