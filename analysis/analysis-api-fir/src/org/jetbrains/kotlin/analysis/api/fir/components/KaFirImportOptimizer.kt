@@ -29,12 +29,7 @@ import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.realPsi
 import org.jetbrains.kotlin.fir.references.FirErrorNamedReference
-import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeAmbiguityError
-import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeUnresolvedError
-import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeUnresolvedNameError
-import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeUnresolvedReferenceError
-import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeUnresolvedSymbolError
-import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeUnresolvedTypeQualifierError
+import org.jetbrains.kotlin.fir.resolve.diagnostics.*
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.lazyResolveToPhaseRecursively
@@ -279,9 +274,9 @@ internal class KaFirImportOptimizer(
                 val importableNames = with(analysisSession) {
                     val resolvedSymbols = KDocReferenceResolver
                         .resolveKdocFqName(useSiteSession, qualifiedNameAsFqName, qualifiedNameAsFqName, docLink)
-                    if (resolvedSymbols.isEmpty()) {
+                    if (resolvedSymbols.none()) {
                         unresolvedNames += qualifiedNameAsFqName.shortName()
-                        emptyList()
+                        emptySequence()
                     } else {
                         resolvedSymbols.flatMap { toImportableFqNames(it, qualifiedNameAsFqName) }
                     }

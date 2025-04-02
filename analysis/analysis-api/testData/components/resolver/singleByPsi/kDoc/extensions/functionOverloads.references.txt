@@ -22,3 +22,4 @@
     KDocReference:
       0: (in test) fun kotlin.Any.function()
       1: (in test) fun test.Base.function(i: kotlin.Int)
+      2: (in test.Base) fun function()

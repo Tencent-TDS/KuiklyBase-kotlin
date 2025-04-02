@@ -1,9 +1,9 @@
 <caret_1>:
   KDocName(50,53): 'foo'
     KDocReference:
-      0: (in foo) fun foo()
-      1: (in foo) interface foo
-      2: package foo
+      0: (in foo) interface foo
+      1: package foo
+      2: (in foo) fun foo()
 
 <caret_2>:
   KDocName(62,65): 'foo'
@@ -13,5 +13,5 @@
 <caret_3>:
   KDocName(75,82): 'foo.foo'
     KDocReference:
-      0: (in foo) fun foo()
-      1: (in foo) interface foo
+      0: (in foo) interface foo
+      1: (in foo) fun foo()

@@ -11,4 +11,5 @@
 <caret_3>:
   KDocName(66,78): 'Storage.prop'
     KDocReference:
-      (in Storage) open fun prop()
+      0: (in Storage) open fun prop()
+      1: (in Storage) open fun getProp(): kotlin.String!

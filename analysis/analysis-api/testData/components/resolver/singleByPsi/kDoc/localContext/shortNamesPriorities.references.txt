@@ -3,22 +3,26 @@
     KDocReference:
       0: (in AA) class AA
       1: package AA
+      2: (in AA) fun AA(a: kotlin.Int)
 
 <caret_2>:
   KDocName(51,53): 'AA'
     KDocReference:
       0: (in AA) fun AA(a: kotlin.Int)
-      1: package AA
+      1: (in AA) class AA
+      2: package AA
 
 <caret_3>:
   KDocName(102,104): 'bb'
     KDocReference:
-      (in AA) val bb: kotlin.Int
+      0: (in AA) val bb: kotlin.Int
+      1: (in AA) fun bb(): kotlin.Int
 
 <caret_4>:
   KDocName(137,139): 'bb'
     KDocReference:
-      (in AA) fun bb(): kotlin.Int
+      0: (in AA) fun bb(): kotlin.Int
+      1: (in AA) val bb: kotlin.Int
 
 <caret_5>:
   KDocName(180,182): 'bb'
@@ -30,5 +34,5 @@
   KDocName(284,286): 'AA'
     KDocReference:
       0: (in AA) class AA
-      1: (in AA) fun AA(a: kotlin.Int)
-      2: package AA
+      1: package AA
+      2: (in AA) fun AA(a: kotlin.Int)
