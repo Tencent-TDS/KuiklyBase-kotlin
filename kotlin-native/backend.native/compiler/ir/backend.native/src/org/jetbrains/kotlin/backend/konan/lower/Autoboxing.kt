@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.konan.lower
 
 import org.jetbrains.kotlin.backend.common.*
 import org.jetbrains.kotlin.backend.common.AbstractValueUsageTransformer
+import org.jetbrains.kotlin.backend.common.linkage.partial.PartiallyLinkedDeclarationOrigin
 import org.jetbrains.kotlin.utils.atMostOne
 import org.jetbrains.kotlin.backend.common.lower.*
 import org.jetbrains.kotlin.backend.konan.*
@@ -197,6 +198,12 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
                 actualType.makeNotNull() == expectedType.makeNotNull() -> this
                 expectedType.isUnit() ->
                     irBuilders.peek()!!.at(this).irImplicitCoercionToUnit(this)
+                erasedExpectedClass.origin == PartiallyLinkedDeclarationOrigin.MISSING_DECLARATION
+                        || (erasedExpectedClass.parent as? IrDeclarationContainer)?.declarations?.contains(erasedExpectedClass) == false
+                -> {
+                    // TODO: This is a workaround for KT-76471.
+                    this
+                }
                 //expectedType.isNothing() -> this // TODO
                 insertSafeCasts && !skipTypeCheck
                         // For type parameters, actualClass is null, and we
