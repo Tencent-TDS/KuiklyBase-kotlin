@@ -1,5 +1,6 @@
 // RUN_PIPELINE_TILL: BACKEND
 // JVM_TARGET: 1.8
+// LANGUAGE: +FixationLogs
 
 // FILE: Function.java
 public interface Function<I, O> {

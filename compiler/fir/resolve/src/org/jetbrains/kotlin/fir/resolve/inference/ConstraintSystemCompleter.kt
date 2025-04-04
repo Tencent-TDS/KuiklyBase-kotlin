@@ -336,6 +336,9 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
         }
 
         fixVariable(typeVariable, resultErrorType, ConeFixVariableConstraintPosition(typeVariable))
+        if (variableFixationFinder.provideFixationLogs) {
+            variableFixationFinder.fixationLogs.last().fixedTo = resultErrorType
+        }
     }
 
     private fun ConstraintSystemCompletionContext.getOrderedAllTypeVariables(
@@ -403,6 +406,9 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
 
         val variable = variableWithConstraints.typeVariable
         c.fixVariable(variable, resultType, ConeFixVariableConstraintPosition(variable))
+        if (variableFixationFinder.provideFixationLogs) {
+            variableFixationFinder.fixationLogs.last().fixedTo = resultType
+        }
     }
 
     companion object {

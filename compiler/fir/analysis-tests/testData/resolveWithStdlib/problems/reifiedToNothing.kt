@@ -1,5 +1,6 @@
 // RUN_PIPELINE_TILL: BACKEND
 // FIR_DUMP
+// LANGUAGE: +FixationLogs
 
 inline fun <reified P : Any> parse(text: String): P = TODO()
 
