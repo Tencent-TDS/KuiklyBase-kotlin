@@ -3,6 +3,9 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+@file:Suppress("FunctionName")
+@file:OptIn(ExperimentalWasmDsl::class)
+
 package org.jetbrains.kotlin.gradle.unitTests.uklibs
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -13,16 +16,12 @@ import org.jetbrains.kotlin.gradle.plugin.diagnostics.ToolingDiagnostic.Severity
 import org.jetbrains.kotlin.gradle.plugin.diagnostics.ToolingDiagnostic.Severity.WARNING
 import org.jetbrains.kotlin.gradle.plugin.mpp.external.createCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.external.createExternalKotlinTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.uklibs.UklibFragment
 import org.jetbrains.kotlin.gradle.plugin.mpp.uklibs.publication.validateKgpModelIsUklibCompliantAndCreateKgpFragments
-import org.jetbrains.kotlin.gradle.testing.PrettyPrint
-import org.jetbrains.kotlin.gradle.testing.prettyPrinted
 import org.jetbrains.kotlin.gradle.util.*
 import org.jetbrains.kotlin.konan.target.HostManager
-import kotlin.test.Test
+import org.junit.Test
 import kotlin.test.assertEquals
 
-@ExperimentalWasmDsl
 class UklibFromKGPFragmentsTests {
 
 
@@ -56,7 +55,6 @@ class UklibFromKGPFragmentsTests {
         buildProjectWithMPP(
             preApplyCode = {
                 setUklibPublicationStrategy()
-                enableCrossCompilation()
             }
         ) {
             kotlin {
@@ -123,7 +121,6 @@ class UklibFromKGPFragmentsTests {
         buildProjectWithMPP(
             preApplyCode = {
                 setUklibPublicationStrategy()
-                enableCrossCompilation()
             }
         ) {
             kotlin {
@@ -201,6 +198,7 @@ class UklibFromKGPFragmentsTests {
         buildProjectWithMPP(
             preApplyCode = {
                 setUklibPublicationStrategy()
+                disableCrossCompilation()
             }
         ) {
             kotlin {
@@ -278,7 +276,6 @@ class UklibFromKGPFragmentsTests {
         buildProjectWithMPP(
             preApplyCode = {
                 setUklibPublicationStrategy()
-                enableCrossCompilation()
             }
         ) {
             kotlin {

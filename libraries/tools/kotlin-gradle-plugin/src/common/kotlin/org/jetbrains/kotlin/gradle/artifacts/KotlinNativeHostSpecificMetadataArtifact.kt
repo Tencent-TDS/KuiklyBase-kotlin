@@ -52,8 +52,9 @@ internal val KotlinNativeHostSpecificMetadataArtifact = KotlinTargetArtifact { t
         metadataJar.group = BasePlugin.BUILD_GROUP
         metadataJar.description = "Assembles Kotlin metadata of target '${target.name}'."
 
-        val publishable = target.publishable
-        metadataJar.onlyIf { publishable }
+        metadataJar.onlyIf {
+            target.publishable
+        }
 
         project.launch {
             val metadataCompilations = hostSpecificSourceSets.mapNotNull {
