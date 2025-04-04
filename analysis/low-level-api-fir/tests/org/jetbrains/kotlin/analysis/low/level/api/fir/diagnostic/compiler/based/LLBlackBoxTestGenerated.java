@@ -17863,6 +17863,12 @@ public class LLBlackBoxTestGenerated extends AbstractLLBlackBoxTest {
     }
 
     @Test
+    @TestMetadata("lazyDelegateInObject.kt")
+    public void testLazyDelegateInObject() {
+      runTest("compiler/testData/codegen/box/delegatedProperty/lazyDelegateInObject.kt");
+    }
+
+    @Test
     @TestMetadata("local.kt")
     public void testLocal() {
       runTest("compiler/testData/codegen/box/delegatedProperty/local.kt");
