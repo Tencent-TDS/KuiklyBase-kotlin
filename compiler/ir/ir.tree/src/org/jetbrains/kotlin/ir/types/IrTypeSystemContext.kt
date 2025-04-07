@@ -296,6 +296,10 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
 
     override fun RigidTypeMarker.asArgumentList() = this as IrSimpleType
 
+    override fun TypeConstructorMarker.isUnknownConstructor(): Boolean {
+        return false
+    }
+
     override fun TypeConstructorMarker.isAnyConstructor(): Boolean =
         this is IrClassSymbol && isClassWithFqName(StandardNames.FqNames.any)
 

@@ -56320,6 +56320,35 @@ public class PhasedJvmDiagnosticLightTreeTestGenerated extends AbstractPhasedJvm
     }
 
     @Nested
+    @TestMetadata("compiler/fir/analysis-tests/testData/resolve/unbounded")
+    @TestDataPath("$PROJECT_ROOT")
+    public class Unbounded {
+      @Test
+      @TestMetadata("hashMap.kt")
+      public void testHashMap() {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unbounded/hashMap.kt");
+      }
+
+      @Test
+      @TestMetadata("operators.kt")
+      public void testOperators() {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unbounded/operators.kt");
+      }
+
+      @Test
+      @TestMetadata("simpleInheritance.kt")
+      public void testSimpleInheritance() {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unbounded/simpleInheritance.kt");
+      }
+
+      @Test
+      @TestMetadata("simpleUnknown.kt")
+      public void testSimpleUnknown() {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unbounded/simpleUnknown.kt");
+      }
+    }
+
+    @Nested
     @TestMetadata("compiler/fir/analysis-tests/testData/resolve/unqualifiedEnum")
     @TestDataPath("$PROJECT_ROOT")
     public class UnqualifiedEnum {

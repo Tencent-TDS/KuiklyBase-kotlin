@@ -4,7 +4,7 @@
 
 import kotlin.collections.Map
 
-class HashMap<K : Any?, V : Any?> : Map<K, V> {
+class HashMap<K, V> : Map<K, V> {
     override fun containsKey(key: K): Boolean = false
     override fun containsValue(value: V): Boolean = false
     override val size: Int get() = 0

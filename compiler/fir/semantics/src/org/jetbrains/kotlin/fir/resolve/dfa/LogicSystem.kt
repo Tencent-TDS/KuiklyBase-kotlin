@@ -90,7 +90,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         flow: MutableFlow,
         originalVariable: DataFlowVariable,
         newVariable: DataFlowVariable,
-        transform: (Implication) -> Implication? = { it }
+        transform: (Implication) -> Implication? = { it },
     ) {
         val statements = if (originalVariable.isSynthetic())
             flow.implications.remove(originalVariable)
@@ -254,7 +254,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
     private fun approveOperationStatement(
         logicStatements: Map<DataFlowVariable, PersistentList<Implication>>,
         approvedStatement: OperationStatement,
-        removeApprovedOrImpossible: Boolean
+        removeApprovedOrImpossible: Boolean,
     ): TypeStatements {
         val result = mutableMapOf<RealVariable, MutableTypeStatement>()
         val queue = LinkedList<OperationStatement>().apply { this += approvedStatement }
@@ -267,8 +267,15 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
             val operation = next.operation
             val variable = next.variable
             if (variable.isReal()) {
-                val impliedType = if (operation == Operation.EqNull) nullableNothingType else anyType
-                result.getOrPut(variable) { MutableTypeStatement(variable) }.exactType.add(impliedType)
+                when (operation) {
+                    Operation.EqNull -> {
+                        result.getOrPut(variable) { MutableTypeStatement(variable) }.exactType.add(nullableNothingType)
+                    }
+                    else if variable.originalType.isUnboundedType -> {}
+                    else -> {
+                        result.getOrPut(variable) { MutableTypeStatement(variable) }.exactType.add(anyType)
+                    }
+                }
             }
 
             val statements = logicStatements[variable] ?: continue

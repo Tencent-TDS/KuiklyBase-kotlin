@@ -262,14 +262,14 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
     override fun TypeConstructorMarker.supertypes(): Collection<ConeKotlinType> {
         require(this is ConeTypeConstructorMarker)
         return when (this) {
-            is ConeStubTypeConstructor -> listOf(session.builtinTypes.nullableAnyType.coneType)
+            is ConeStubTypeConstructor -> listOf(session.builtinTypes.unknownType.coneType)
             is ConeTypeVariableTypeConstructor -> emptyList()
             is ConeClassifierLookupTag -> {
                 when (val symbol = toSymbol(session).also { it?.lazyResolveToPhase(FirResolvePhase.TYPES) }) {
                     is FirTypeParameterSymbol -> symbol.resolvedBounds.map { it.coneType }
                     is FirClassSymbol<*> -> symbol.fir.superConeTypes
                     is FirTypeAliasSymbol -> listOfNotNull(symbol.fir.expandedConeType)
-                    null -> listOf(session.builtinTypes.anyType.coneType)
+                    null -> listOf(session.builtinTypes.unknownType.coneType)
                 }
             }
             is ConeCapturedTypeConstructor -> supertypes.orEmpty()
@@ -372,6 +372,10 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
         require(a is ConeRigidType)
         require(b is ConeRigidType)
         return a.typeArguments === b.typeArguments
+    }
+
+    override fun TypeConstructorMarker.isUnknownConstructor(): Boolean {
+        return this is ConeClassLikeLookupTag && classId == StandardClassIds.Unknown
     }
 
     override fun TypeConstructorMarker.isAnyConstructor(): Boolean {
@@ -546,7 +550,7 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
     override fun TypeParameterMarker.getRepresentativeUpperBound(): KotlinTypeMarker {
         require(this is ConeTypeParameterLookupTag)
         return this.bounds().getOrNull(0)?.coneType
-            ?: session.builtinTypes.nullableAnyType.coneType
+            ?: session.builtinTypes.unknownType.coneType
     }
 
     @Suppress("NOTHING_TO_INLINE")

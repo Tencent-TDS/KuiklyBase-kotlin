@@ -861,7 +861,7 @@ private fun FirTypeParameter.eraseToUpperBound(
                 // their bounds aren't yet resolved. See KT-56630 and comments inside.
                 // Yet we are replacing these bounds with just 'Any'.
                 // TODO: think how can we replace it with more correct decision.
-                else -> session.builtinTypes.anyType.coneType
+                else -> session.builtinTypes.unknownType.coneType
             }
         }
     }

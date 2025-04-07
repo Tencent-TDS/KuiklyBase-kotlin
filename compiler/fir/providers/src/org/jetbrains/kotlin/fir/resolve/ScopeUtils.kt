@@ -97,6 +97,8 @@ private fun ConeKotlinType.scope(
     is ConeTypeParameterType -> {
         val symbol = lookupTag.symbol
         scopeSession.getOrBuild(symbol, TYPE_PARAMETER_SCOPE_KEY) {
+//            if (symbol.resolvedBounds.isEmpty()) return FirTypeScope.Empty
+
             val intersectionType = ConeTypeIntersector.intersectTypes(
                 useSiteSession.typeContext,
                 symbol.resolvedBounds.map { it.coneType }
@@ -124,7 +126,7 @@ private fun ConeKotlinType.scope(
     is ConeCapturedType -> {
         val supertypes =
             constructor.supertypes?.takeIf { it.isNotEmpty() }
-                ?: listOf(useSiteSession.builtinTypes.anyType.coneType)
+                ?: listOf(useSiteSession.builtinTypes.unknownType.coneType)
         useSiteSession.typeContext.intersectTypes(supertypes).scope(useSiteSession, scopeSession, requiredMembersPhase)
     }
     else -> null
@@ -134,7 +136,7 @@ private fun ConeClassLikeType.classScope(
     useSiteSession: FirSession,
     scopeSession: ScopeSession,
     requiredMembersPhase: FirResolvePhase?,
-    memberOwnerLookupTag: ConeClassLikeLookupTag
+    memberOwnerLookupTag: ConeClassLikeLookupTag,
 ): FirTypeScope? {
     val fullyExpandedType = fullyExpandedType(useSiteSession)
     val fir = fullyExpandedType.lookupTag.toClassSymbol(useSiteSession)?.fir ?: return null

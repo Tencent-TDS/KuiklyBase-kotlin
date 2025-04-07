@@ -58,6 +58,10 @@ class FirImplicitNullableAnyTypeRef(
     source: KtSourceElement?
 ) : FirImplicitBuiltinTypeRef(source, StandardClassIds.Any, isNullable = true)
 
+class FirImplicitUnknownTypeRef(
+    source: KtSourceElement?
+) : FirImplicitBuiltinTypeRef(source, StandardClassIds.Unknown, isNullable = true)
+
 class FirImplicitEnumTypeRef(
     source: KtSourceElement?
 ) : FirImplicitBuiltinTypeRef(source, StandardClassIds.Enum)
@@ -196,6 +200,7 @@ fun FirImplicitBuiltinTypeRef.withNewSource(newSource: KtSourceElement?): FirImp
         is FirImplicitUnitTypeRef -> FirImplicitUnitTypeRef(newSource)
         is FirImplicitAnyTypeRef -> FirImplicitAnyTypeRef(newSource)
         is FirImplicitNullableAnyTypeRef -> FirImplicitNullableAnyTypeRef(newSource)
+        is FirImplicitUnknownTypeRef -> FirImplicitUnknownTypeRef(newSource)
         is FirImplicitEnumTypeRef -> FirImplicitEnumTypeRef(newSource)
         is FirImplicitAnnotationTypeRef -> FirImplicitAnnotationTypeRef(newSource)
         is FirImplicitBooleanTypeRef -> FirImplicitBooleanTypeRef(newSource)

@@ -48,6 +48,8 @@ object StandardClassIds {
         BASE_CONCURRENT_ATOMICS_PACKAGE
     )
 
+    val Unknown = "Unknown".baseId()
+
     val Nothing = "Nothing".baseId()
     val Unit = "Unit".baseId()
     val Any = "Any".baseId()
@@ -310,7 +312,9 @@ private fun String.baseId() = ClassId(StandardClassIds.BASE_KOTLIN_PACKAGE, Name
 private fun String.experimentalId() = ClassId(StandardClassIds.BASE_EXPERIMENTAL_PACKAGE, Name.identifier(this))
 private fun ClassId.unsignedId() = ClassId(StandardClassIds.BASE_KOTLIN_PACKAGE, Name.identifier("U" + shortClassName.identifier))
 private fun String.reflectId() = ClassId(StandardClassIds.BASE_REFLECT_PACKAGE, Name.identifier(this))
-private fun Name.primitiveArrayId() = ClassId(StandardClassIds.Array.packageFqName, Name.identifier(identifier + StandardClassIds.Array.shortClassName.identifier))
+private fun Name.primitiveArrayId() =
+    ClassId(StandardClassIds.Array.packageFqName, Name.identifier(identifier + StandardClassIds.Array.shortClassName.identifier))
+
 private fun String.collectionsId() = ClassId(StandardClassIds.BASE_COLLECTIONS_PACKAGE, Name.identifier(this))
 private fun String.rangesId() = ClassId(StandardClassIds.BASE_RANGES_PACKAGE, Name.identifier(this))
 private fun String.annotationId() = ClassId(StandardClassIds.BASE_ANNOTATION_PACKAGE, Name.identifier(this))

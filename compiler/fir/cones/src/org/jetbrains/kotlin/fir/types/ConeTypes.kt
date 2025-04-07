@@ -130,6 +130,7 @@ open class ConeFlexibleType(
      */
     val isTrivial: Boolean,
 ) : ConeKotlinType(), FlexibleTypeMarker {
+
     final override val typeArguments: Array<out ConeTypeProjection>
         get() = lowerBound.typeArguments
 
@@ -325,3 +326,14 @@ class ConeIntersectionType(
         return intersectedTypes.hashCode().also { hashCode = it }
     }
 }
+
+//object ConeTopType : ConeSimpleKotlinType() {
+//    override val typeArguments: Array<out ConeTypeProjection>
+//        get() = EMPTY_ARRAY
+//    override val attributes: ConeAttributes
+//        get() = ConeAttributes.Empty
+//
+//    override fun equals(other: Any?): Boolean = this === other
+//
+//    override fun hashCode(): Int = 42
+//}

@@ -65,6 +65,7 @@ object JavaToKotlinClassMap {
     )
 
     init {
+        addTopLevel(Any::class.java, FqNames.unknown)
         addTopLevel(Any::class.java, FqNames.any)
         addTopLevel(String::class.java, FqNames.string)
         addTopLevel(CharSequence::class.java, FqNames.charSequence)

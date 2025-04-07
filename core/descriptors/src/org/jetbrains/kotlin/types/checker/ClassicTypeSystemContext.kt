@@ -340,6 +340,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return org.jetbrains.kotlin.types.checker.captureFromArguments(type, status)
     }
 
+    override fun TypeConstructorMarker.isUnknownConstructor(): Boolean {
+        return false
+    }
+
     override fun TypeConstructorMarker.isAnyConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return KotlinBuiltIns.isTypeConstructorForGivenClass(this, FqNames.any)

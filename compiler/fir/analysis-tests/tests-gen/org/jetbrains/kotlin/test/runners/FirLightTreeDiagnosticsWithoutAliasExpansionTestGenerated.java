@@ -403,6 +403,17 @@ public class FirLightTreeDiagnosticsWithoutAliasExpansionTestGenerated extends A
     }
 
     @Nested
+    @TestMetadata("compiler/fir/analysis-tests/testData/resolve/unbounded")
+    @TestDataPath("$PROJECT_ROOT")
+    public class Unbounded {
+      @Test
+      @TestMetadata("hashMap.kt")
+      public void testHashMap() {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unbounded/hashMap.kt");
+      }
+    }
+
+    @Nested
     @TestMetadata("compiler/fir/analysis-tests/testData/resolve/unqualifiedEnum")
     @TestDataPath("$PROJECT_ROOT")
     public class UnqualifiedEnum {

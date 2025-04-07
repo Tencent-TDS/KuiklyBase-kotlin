@@ -92,6 +92,7 @@ class Fir2IrTypeConverter(
             is FirImplicitIntTypeRef -> builtins.intType
             is FirImplicitNullableAnyTypeRef -> builtins.anyNType
             is FirImplicitNullableNothingTypeRef -> builtins.nothingNType
+            is FirImplicitUnknownTypeRef -> builtins.anyNType
             else -> coneType.toIrType(typeOrigin, annotations)
         }
     }

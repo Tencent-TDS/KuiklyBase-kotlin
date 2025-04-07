@@ -23,9 +23,11 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.MANY_INTERFACES_M
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.OVERRIDING_FINAL_MEMBER_BY_DELEGATION
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.VAR_IMPLEMENTED_BY_INHERITED_VAL
 import org.jetbrains.kotlin.fir.containingClassLookupTag
+import org.jetbrains.kotlin.fir.declarations.DirectDeclarationsAccess
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirEnumEntry
+import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
 import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.delegatedWrapperData
 import org.jetbrains.kotlin.fir.expressions.FirAnonymousObjectExpression
@@ -44,6 +46,7 @@ import kotlin.contracts.contract
 
 object FirNotImplementedOverrideChecker : FirClassChecker(MppCheckerKind.Platform) {
     context(context: CheckerContext, reporter: DiagnosticReporter)
+    @OptIn(DirectDeclarationsAccess::class)
     override fun check(declaration: FirClass) {
         if (declaration.isExpect && !context.languageVersionSettings.getFlag(AnalysisFlags.metadataCompilation)) return
         val source = declaration.source ?: return

@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.builder.FirTypeParameterBuilder
 
 fun FirTypeParameterBuilder.addDefaultBoundIfNecessary() {
     if (bounds.isEmpty()) {
-        bounds += moduleData.session.builtinTypes.nullableAnyType
+        bounds += moduleData.session.builtinTypes.unknownType
     }
 }
 

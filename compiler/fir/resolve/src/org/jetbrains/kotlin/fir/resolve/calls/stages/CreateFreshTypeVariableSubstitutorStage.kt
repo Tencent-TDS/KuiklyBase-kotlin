@@ -224,11 +224,11 @@ private fun createToFreshVariableSubstitutorAndAddInitialConstraints(
         upperBound: ConeKotlinType//,
         //position: DeclaredUpperBoundConstraintPosition
     ) {
-        if (upperBound.lowerBoundIfFlexible().classLikeLookupTagIfAny?.classId == StandardClassIds.Any &&
-            upperBound.upperBoundIfFlexible().isMarkedNullable
-        ) {
-            return
-        }
+//        if (upperBound.lowerBoundIfFlexible().classLikeLookupTagIfAny?.classId == StandardClassIds.Any &&
+//            upperBound.upperBoundIfFlexible().isMarkedNullable
+//        ) {
+//            return
+//        }
 
         csBuilder.addSubtypeConstraint(
             defaultType,

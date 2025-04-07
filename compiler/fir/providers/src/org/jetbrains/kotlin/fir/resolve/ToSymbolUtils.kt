@@ -15,7 +15,9 @@ import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeLookupTagBasedType
 import org.jetbrains.kotlin.fir.types.lowerBoundIfFlexible
+import org.jetbrains.kotlin.fir.types.toLookupTag
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.StandardClassIds
 
 // ----------------------------------------------- lookup tag -----------------------------------------------
 
@@ -49,6 +51,8 @@ fun ConeClassifierLookupTag.toRegularClassSymbol(useSiteSession: FirSession): Fi
  */
 @OptIn(LookupTagInternals::class)
 fun ConeClassLikeLookupTag.toSymbol(useSiteSession: FirSession): FirClassLikeSymbol<*>? {
+    if (this.classId == StandardClassIds.Unknown) return StandardClassIds.Any.toLookupTag().toSymbol(useSiteSession)
+
     if (this is ConeClassLikeLookupTagWithFixedSymbol) {
         return this.symbol
     }

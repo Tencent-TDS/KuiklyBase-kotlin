@@ -67,7 +67,7 @@ open class TypeCheckerState(
     open fun addSubtypeConstraint(
         subType: KotlinTypeMarker,
         superType: KotlinTypeMarker,
-        isFromNullabilityConstraint: Boolean = false
+        isFromNullabilityConstraint: Boolean = false,
     ): Boolean? = null
 
     // Handling cases like A<Int> & A<T> <: A<F_var>
@@ -135,7 +135,7 @@ open class TypeCheckerState(
     inline fun anySupertype(
         start: RigidTypeMarker,
         predicate: (RigidTypeMarker) -> Boolean,
-        supertypesPolicy: (RigidTypeMarker) -> SupertypesPolicy
+        supertypesPolicy: (RigidTypeMarker) -> SupertypesPolicy,
     ): Boolean {
         if (predicate(start)) return true
 
@@ -198,14 +198,14 @@ object AbstractTypeChecker {
     fun prepareType(
         context: TypeCheckerProviderContext,
         type: KotlinTypeMarker,
-        stubTypesEqualToAnything: Boolean = true
+        stubTypesEqualToAnything: Boolean = true,
     ) = context.newTypeCheckerState(true, stubTypesEqualToAnything).prepareType(type)
 
     fun isSubtypeOf(
         context: TypeCheckerProviderContext,
         subType: KotlinTypeMarker,
         superType: KotlinTypeMarker,
-        stubTypesEqualToAnything: Boolean = true
+        stubTypesEqualToAnything: Boolean = true,
     ): Boolean {
         return isSubtypeOf(context.newTypeCheckerState(true, stubTypesEqualToAnything), subType, superType)
     }
@@ -226,7 +226,7 @@ object AbstractTypeChecker {
     fun isSubtypeOfClass(
         state: TypeCheckerState,
         typeConstructor: TypeConstructorMarker,
-        superConstructor: TypeConstructorMarker
+        superConstructor: TypeConstructorMarker,
     ): Boolean {
         return isSubtypeOfClass(state.typeSystemContext, typeConstructor, superConstructor)
     }
@@ -265,7 +265,7 @@ object AbstractTypeChecker {
         state: TypeCheckerState,
         subType: KotlinTypeMarker,
         superType: KotlinTypeMarker,
-        isFromNullabilityConstraint: Boolean = false
+        isFromNullabilityConstraint: Boolean = false,
     ): Boolean {
         if (subType === superType) return true
 
@@ -298,7 +298,7 @@ object AbstractTypeChecker {
         state: TypeCheckerState,
         subType: KotlinTypeMarker,
         superType: KotlinTypeMarker,
-        isFromNullabilityConstraint: Boolean
+        isFromNullabilityConstraint: Boolean,
     ): Boolean = with(state.typeSystemContext) {
         val preparedSubType = state.prepareType(state.refineType(subType))
         val preparedSuperType = state.prepareType(state.refineType(superType))
@@ -328,7 +328,7 @@ object AbstractTypeChecker {
     private fun checkSubtypeForIntegerLiteralType(
         state: TypeCheckerState,
         subType: RigidTypeMarker,
-        superType: RigidTypeMarker
+        superType: RigidTypeMarker,
     ): Boolean? = with(state.typeSystemContext) {
         if (!subType.isIntegerLiteralType() && !superType.isIntegerLiteralType()) return null
 
@@ -392,7 +392,7 @@ object AbstractTypeChecker {
     private fun isSubtypeOfForSingleClassifierType(
         state: TypeCheckerState,
         subType: RigidTypeMarker,
-        superType: RigidTypeMarker
+        superType: RigidTypeMarker,
     ): Boolean = with(state.typeSystemContext) {
         if (RUN_SLOW_ASSERTIONS) {
             assert(subType.isSingleClassifierType() || subType.typeConstructor().isIntersection() || state.isAllowedTypeVariable(subType)) {
@@ -402,6 +402,10 @@ object AbstractTypeChecker {
                 "Not singleClassifierType superType: $superType"
             }
         }
+
+        if (superType.typeConstructor().isUnknownConstructor()) return true
+        if (subType.typeConstructor().isUnknownConstructor()) return false
+
 
         if (!AbstractNullabilityChecker.isPossibleSubtype(state, subType, superType)) return false
 
@@ -413,7 +417,7 @@ object AbstractTypeChecker {
         val superConstructor = superType.typeConstructor()
 
         if (areEqualTypeConstructors(subType.typeConstructor(), superConstructor) && superConstructor.parametersCount() == 0) return true
-        if (superType.typeConstructor().isAnyConstructor()) return true
+//        if (superType.typeConstructor().isAnyConstructor()) return true
 
         val supertypesWithSameConstructor = with(findCorrespondingSupertypes(state, subType, superConstructor)) {
             // Note: in K1, we can have partially computed types here, like SomeType<NON COMPUTED YET>
@@ -463,7 +467,7 @@ object AbstractTypeChecker {
     private fun TypeSystemContext.isTypeVariableAgainstStarProjectionForSelfType(
         subArgumentType: KotlinTypeMarker,
         superArgumentType: KotlinTypeMarker,
-        selfConstructor: TypeConstructorMarker
+        selfConstructor: TypeConstructorMarker,
     ): Boolean {
         val simpleSubArgumentType = subArgumentType.asRigidType()
 
@@ -481,7 +485,7 @@ object AbstractTypeChecker {
 
     fun TypeCheckerState.isSubtypeForSameConstructor(
         capturedSubArguments: TypeArgumentListMarker,
-        superType: RigidTypeMarker
+        superType: RigidTypeMarker,
     ): Boolean = with(this.typeSystemContext) {
         // No way to check, as no index sometimes
         //if (capturedSubArguments === superType.arguments) return true
@@ -564,7 +568,7 @@ object AbstractTypeChecker {
     private fun checkSubtypeForSpecialCases(
         state: TypeCheckerState,
         subType: RigidTypeMarker,
-        superType: RigidTypeMarker
+        superType: RigidTypeMarker,
     ): Boolean? = with(state.typeSystemContext) {
         if (subType.isError() || superType.isError()) {
             if (state.isErrorTypeEqualsToAnything) return true
@@ -631,7 +635,7 @@ object AbstractTypeChecker {
 
     private fun TypeSystemContext.getTypeParameterForArgumentInBaseIfItEqualToTarget(
         baseType: KotlinTypeMarker,
-        targetType: KotlinTypeMarker
+        targetType: KotlinTypeMarker,
     ): TypeParameterMarker? {
         for (i in 0 until baseType.argumentsCount()) {
             val typeArgument = baseType.getArgument(i).takeIf { !it.isStarProjection() }?.getType() ?: continue
@@ -651,7 +655,7 @@ object AbstractTypeChecker {
     private fun collectAllSupertypesWithGivenTypeConstructor(
         state: TypeCheckerState,
         subType: RigidTypeMarker,
-        superConstructor: TypeConstructorMarker
+        superConstructor: TypeConstructorMarker,
     ): List<RigidTypeMarker> = with(state.typeSystemContext) {
         subType.fastCorrespondingSupertypes(superConstructor)?.let {
             return it
@@ -692,7 +696,7 @@ object AbstractTypeChecker {
     private fun collectAndFilter(
         state: TypeCheckerState,
         classType: RigidTypeMarker,
-        constructor: TypeConstructorMarker
+        constructor: TypeConstructorMarker,
     ) =
         selectOnlyPureKotlinSupertypes(state, collectAllSupertypesWithGivenTypeConstructor(state, classType, constructor))
 
@@ -709,7 +713,7 @@ object AbstractTypeChecker {
      */
     private fun selectOnlyPureKotlinSupertypes(
         state: TypeCheckerState,
-        supertypes: List<RigidTypeMarker>
+        supertypes: List<RigidTypeMarker>,
     ): List<RigidTypeMarker> = with(state.typeSystemContext) {
         if (supertypes.size < 2) return supertypes
 
@@ -725,7 +729,7 @@ object AbstractTypeChecker {
     fun findCorrespondingSupertypes(
         state: TypeCheckerState,
         subType: RigidTypeMarker,
-        superConstructor: TypeConstructorMarker
+        superConstructor: TypeConstructorMarker,
     ): List<RigidTypeMarker> = with(state.typeSystemContext) {
         if (subType.isClassType()) {
             return collectAndFilter(state, subType, superConstructor)

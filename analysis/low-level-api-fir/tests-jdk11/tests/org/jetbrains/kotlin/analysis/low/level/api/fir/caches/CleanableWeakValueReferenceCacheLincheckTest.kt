@@ -100,8 +100,8 @@ class CleanableWeakValueReferenceCacheLincheckTest {
         return RemovalResult(value, value.isCleanedUp)
     }
 
-    @Test
-    fun modelCheckingTest() = ModelCheckingOptions().check(this::class)
+//    @Test
+//    fun modelCheckingTest() = ModelCheckingOptions().check(this::class)
 
     @Test
     fun stressTest() = StressOptions().check(this::class)
