@@ -97,7 +97,7 @@
 # Singular files
 /.gitattributes @JetBrains/kotlin-build-infrastructure
 /.intellij.yaml @JetBrains/kotlin-build-infrastructure
-/ReadMe.md @JetBrains/kotlin-build-infrastructure
+/ReadMe.md milosz.kalucki@jetbrains.com nikolay.krasko@jetbrains.com @CristianGM
 /SECURITY.md @JetBrains/kotlin-build-infrastructure
 
 # Build files
