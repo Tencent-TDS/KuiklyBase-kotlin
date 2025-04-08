@@ -3454,6 +3454,18 @@ public class FirIdeNormalAnalysisSourceModuleResolveCallTestGenerated extends Ab
         }
 
         @Test
+        @TestMetadata("candidateReceiverWithBoundedGeneric.kt")
+        public void testCandidateReceiverWithBoundedGeneric() {
+          runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/candidateReceiverWithBoundedGeneric.kt");
+        }
+
+        @Test
+        @TestMetadata("extensionFunctionWithBoundedGeneric.kt")
+        public void testExtensionFunctionWithBoundedGeneric() {
+          runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/extensionFunctionWithBoundedGeneric.kt");
+        }
+
+        @Test
         @TestMetadata("genericParameterReceiver.kt")
         public void testGenericParameterReceiver() {
           runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/genericParameterReceiver.kt");
@@ -3466,9 +3478,39 @@ public class FirIdeNormalAnalysisSourceModuleResolveCallTestGenerated extends Ab
         }
 
         @Test
+        @TestMetadata("inVarianceReceiverType.kt")
+        public void testInVarianceReceiverType() {
+          runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/inVarianceReceiverType.kt");
+        }
+
+        @Test
+        @TestMetadata("multipleBoundsGenericParameterReceiver.kt")
+        public void testMultipleBoundsGenericParameterReceiver() {
+          runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/multipleBoundsGenericParameterReceiver.kt");
+        }
+
+        @Test
+        @TestMetadata("outVarianceReceiverType.kt")
+        public void testOutVarianceReceiverType() {
+          runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/outVarianceReceiverType.kt");
+        }
+
+        @Test
+        @TestMetadata("typeParameterSubstitution.kt")
+        public void testTypeParameterSubstitution() {
+          runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/typeParameterSubstitution.kt");
+        }
+
+        @Test
         @TestMetadata("typeWithGenericsReceiver.kt")
         public void testTypeWithGenericsReceiver() {
           runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/typeWithGenericsReceiver.kt");
+        }
+
+        @Test
+        @TestMetadata("typeWithStarProjectionReceiver.kt")
+        public void testTypeWithStarProjectionReceiver() {
+          runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/extensions/generics/typeWithStarProjectionReceiver.kt");
         }
       }
     }
