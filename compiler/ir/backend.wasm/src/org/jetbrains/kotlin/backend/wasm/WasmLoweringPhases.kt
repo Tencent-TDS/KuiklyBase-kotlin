@@ -272,6 +272,9 @@ private val upgradeCallableReferences = makeIrModulePhase(
     { ctx: JsCommonBackendContext ->
         UpgradeCallableReferences(
             ctx,
+            upgradeFunctionReferencesAndLambdas = true,
+            upgradePropertyReferences = true,
+            upgradeLocalDelegatedPropertyReferences = true,
             upgradeSamConversions = false,
         )
     },
