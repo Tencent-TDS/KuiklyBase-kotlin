@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
-internal class TestProcessor(private val backendContext: Context) : FileLoweringPass {
+internal class TestProcessor(private val context: Context) : FileLoweringPass {
     companion object {
         val TEST_SUITE_CLASS by IrDeclarationOriginImpl
         val TEST_SUITE_GENERATED_MEMBER by IrDeclarationOriginImpl
@@ -50,7 +50,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
         val IGNORE_FQ_NAME = FqName.fromSegments(listOf("kotlin", "test" , "Ignore"))
     }
 
-    private val symbols = backendContext.symbols
+    private val symbols = context.symbols
 
     private val baseClassSuite = symbols.baseClassSuite.owner
 
@@ -92,7 +92,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
                 +irCall(registerTestCase).apply {
                     dispatchReceiver = irGet(receiver)
                     arguments[1] = irString(it.functionName)
-                    arguments[2] = it.function.wrapWithLambdaCall(parent, backendContext)
+                    arguments[2] = it.function.wrapWithLambdaCall(parent, this@TestProcessor.context)
                     arguments[3] = irBoolean(it.ignored)
                 }
             } else {
@@ -105,7 +105,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
                             it.function.endOffset,
                             symbols.testFunctionKind.typeWithArguments(emptyList()),
                             testKindEntry)
-                    arguments[2] = it.function.wrapWithLambdaCall(parent, backendContext)
+                    arguments[2] = it.function.wrapWithLambdaCall(parent, this@TestProcessor.context)
                 }
             }
         }
@@ -183,7 +183,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
                                   function: IrFunction,
                                   kinds: Collection<Pair<TestProcessorFunctionKind, /* ignored: */ Boolean>>) {
 
-            fun warn(msg: String) = backendContext.reportWarning(msg, irFile, function)
+            fun warn(msg: String) = context.reportWarning(msg, irFile, function)
 
             kinds.forEach { (kind, ignored) ->
                 val annotation = kind.annotationFqName
@@ -232,12 +232,12 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
         fun IrFunction.checkFunctionSignature() {
             // Test runner requires test functions to have the following signature: () -> Unit.
             if (!returnType.isUnit()) {
-                backendContext.reportCompilationError(
+                context.reportCompilationError(
                         "Test function must return Unit: $fqNameForIrSerialization", irFile, this
                 )
             }
             if (parameters.any { it.kind != IrParameterKind.DispatchReceiver }) {
-                backendContext.reportCompilationError(
+                context.reportCompilationError(
                         "Test function must have no arguments: $fqNameForIrSerialization", irFile, this
                 )
             }
@@ -249,7 +249,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
             annotatedFunction: IrFunctionSymbol
         ) {
             if (function.owner != annotatedFunction.owner) {
-                backendContext.reportWarning(
+                context.reportWarning(
                     "Super method has a test annotation ${kind.annotationFqName} but the overriding method doesn't. " +
                             "Note that the overriding method will still be executed.",
                     irFile,
@@ -260,7 +260,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
 
         private fun warnAboutLoneIgnore(functionSymbol: IrFunctionSymbol): Unit = with(functionSymbol) {
             if (hasAnnotation(IGNORE_FQ_NAME) && !hasAnnotation(TestProcessorFunctionKind.TEST.annotationFqName)) {
-                backendContext.reportWarning(
+                context.reportWarning(
                     "Unused $IGNORE_FQ_NAME annotation (not paired with ${TestProcessorFunctionKind.TEST.annotationFqName}).",
                     irFile,
                     owner
@@ -304,7 +304,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
     private fun buildObjectGetter(objectSymbol: IrClassSymbol,
                                   owner: IrClass,
                                   getterName: Name): IrSimpleFunction =
-        backendContext.irFactory.createSimpleFunction(
+        context.irFactory.createSimpleFunction(
                 owner.startOffset,
                 owner.endOffset,
                 TEST_SUITE_GENERATED_MEMBER,
@@ -328,7 +328,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
             parameters += createDispatchReceiverParameterWithClassParent()
             overriddenSymbols += superFunction.symbol
 
-            body = backendContext.createIrBuilder(symbol, symbol.owner.startOffset, symbol.owner.endOffset).irBlockBody {
+            body = context.createIrBuilder(symbol, symbol.owner.startOffset, symbol.owner.endOffset).irBlockBody {
                 +irReturn(irGetObjectValue(objectSymbol.typeWithArguments(emptyList()), objectSymbol)
                 )
             }
@@ -341,7 +341,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
     private fun buildInstanceGetter(classSymbol: IrClassSymbol,
                                     owner: IrClass,
                                     getterName: Name): IrSimpleFunction =
-        backendContext.irFactory.createSimpleFunction(
+        context.irFactory.createSimpleFunction(
                 owner.startOffset,
                 owner.endOffset,
                 TEST_SUITE_GENERATED_MEMBER,
@@ -365,7 +365,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
             parameters += createDispatchReceiverParameterWithClassParent()
             overriddenSymbols += superFunction.symbol
 
-            body = backendContext.createIrBuilder(symbol, symbol.owner.startOffset, symbol.owner.endOffset).irBlockBody {
+            body = context.createIrBuilder(symbol, symbol.owner.startOffset, symbol.owner.endOffset).irBlockBody {
                 val constructor = classSymbol.owner.constructors.single { it.parameters.isEmpty() }
                 +irReturn(irCall(constructor))
             }
@@ -373,8 +373,8 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
 
     private val baseClassSuiteConstructor = baseClassSuite.constructors.single {
         it.hasShape(regularParameters = 2, parameterTypes = listOf(
-                backendContext.irBuiltIns.stringType,   // name: String
-                backendContext.irBuiltIns.booleanType   // ignored: Boolean
+                context.irBuiltIns.stringType,   // name: String
+                context.irBuiltIns.booleanType   // ignored: Boolean
         ))
     }
 
@@ -390,7 +390,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
                                            owner: IrClass,
                                            functions: Collection<TestFunction>,
                                            ignored: Boolean): IrConstructor =
-            backendContext.irFactory.createConstructor(
+            context.irFactory.createConstructor(
                     testSuite.owner.startOffset,
                     testSuite.owner.endOffset,
                     TEST_SUITE_GENERATED_MEMBER,
@@ -419,7 +419,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
                             && it.parameters[2].type.isFunction()          // function: () -> Unit
                 }
 
-                val irBuilder = backendContext.createIrBuilder(symbol, symbol.owner.startOffset, symbol.owner.endOffset)
+                val irBuilder = context.createIrBuilder(symbol, symbol.owner.startOffset, symbol.owner.endOffset)
                 body = irBuilder.irBlockBody {
                     +irDelegatingConstructorCall(baseClassSuiteConstructor).apply {
                         typeArguments[0] = testClassType
@@ -451,7 +451,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
             irFile: IrFile,
             functions: Collection<TestFunction>,
     ): IrClass {
-        return backendContext.irFactory.createClass(
+        return context.irFactory.createClass(
                 testClass.startOffset,
                 testClass.endOffset,
                 TEST_SUITE_CLASS,
@@ -468,7 +468,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
             val testCompanionType = if (testClass.kind == ClassKind.OBJECT) {
                 testClassType
             } else {
-                testCompanion?.defaultType ?: backendContext.irBuiltIns.nothingType
+                testCompanion?.defaultType ?: context.irBuiltIns.nothingType
             }
 
             val constructor = buildClassSuiteConstructor(
@@ -493,7 +493,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
             companionGetter?.let { declarations += it }
 
             superTypes += symbols.baseClassSuite.typeWith(listOf(testClassType, testCompanionType))
-            addFakeOverrides(backendContext.typeSystem)
+            addFakeOverrides(context.typeSystem)
         }
     }
     //endregion
@@ -502,14 +502,14 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
     private fun generateClassSuite(testClass: TestClass, irFile: IrFile) =
             with(buildClassSuite(testClass.suiteName, testClass.ownerClass, testClass.companion, irFile, testClass.functions)) {
                 val irConstructor = constructors.single()
-                val irBuilder = backendContext.createIrBuilder(irFile.symbol, testClass.ownerClass.startOffset, testClass.ownerClass.endOffset)
+                val irBuilder = context.createIrBuilder(irFile.symbol, testClass.ownerClass.startOffset, testClass.ownerClass.endOffset)
                 irBuilder.irCall(irConstructor)
             }
 
     /** Check if this fqName already used or not. */
     private fun checkTopLevelSuiteName(irFile: IrFile, topLevelSuiteName: String): Boolean {
         if (topLevelSuiteNames.contains(topLevelSuiteName)) {
-            backendContext.reportCompilationError("Package '${irFile.packageFqName}' has top-level test " +
+            context.reportCompilationError("Package '${irFile.packageFqName}' has top-level test " +
                     "functions in several files with the same name: '${irFile.fileName}'")
         }
         topLevelSuiteNames.add(topLevelSuiteName)
@@ -518,7 +518,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
 
     private val topLevelSuite = symbols.topLevelSuite.owner
     private val topLevelSuiteConstructor = topLevelSuite.constructors.single {
-        it.hasShape(regularParameters = 1, parameterTypes = listOf(backendContext.irBuiltIns.stringType))
+        it.hasShape(regularParameters = 1, parameterTypes = listOf(context.irBuiltIns.stringType))
     }
     private val topLevelSuiteRegisterFunction = topLevelSuite.simpleFunctions().single {
         it.name.asString() == "registerFunction"
@@ -535,7 +535,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
     }
 
     private fun generateTopLevelSuite(irFile: IrFile, topLevelSuiteName: String, functions: Collection<TestFunction>): IrExpression? {
-        val irBuilder = backendContext.createIrBuilder(irFile.symbol, SYNTHETIC_OFFSET, SYNTHETIC_OFFSET)
+        val irBuilder = context.createIrBuilder(irFile.symbol, SYNTHETIC_OFFSET, SYNTHETIC_OFFSET)
         if (!checkTopLevelSuiteName(irFile, topLevelSuiteName)) {
             return null
         }
@@ -585,22 +585,22 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
         }
 
         if (statements.isNotEmpty()) {
-            backendContext.irFactory.buildField {
+            context.irFactory.buildField {
                 startOffset = SYNTHETIC_OFFSET
                 endOffset = SYNTHETIC_OFFSET
                 name = "createTestSuites".synthesizedName
                 visibility = DescriptorVisibilities.PRIVATE
                 isFinal = true
                 isStatic = true
-                type = backendContext.irBuiltIns.unitType
+                type = context.irBuiltIns.unitType
             }.apply {
                 parent = irFile
                 irFile.declarations.add(this)
-                annotations += buildSimpleAnnotation(backendContext.irBuiltIns, startOffset, endOffset, backendContext.symbols.eagerInitialization.owner)
-                annotations += buildSimpleAnnotation(backendContext.irBuiltIns, startOffset, endOffset, backendContext.symbols.threadLocal.owner)
+                annotations += buildSimpleAnnotation(context.irBuiltIns, startOffset, endOffset, context.symbols.eagerInitialization.owner)
+                annotations += buildSimpleAnnotation(context.irBuiltIns, startOffset, endOffset, context.symbols.threadLocal.owner)
                 statements.forEach { it.accept(SetDeclarationsParentVisitor, this) }
-                initializer = backendContext.irFactory.createExpressionBody(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET,
-                        IrCompositeImpl(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET, backendContext.irBuiltIns.unitType, null, statements)
+                initializer = context.irFactory.createExpressionBody(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET,
+                        IrCompositeImpl(SYNTHETIC_OFFSET, SYNTHETIC_OFFSET, context.irBuiltIns.unitType, null, statements)
                 )
             }
         }
@@ -609,7 +609,7 @@ internal class TestProcessor(private val backendContext: Context) : FileLowering
 
     private fun shouldProcessFile(irFile: IrFile): Boolean = irFile.moduleDescriptor.let {
         // Process test annotations in source libraries too.
-        it in backendContext.sourcesModules
+        it in context.sourcesModules
     }
 
     override fun lower(irFile: IrFile) {
