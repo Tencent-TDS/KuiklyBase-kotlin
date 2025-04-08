@@ -138,7 +138,7 @@ private fun buildDecompiledTextImpl(
             }
             if (descriptor is PropertyDescriptor) {
                 for (accessor in descriptor.accessors) {
-                    if (accessor.isDefault) continue
+                    if (accessor.isDefault && accessor.annotations.isEmpty()) continue
                     builder.append("\n$indent    ")
                     builder.append(accessor.visibility.internalDisplayName).append(" ")
                     builder.append(accessor.modality.name.toLowerCaseAsciiOnly()).append(" ")
