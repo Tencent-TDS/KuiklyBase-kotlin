@@ -12,14 +12,14 @@ import org.jetbrains.kotlin.analysis.api.fir.references.KDocReferenceResolver.ge
 import org.jetbrains.kotlin.analysis.api.scopes.KaScope
 import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaDeclarationContainerSymbol
-import org.jetbrains.kotlin.analysis.api.types.KaType
-import org.jetbrains.kotlin.analysis.api.types.KaTypeParameterType
+import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.analysis.utils.printer.parentOfType
 import org.jetbrains.kotlin.load.java.possibleGetMethodNames
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.isOneSegmentFQN
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.yieldIfNotNull
 
 internal object KDocReferenceResolver {
@@ -286,7 +286,7 @@ internal object KDocReferenceResolver {
         if (possibleExtensions.none() || possibleReceivers.none()) return emptySequence()
 
         return possibleReceivers.flatMap { receiverClassSymbol ->
-            val receiverType = buildClassType(receiverClassSymbol)
+            val receiverType = receiverClassSymbol.defaultType
             possibleExtensions.filter { canBeReferencedAsExtensionOn(it, receiverType) }
                 .map { it.toResolveResult(receiverClassReference = receiverClassSymbol) }
         }
@@ -331,6 +331,100 @@ internal object KDocReferenceResolver {
             return true
         }
 
-        return actualReceiverType.isSubtypeOf(type)
+        return actualReceiverType.isSubtypeOf(type) || isSubtypeOfWithTypeParams(type, actualReceiverType)
+    }
+
+
+    /**
+     * Performs a subtyping check of two types with respect to their type parameters.
+     *
+     * ```kotlin
+     * interface T<A_0, A_1, ..., A_TN>
+     *
+     * class S<B_0, B_1, ..., B_SN> : T<...>
+     *
+     * fun T<E_0, E_1, ..., E_I>.extension() { }
+     *
+     * /** [S.extension] */
+     * fun documented() { }
+     * ```
+     *
+     * We check that `S.extension` is a valid reference with the following algorithm:
+     *
+     * - From `S<B_0, B_1, ..., B_M>`, derive the supertype instantiation `T<Z_0, Z_1, ..., Z_K>` according to the inheritance relationship.
+     *      * Any `Z_x` will either be a type parameter type from `S<B_0, B_1, ..., B_M>`,
+     *      or a concrete type from a regular type argument along the way to the supertype.
+     *
+     * - Compare `T<Z_0, Z_1, ..., Z_K>` against `T<E_0, E_1, ..., E_I>`,
+     * finding whether each type argument `E_x` matches with the type `Z_x`:
+     *      * If both `Z_x` and `E_x` are concrete types,
+     *      check that `Z_x` is a subtype of `E_x` according to the variance of the type parameter at the position.
+     *
+     *      * If only `E_x` is a concrete type (and vice versa), check that `E_x` fits into the bounds of `Z_x`.
+     *      If `E_x` does not fit the bounds of `Z_x`, we cannot find an instantiation of `Z_x` which satisfies `E_x`.
+     *
+     *      * If both types are type parameter types, check that the bounds of `Z_x` and `E_x` overlap.
+     *      That is, there must be at least one type which can be an instantiation of both `Z_x` and `E_x`.
+     *
+     *      * Unless we are dealing with concrete types on both sides, covariance and contravariance do not need to be taken into account.
+     *      Variance is concerned with subtyping of two types when their type arguments have concrete instantiations
+     *      (e.g. `Type<Cat>` <: `Type<Animal>`),
+     *      but here we are concerned with finding a common instantiation of two type parameters (e.g. `Type<X>` and `Type<Y>`).
+     *      As long as the bounds overlap, we can instantiate both type parameters to the same type argument,
+     *      making the variance unimportant (all type parameters could be invariant).
+     */
+    private fun KaSession.isSubtypeOfWithTypeParams(type: KaType, actualReceiverType: KaType): Boolean {
+        if (type !is KaClassType || type.typeArguments.none()) {
+            return false
+        }
+
+        val compatibleSupertypesOfActualReceiverType =
+            actualReceiverType
+                .allSupertypes(shouldApproximate = true)
+                .filter { it.symbol == type.symbol }
+                .filterIsInstance<KaClassType>()
+                .toList().ifEmpty { return false }
+
+        return compatibleSupertypesOfActualReceiverType.all { compatibleType ->
+            compatibleType.typeArguments.zip(type.typeArguments).all { (actualTypeArgument, extensionTypeArgument) ->
+                // It implies that the current extension type argument is `KaStarTypeProjection`,
+                // so it can be substituted with any actual type argument
+                if (extensionTypeArgument is KaStarTypeProjection) {
+                    return true
+                }
+
+                // Star projections can't be used in the argument lists of receiver types
+                if (actualTypeArgument is KaStarTypeProjection) {
+                    return false
+                }
+
+                if (extensionTypeArgument !is KaTypeArgumentWithVariance || actualTypeArgument !is KaTypeArgumentWithVariance) {
+                    return false
+                }
+
+                val actualTypeArgumentType = actualTypeArgument.type
+                val extensionTypeArgumentType = extensionTypeArgument.type
+
+                when {
+                    actualTypeArgumentType !is KaTypeParameterType && extensionTypeArgumentType !is KaTypeParameterType ->
+                        when (extensionTypeArgument.variance) {
+                            Variance.INVARIANT -> actualTypeArgumentType == extensionTypeArgumentType
+                            Variance.OUT_VARIANCE -> isPossiblySuperTypeOf(extensionTypeArgumentType, actualTypeArgumentType)
+                            Variance.IN_VARIANCE -> isPossiblySuperTypeOf(actualTypeArgumentType, extensionTypeArgumentType)
+                        }
+                    actualTypeArgumentType is KaTypeParameterType && extensionTypeArgumentType is KaTypeParameterType -> actualTypeArgumentType.hasCommonSubtypeWith(
+                        extensionTypeArgumentType
+                    )
+                    actualTypeArgumentType is KaTypeParameterType -> isPossiblySuperTypeOf(
+                        actualTypeArgumentType,
+                        extensionTypeArgumentType
+                    )
+                    else -> isPossiblySuperTypeOf(
+                        extensionTypeArgumentType,
+                        actualTypeArgumentType
+                    )
+                }
+            }
+        }
     }
 }
