@@ -14,8 +14,8 @@ compileTestKotlin {
         freeCompilerArgs.add("-Xcontext-parameters")
         optIn.addAll([
             "kotlin.ExperimentalStdlibApi",
-                "kotlin.ExperimentalUnsignedTypes",
-                "kotlin.time.ExperimentalTime",
+            "kotlin.ExperimentalUnsignedTypes",
+            "kotlin.time.ExperimentalTime",
         ])
     }
 }
