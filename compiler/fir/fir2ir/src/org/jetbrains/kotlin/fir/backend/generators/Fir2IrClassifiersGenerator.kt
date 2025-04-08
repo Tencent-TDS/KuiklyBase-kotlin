@@ -43,7 +43,7 @@ class Fir2IrClassifiersGenerator(private val c: Fir2IrComponents) : Fir2IrCompon
     fun createIrTypeParameterWithoutBounds(
         typeParameter: FirTypeParameter,
         index: Int,
-        symbol: IrTypeParameterSymbol,
+        symbol: IrTypeParameterSymbol
     ): IrTypeParameter {
         require(index >= 0)
         val origin = typeParameter.computeIrOrigin()
@@ -64,11 +64,7 @@ class Fir2IrClassifiersGenerator(private val c: Fir2IrComponents) : Fir2IrCompon
     }
 
     fun initializeTypeParameterBounds(typeParameter: FirTypeParameter, irTypeParameter: IrTypeParameter) {
-//        if (typeParameter.bounds.isEmpty()) {
-//            irTypeParameter.superTypes = listOf(c.builtins.anyNType)
-//        } else {
-            irTypeParameter.superTypes = typeParameter.bounds.map { it.toIrType(c) }
-//        }
+        irTypeParameter.superTypes = typeParameter.bounds.map { it.toIrType(c) }
     }
 
     // ------------------------------------ classes ------------------------------------
@@ -77,7 +73,7 @@ class Fir2IrClassifiersGenerator(private val c: Fir2IrComponents) : Fir2IrCompon
         regularClass: FirRegularClass,
         parent: IrDeclarationParent,
         symbol: IrClassSymbol,
-        predefinedOrigin: IrDeclarationOrigin? = null,
+        predefinedOrigin: IrDeclarationOrigin? = null
     ): IrClass {
         val visibility = regularClass.visibility
         val modality = when (regularClass.classKind) {
@@ -251,7 +247,7 @@ class Fir2IrClassifiersGenerator(private val c: Fir2IrComponents) : Fir2IrCompon
         anonymousObject: FirAnonymousObject,
         visibility: Visibility = Visibilities.Local,
         name: Name = SpecialNames.NO_NAME_PROVIDED,
-        irParent: IrDeclarationParent? = null,
+        irParent: IrDeclarationParent? = null
     ): IrClass {
         val origin = IrDeclarationOrigin.DEFINED
         val modality = Modality.FINAL
@@ -412,18 +408,14 @@ class Fir2IrClassifiersGenerator(private val c: Fir2IrComponents) : Fir2IrCompon
     internal fun setTypeParameters(
         irOwner: IrTypeParametersContainer,
         owner: FirTypeParameterRefsOwner,
-        typeOrigin: ConversionTypeOrigin = ConversionTypeOrigin.DEFAULT,
+        typeOrigin: ConversionTypeOrigin = ConversionTypeOrigin.DEFAULT
     ) {
         irOwner.typeParameters = owner.typeParameters.mapIndexedNotNull { index, typeParameter ->
             if (typeParameter !is FirTypeParameter) return@mapIndexedNotNull null
             classifierStorage.getIrTypeParameter(typeParameter, index, typeOrigin).apply {
                 parent = irOwner
                 if (superTypes.isEmpty()) {
-//                    if (typeParameter.bounds.isEmpty()) {
-//                        superTypes = listOf(builtins.anyNType)
-//                    } else {
-                        superTypes = typeParameter.bounds.map { it.toIrType(c, typeOrigin) }
-//                    }
+                    superTypes = typeParameter.bounds.map { it.toIrType(c, typeOrigin) }
                 }
             }
         }

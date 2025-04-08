@@ -354,7 +354,7 @@ open class FirJvmSerializerExtension(
             // would lead to differences in metadata in generated stubs. So we fix this difference during metadata serialization.
             return super.getClassSupertypes(klass)
                 .filterNot { it.coneType is ConeErrorType }
-                .ifEmpty { listOf(session.builtinTypes.unknownType) }
+                .ifEmpty { listOf(session.builtinTypes.anyType) }
         }
 
         return super.getClassSupertypes(klass)

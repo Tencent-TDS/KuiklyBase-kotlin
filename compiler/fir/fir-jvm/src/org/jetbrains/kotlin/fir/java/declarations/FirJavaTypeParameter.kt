@@ -61,7 +61,7 @@ class FirJavaTypeParameter(
         }.ifEmpty {
             val builtinTypes = session.builtinTypes
             listOf(buildResolvedTypeRef {
-                coneType = builtinTypes.unknownType.coneType
+                coneType = ConeFlexibleType(builtinTypes.anyType.coneType, builtinTypes.nullableAnyType.coneType, isTrivial = true)
             })
         }
     }

@@ -544,7 +544,7 @@ class FirSyntheticCallGenerator(
                 isReified = false
 
                 if (!isNullableBound) {
-                    bounds += moduleData.session.builtinTypes.unknownType
+                    bounds += moduleData.session.builtinTypes.anyType
                 } else {
                     addDefaultBoundIfNecessary()
                 }

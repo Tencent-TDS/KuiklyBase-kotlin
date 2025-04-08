@@ -90,7 +90,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
         flow: MutableFlow,
         originalVariable: DataFlowVariable,
         newVariable: DataFlowVariable,
-        transform: (Implication) -> Implication? = { it },
+        transform: (Implication) -> Implication? = { it }
     ) {
         val statements = if (originalVariable.isSynthetic())
             flow.implications.remove(originalVariable)
@@ -254,7 +254,7 @@ abstract class LogicSystem(private val context: ConeInferenceContext) {
     private fun approveOperationStatement(
         logicStatements: Map<DataFlowVariable, PersistentList<Implication>>,
         approvedStatement: OperationStatement,
-        removeApprovedOrImpossible: Boolean,
+        removeApprovedOrImpossible: Boolean
     ): TypeStatements {
         val result = mutableMapOf<RealVariable, MutableTypeStatement>()
         val queue = LinkedList<OperationStatement>().apply { this += approvedStatement }

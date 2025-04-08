@@ -190,11 +190,6 @@ fun ConeKotlinType.arrayElementTypeArgument(checkUnsignedArrays: Boolean = true)
     return null
 }
 
-private fun ConeKotlinType.isBuiltinType(classId: ClassId, isNullable: Boolean?): Boolean {
-    if (this !is ConeClassLikeType) return false
-    return lookupTag.classId == classId && (isNullable == null || this.isMarkedNullable == isNullable)
-}
-
 val ConeKotlinType.isUnboundedType: Boolean
     get() {
         if (this is ConeClassLikeType) {

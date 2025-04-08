@@ -1,43 +1,11 @@
 FILE: addAllOnJavaCollection.kt
-    public final class HashMap<K, V> : R|kotlin/collections/Map<K, V>| {
-        public constructor<K, V>(): R|HashMap<K, V>| {
-            super<R|kotlin/Any|>()
+    public final fun foo(): R|kotlin/Unit| {
+        lval y: R|kotlin/collections/List<kotlin/String>| = R|kotlin/collections/listOf|<R|kotlin/String|>(vararg(String(Alpha), String(Beta)))
+        lval x: R|{kotlin/collections/LinkedHashSet<kotlin/String>=} java/util/LinkedHashSet<kotlin/String>| = R|java/util/LinkedHashSet.LinkedHashSet|<R|kotlin/String|>().R|kotlin/apply|<R|{kotlin/collections/LinkedHashSet<kotlin/String>=} java/util/LinkedHashSet<kotlin/String>|>(<L> = apply@fun R|{kotlin/collections/LinkedHashSet<kotlin/String>=} java/util/LinkedHashSet<kotlin/String>|.<anonymous>(): R|kotlin/Unit| <inline=Inline, kind=EXACTLY_ONCE>  {
+            this@R|special/anonymous|.R|SubstitutionOverride<java/util/LinkedHashSet.addAll: R|kotlin/Boolean|>|(R|<local>/y|)
         }
-
-        public open override fun containsKey(key: R|K|): R|kotlin/Boolean| {
-            ^containsKey Boolean(false)
-        }
-
-        public open override fun containsValue(value: R|V|): R|kotlin/Boolean| {
-            ^containsValue Boolean(false)
-        }
-
-        public open override val size: R|kotlin/Int|
-            public get(): R|kotlin/Int| {
-                ^ Int(0)
-            }
-
-        public open override fun isEmpty(): R|kotlin/Boolean| {
-            ^isEmpty Boolean(true)
-        }
-
-        public open override operator fun get(key: R|K|): R|V?| {
-            ^get Null(null)
-        }
-
-        public open override val keys: R|kotlin/collections/MutableSet<K>|
-            public get(): R|kotlin/collections/MutableSet<K>| {
-                ^ R|kotlin/collections/mutableSetOf|<R|K|>()
-            }
-
-        public open override val values: R|kotlin/collections/MutableCollection<V>|
-            public get(): R|kotlin/collections/MutableCollection<V>| {
-                ^ R|kotlin/collections/mutableListOf|<R|V|>()
-            }
-
-        public open override val entries: R|kotlin/collections/MutableSet<kotlin/collections/Map.Entry<K, V>>|
-            public get(): R|kotlin/collections/MutableSet<kotlin/collections/Map.Entry<K, V>>| {
-                ^ R|kotlin/collections/mutableSetOf|<R|kotlin/collections/Map.Entry<K, V>|>()
-            }
-
+        )
+        lval z: R|{kotlin/collections/ArrayList<kotlin/String>=} java/util/ArrayList<kotlin/String>| = R|java/util/ArrayList.ArrayList|<R|kotlin/String|>()
+        R|<local>/z|.R|SubstitutionOverride<java/util/ArrayList.addAll: R|kotlin/Boolean|>|(R|<local>/y|)
+        R|<local>/z|.R|SubstitutionOverride<java/util/ArrayList.add: R|kotlin/Boolean|>|(String(Omega))
     }
