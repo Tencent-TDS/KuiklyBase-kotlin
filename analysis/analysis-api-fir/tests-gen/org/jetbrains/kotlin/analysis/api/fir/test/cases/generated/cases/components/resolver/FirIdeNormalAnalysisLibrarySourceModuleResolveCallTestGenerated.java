@@ -3160,6 +3160,40 @@ public class FirIdeNormalAnalysisLibrarySourceModuleResolveCallTestGenerated ext
     }
 
     @Nested
+    @TestMetadata("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/blockTags")
+    @TestDataPath("$PROJECT_ROOT")
+    public class BlockTags {
+      @Test
+      public void testAllFilesPresentInBlockTags() {
+        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/blockTags"), Pattern.compile("^(.+)\\.kt$"), null, true, "withTestCompilerPluginEnabled", "withErrors", "missingDependency");
+      }
+
+      @Test
+      @TestMetadata("constructorBlockTag.kt")
+      public void testConstructorBlockTag() {
+        runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/blockTags/constructorBlockTag.kt");
+      }
+
+      @Test
+      @TestMetadata("paramBlockOnFunction.kt")
+      public void testParamBlockOnFunction() {
+        runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/blockTags/paramBlockOnFunction.kt");
+      }
+
+      @Test
+      @TestMetadata("paramBlockTag.kt")
+      public void testParamBlockTag() {
+        runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/blockTags/paramBlockTag.kt");
+      }
+
+      @Test
+      @TestMetadata("prioritiesWithSameNames.kt")
+      public void testPrioritiesWithSameNames() {
+        runTest("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/blockTags/prioritiesWithSameNames.kt");
+      }
+    }
+
+    @Nested
     @TestMetadata("analysis/analysis-api/testData/components/resolver/singleByPsi/kDoc/companionObject")
     @TestDataPath("$PROJECT_ROOT")
     public class CompanionObject {
