@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.name.Name
  */
 internal class GenerateWasmTests(private val backendContext: WasmBackendContext) : ModuleLoweringPass {
     override fun lower(irModule: IrModuleFragment) {
-        val generator = TestGenerator(context = backendContext, generateRichReferences = true)
+        val generator = TestGenerator(context = backendContext)
         irModule.files.forEach { irFile ->
             val testContainerIfAny = generator.createTestContainer(irFile)
             if (testContainerIfAny != null) {

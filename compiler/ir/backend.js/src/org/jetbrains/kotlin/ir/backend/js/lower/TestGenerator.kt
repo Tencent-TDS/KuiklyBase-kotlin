@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.utils.findIsInstanceAnd
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 fun generateJsTests(context: JsIrBackendContext, moduleFragment: IrModuleFragment) {
-    val generator = TestGenerator(context = context, generateRichReferences = false)
+    val generator = TestGenerator(context = context)
     moduleFragment.files.forEach {
         val testContainerIfAny = generator.createTestContainer(it)
         if (testContainerIfAny != null) {
@@ -48,7 +48,7 @@ fun generateJsTests(context: JsIrBackendContext, moduleFragment: IrModuleFragmen
     }
 }
 
-class TestGenerator(val context: JsCommonBackendContext, private val generateRichReferences: Boolean) {
+class TestGenerator(val context: JsCommonBackendContext) {
     fun createTestContainer(irFile: IrFile): IrSimpleFunction? {
         if (irFile.declarations.isEmpty()) return null
 
@@ -93,20 +93,16 @@ class TestGenerator(val context: JsCommonBackendContext, private val generateRic
         function.body = body
 
         val refType = context.symbols.functionN(0).typeWith(function.returnType)
-        val testFunReference = if (generateRichReferences) {
-            IrRichFunctionReferenceImpl(
-                startOffset = UNDEFINED_OFFSET,
-                endOffset = UNDEFINED_OFFSET,
-                type = refType,
-                reflectionTargetSymbol = null,
-                overriddenFunctionSymbol = selectSAMOverriddenFunction(refType),
-                invokeFunction = function,
-                origin = null,
-                isRestrictedSuspension = false,
-            )
-        } else {
-            JsIrBuilder.buildFunctionExpression(refType, function)
-        }
+        val testFunReference = IrRichFunctionReferenceImpl(
+            startOffset = UNDEFINED_OFFSET,
+            endOffset = UNDEFINED_OFFSET,
+            type = refType,
+            reflectionTargetSymbol = null,
+            overriddenFunctionSymbol = selectSAMOverriddenFunction(refType),
+            invokeFunction = function,
+            origin = null,
+            isRestrictedSuspension = false,
+        )
 
         (parentFunction.body as IrBlockBody).statements += JsIrBuilder.buildCall(this).apply {
             arguments[0] = JsIrBuilder.buildString(context.irBuiltIns.stringType, name)
@@ -242,20 +238,16 @@ class TestGenerator(val context: JsCommonBackendContext, private val generateRic
             }
 
             val refType = context.symbols.functionN(0).typeWith(afterFunction.returnType)
-            val finallyLambda = if (generateRichReferences) {
-                IrRichFunctionReferenceImpl(
-                    startOffset = UNDEFINED_OFFSET,
-                    endOffset = UNDEFINED_OFFSET,
-                    type = refType,
-                    reflectionTargetSymbol = null,
-                    overriddenFunctionSymbol = selectSAMOverriddenFunction(refType),
-                    invokeFunction = afterFunction,
-                    origin = null,
-                    isRestrictedSuspension = false,
-                )
-            } else {
-                JsIrBuilder.buildFunctionExpression(refType, afterFunction)
-            }
+            val finallyLambda = IrRichFunctionReferenceImpl(
+                startOffset = UNDEFINED_OFFSET,
+                endOffset = UNDEFINED_OFFSET,
+                type = refType,
+                reflectionTargetSymbol = null,
+                overriddenFunctionSymbol = selectSAMOverriddenFunction(refType),
+                invokeFunction = afterFunction,
+                origin = null,
+                isRestrictedSuspension = false,
+            )
 
             val finally = promiseSymbol.owner.declarations
                 .findIsInstanceAnd<IrSimpleFunction> { it.name.asString() == "finally" }!!
