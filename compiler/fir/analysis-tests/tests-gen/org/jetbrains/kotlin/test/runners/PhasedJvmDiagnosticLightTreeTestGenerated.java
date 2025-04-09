@@ -52740,9 +52740,39 @@ public class PhasedJvmDiagnosticLightTreeTestGenerated extends AbstractPhasedJvm
         }
 
         @Test
+        @TestMetadata("elvisOperator.kt")
+        public void testElvisOperator() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/elvisOperator.kt");
+        }
+
+        @Test
+        @TestMetadata("elvisOperatorEnum.kt")
+        public void testElvisOperatorEnum() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/elvisOperatorEnum.kt");
+        }
+
+        @Test
         @TestMetadata("equalityOperator.kt")
         public void testEqualityOperator() {
           runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/equalityOperator.kt");
+        }
+
+        @Test
+        @TestMetadata("explicitReturnTypes.kt")
+        public void testExplicitReturnTypes() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/explicitReturnTypes.kt");
+        }
+
+        @Test
+        @TestMetadata("extensions.kt")
+        public void testExtensions() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/extensions.kt");
+        }
+
+        @Test
+        @TestMetadata("functionalTypes.kt")
+        public void testFunctionalTypes() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/functionalTypes.kt");
         }
 
         @Test
@@ -52755,6 +52785,24 @@ public class PhasedJvmDiagnosticLightTreeTestGenerated extends AbstractPhasedJvm
         @TestMetadata("lambdasReturnStatementsWithResolvedQualifiers.kt")
         public void testLambdasReturnStatementsWithResolvedQualifiers() {
           runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/lambdasReturnStatementsWithResolvedQualifiers.kt");
+        }
+
+        @Test
+        @TestMetadata("notNullAssertion.kt")
+        public void testNotNullAssertion() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/notNullAssertion.kt");
+        }
+
+        @Test
+        @TestMetadata("notNullAssertionEnum.kt")
+        public void testNotNullAssertionEnum() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/notNullAssertionEnum.kt");
+        }
+
+        @Test
+        @TestMetadata("propInitializers.kt")
+        public void testPropInitializers() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/propInitializers.kt");
         }
 
         @Test
@@ -52776,9 +52824,21 @@ public class PhasedJvmDiagnosticLightTreeTestGenerated extends AbstractPhasedJvm
         }
 
         @Test
+        @TestMetadata("tryCatchStatementsEnum.kt")
+        public void testTryCatchStatementsEnum() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/tryCatchStatementsEnum.kt");
+        }
+
+        @Test
         @TestMetadata("whenIfLastStatement.kt")
         public void testWhenIfLastStatement() {
           runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/whenIfLastStatement.kt");
+        }
+
+        @Test
+        @TestMetadata("whenIfLastStatementEnum.kt")
+        public void testWhenIfLastStatementEnum() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/otherExpectedTypePositions/whenIfLastStatementEnum.kt");
         }
       }
 
