@@ -1,0 +1,10 @@
+[
+  {
+    "spaceTeam": "Compose",
+    "virtualMembers": ["google.compose1@google.com", "google.compose2@google.com"]
+  },
+  {
+    "spaceTeam": "Parcelize",
+    "virtualMembers": ["google.parcelize1@google.com", "google.parcelize2@google.com"]
+  }
+]

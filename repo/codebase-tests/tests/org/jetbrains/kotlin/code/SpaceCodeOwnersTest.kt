@@ -33,6 +33,23 @@ class SpaceCodeOwnersTest : TestCase() {
         }
     }
 
+    fun testOwnersAreAddedByTeamsOrEmailAddress() {
+        for (owner in owners.permittedOwners) {
+            val isTeam = owner.name.first() == '"' && owner.name.last() == '"'
+            val isEmailAddress = owner.name.contains('@')
+
+            if (!isTeam && !isEmailAddress) {
+                fail(
+                    buildString {
+                        appendLine("Owner '${owner.name}' does not meet the required criteria:")
+                        appendLine("1. Team name in quotations")
+                        appendLine("2. User email address")
+                    }
+                )
+            }
+        }
+    }
+
     fun testAllOwnersInOwnerList() {
         val permittedOwnerNames = owners.permittedOwners.map { it.name }.toSet()
         val problems = mutableListOf<String>()
@@ -249,7 +266,7 @@ private fun parseCodeOwners(file: File): CodeOwners {
     val ownersPattern = "(\"[^\"]+\")|(\\S+)".toRegex()
 
     fun parseOwnerNames(ownerString: String): List<String> {
-        return ownersPattern.findAll(ownerString).map { it.value.removeSurrounding("\"") }.toList()
+        return ownersPattern.findAll(ownerString).map { it.value }.toList()
     }
 
     val permittedOwners = mutableListOf<CodeOwners.OwnerListEntry>()
