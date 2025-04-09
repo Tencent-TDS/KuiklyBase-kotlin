@@ -1573,6 +1573,46 @@ KtDotQualifiedExpression(1002,1013): 'i.equals(m)'
       typeArgumentsMapping = {}
     isInBestCandidates = true
 
+  KaApplicableCallCandidateInfo:
+    candidate = KaSimpleFunctionCall:
+      argumentMapping = {
+        m -> (KaVariableSignature:
+          name = other
+          receiverType = null
+          returnType = MessagePreview
+          symbol = other: V
+          contextParameters = []
+          callableId = null)
+      }
+      isImplicitInvoke = false
+      partiallyAppliedSymbol = KaPartiallyAppliedSymbol:
+        contextArguments = []
+        dispatchReceiver = null
+        extensionReceiver = KaExplicitReceiverValue:
+          expression = i
+          isSafeNavigation = false
+          type = InterfaceWithEquals
+        signature = KaFunctionSignature:
+          receiverType = InterfaceWithEquals
+          returnType = kotlin.Boolean
+          symbol = kotlin/equals(<extension receiver>: T, other: V): kotlin.Boolean
+          valueParameters = [
+            KaVariableSignature:
+              name = other
+              receiverType = null
+              returnType = MessagePreview
+              symbol = other: V
+              contextParameters = []
+              callableId = null
+          ]
+          contextParameters = []
+          callableId = kotlin/equals
+      typeArgumentsMapping = {
+        T -> (InterfaceWithEquals),
+        V -> (MessagePreview)
+      }
+    isInBestCandidates = false
+
 KtNameReferenceExpression(1002,1003): 'i'
   KaApplicableCallCandidateInfo:
     candidate = KaSimpleVariableAccessCall:

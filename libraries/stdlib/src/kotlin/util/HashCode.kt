@@ -15,4 +15,4 @@ import kotlin.internal.InlineOnly
  */
 @SinceKotlin("1.3")
 @InlineOnly
-public inline fun Any?.hashCode(): Int = this?.hashCode() ?: 0
+public inline fun <T> T.hashCode(): Int = (this as? Any)?.hashCode() ?: 0

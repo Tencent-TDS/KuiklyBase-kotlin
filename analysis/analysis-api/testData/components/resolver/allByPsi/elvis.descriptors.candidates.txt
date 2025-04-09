@@ -93,6 +93,46 @@ KtSafeQualifiedExpression(79,98): 'other?.equals(this)'
       typeArgumentsMapping = {}
     isInBestCandidates = true
 
+  KaApplicableCallCandidateInfo:
+    candidate = KaSimpleFunctionCall:
+      argumentMapping = {
+        this -> (KaVariableSignature:
+          name = other
+          receiverType = null
+          returnType = MyClass
+          symbol = other: V
+          contextParameters = []
+          callableId = null)
+      }
+      isImplicitInvoke = false
+      partiallyAppliedSymbol = KaPartiallyAppliedSymbol:
+        contextArguments = []
+        dispatchReceiver = null
+        extensionReceiver = KaExplicitReceiverValue:
+          expression = other
+          isSafeNavigation = true
+          type = kotlin.Any?
+        signature = KaFunctionSignature:
+          receiverType = kotlin.Any
+          returnType = kotlin.Boolean
+          symbol = kotlin/equals(<extension receiver>: T, other: V): kotlin.Boolean
+          valueParameters = [
+            KaVariableSignature:
+              name = other
+              receiverType = null
+              returnType = MyClass
+              symbol = other: V
+              contextParameters = []
+              callableId = null
+          ]
+          contextParameters = []
+          callableId = kotlin/equals
+      typeArgumentsMapping = {
+        T -> (kotlin.Any),
+        V -> (MyClass)
+      }
+    isInBestCandidates = false
+
 KtNameReferenceExpression(79,84): 'other'
   KaApplicableCallCandidateInfo:
     candidate = KaSimpleVariableAccessCall:

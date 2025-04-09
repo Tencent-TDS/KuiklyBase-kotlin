@@ -56324,6 +56324,12 @@ public class PhasedJvmDiagnosticLightTreeTestGenerated extends AbstractPhasedJvm
     @TestDataPath("$PROJECT_ROOT")
     public class Unbounded {
       @Test
+      @TestMetadata("genericFunctions.kt")
+      public void testGenericFunctions() {
+        runTest("compiler/fir/analysis-tests/testData/resolve/unbounded/genericFunctions.kt");
+      }
+
+      @Test
       @TestMetadata("hashMap.kt")
       public void testHashMap() {
         runTest("compiler/fir/analysis-tests/testData/resolve/unbounded/hashMap.kt");

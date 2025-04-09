@@ -90,6 +90,47 @@ KtDotQualifiedExpression(79,98): 'super.equals(other)'
       typeArgumentsMapping = {}
     isInBestCandidates = true
 
+  KaInapplicableCallCandidateInfo:
+    candidate = KaSimpleFunctionCall:
+      argumentMapping = {
+        other -> (KaVariableSignature:
+          name = other
+          receiverType = null
+          returnType = kotlin.Any?
+          symbol = other: V
+          contextParameters = []
+          callableId = null)
+      }
+      isImplicitInvoke = false
+      partiallyAppliedSymbol = KaPartiallyAppliedSymbol:
+        contextArguments = []
+        dispatchReceiver = null
+        extensionReceiver = KaExplicitReceiverValue:
+          expression = super
+          isSafeNavigation = false
+          type = kotlin.Any
+        signature = KaFunctionSignature:
+          receiverType = kotlin.Any
+          returnType = kotlin.Boolean
+          symbol = kotlin/equals(<extension receiver>: T, other: V): kotlin.Boolean
+          valueParameters = [
+            KaVariableSignature:
+              name = other
+              receiverType = null
+              returnType = kotlin.Any?
+              symbol = other: V
+              contextParameters = []
+              callableId = null
+          ]
+          contextParameters = []
+          callableId = kotlin/equals
+      typeArgumentsMapping = {
+        T -> (kotlin.Any),
+        V -> (kotlin.Any?)
+      }
+    diagnostic = ERROR<UNRESOLVED_REFERENCE: OTHER_ERROR with equals>
+    isInBestCandidates = false
+
 KtSuperExpression(79,84): 'super'
   NO_CANDIDATES
 

@@ -12,6 +12,10 @@ package kotlin
  */
 public expect fun Any?.toString(): String
 
+public fun <T, V> T.equals(other: V): Boolean = null!!
+
+public fun <T> T.toString(): String = (this as Any?).toString()
+
 /**
  * Concatenates this string with the string representation of the given [other] object. If either the receiver
  * or the [other] object are null, they are represented as the string "null".

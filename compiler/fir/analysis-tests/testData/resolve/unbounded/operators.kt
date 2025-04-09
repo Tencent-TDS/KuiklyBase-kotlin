@@ -45,3 +45,8 @@ fun <T> test2(inv: Inv<T>): Any? {
     val tmp1 = inv.get()
     return <!RETURN_TYPE_MISMATCH!>tmp1<!>
 }
+
+fun <T> test3(arg: T) {
+    arg!! // should be an error
+    arg?.bar() // should be an error
+}

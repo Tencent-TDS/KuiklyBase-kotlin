@@ -135,6 +135,9 @@ fun ConeKotlinType.makeConeTypeDefinitelyNotNullOrNotNull(
             it.makeConeTypeDefinitelyNotNullOrNotNull(typeContext, avoidComprehensiveCheck)
         })
     }
+    if (this.isUnboundedType) {
+        return this
+    }
     return ConeDefinitelyNotNullType.create(this, typeContext, avoidComprehensiveCheck)
         ?: this.withNullability(nullable = false, typeContext, preserveAttributes = preserveAttributes)
 }
