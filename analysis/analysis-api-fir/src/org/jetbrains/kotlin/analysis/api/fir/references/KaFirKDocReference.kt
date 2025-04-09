@@ -13,13 +13,22 @@ import org.jetbrains.kotlin.analysis.api.fir.symbols.KaFirSyntheticJavaPropertyS
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
 import org.jetbrains.kotlin.idea.references.KDocReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
+import org.jetbrains.kotlin.kdoc.psi.impl.KDocTag
 import org.jetbrains.kotlin.psi.KtImportAlias
+import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 
 internal class KaFirKDocReference(element: KDocName) : KDocReference(element), KaFirReference {
     override fun KaFirSession.computeSymbols(): Collection<KaSymbol> {
         val fullFqName = generateSequence(element) { it.parent as? KDocName }.last().getQualifiedNameAsFqName()
         val selectedFqName = element.getQualifiedNameAsFqName()
-        return KDocReferenceResolver.resolveKdocFqName(useSiteSession, selectedFqName, fullFqName, element).toSet()
+        val knownContainedTagSection = element.getStrictParentOfType<KDocTag>()?.knownTag
+        return KDocReferenceResolver.resolveKdocFqName(
+            useSiteSession,
+            selectedFqName,
+            fullFqName,
+            element,
+            knownContainedTagSection
+        ).toSet()
     }
 
     override fun getResolvedToPsi(

@@ -1,4 +1,3 @@
 KDocName(8,10): 'aa'
   KDocReference:
-    0: aa: kotlin.Int
-    1: (in C) val aa: kotlin.Int
+    (in C) val aa: kotlin.Int
