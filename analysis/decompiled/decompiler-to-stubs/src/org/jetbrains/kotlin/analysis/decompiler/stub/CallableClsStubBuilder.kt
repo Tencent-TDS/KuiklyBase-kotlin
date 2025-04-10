@@ -294,31 +294,33 @@ private class PropertyClsStubBuilder(
         val flags = propertyProto.flags
         if (Flags.HAS_GETTER[flags] && propertyProto.hasGetterFlags()) {
             val getterFlags = propertyProto.getterFlags
-            val hasBody = Flags.IS_NOT_DEFAULT.get(getterFlags)
-            createModifierListAndAnnotationStubsForAccessor(
-                KotlinPropertyAccessorStubImpl(callableStub, true, hasBody, hasBody),
-                flags = getterFlags,
-                callableKind = AnnotatedCallableKind.PROPERTY_GETTER
-            )
+            if (Flags.IS_NOT_DEFAULT[getterFlags] || Flags.HAS_ANNOTATIONS[getterFlags]) {
+                createModifierListAndAnnotationStubsForAccessor(
+                    KotlinPropertyAccessorStubImpl(callableStub, true, false, true),
+                    flags = getterFlags,
+                    callableKind = AnnotatedCallableKind.PROPERTY_GETTER
+                )
+            }
         }
 
         if (Flags.HAS_SETTER[flags] && propertyProto.hasSetterFlags()) {
             val setterFlags = propertyProto.setterFlags
-            val hasBody = Flags.IS_NOT_DEFAULT.get(setterFlags)
-            val setterStub = KotlinPropertyAccessorStubImpl(callableStub, false, hasBody, hasBody)
-            createModifierListAndAnnotationStubsForAccessor(
-                setterStub,
-                flags = setterFlags,
-                callableKind = AnnotatedCallableKind.PROPERTY_SETTER
-            )
-            if (propertyProto.hasSetterValueParameter()) {
-                typeStubBuilder.createValueParameterListStub(
+            if (Flags.IS_NOT_DEFAULT[setterFlags] || Flags.HAS_ANNOTATIONS[setterFlags]) {
+                val setterStub = KotlinPropertyAccessorStubImpl(callableStub, false, true, true)
+                createModifierListAndAnnotationStubsForAccessor(
                     setterStub,
-                    propertyProto,
-                    listOf(propertyProto.setterValueParameter),
-                    protoContainer,
-                    AnnotatedCallableKind.PROPERTY_SETTER
+                    flags = setterFlags,
+                    callableKind = AnnotatedCallableKind.PROPERTY_SETTER
                 )
+                if (propertyProto.hasSetterValueParameter()) {
+                    typeStubBuilder.createValueParameterListStub(
+                        setterStub,
+                        propertyProto,
+                        listOf(propertyProto.setterValueParameter),
+                        protoContainer,
+                        AnnotatedCallableKind.PROPERTY_SETTER
+                    )
+                }
             }
         }
     }
