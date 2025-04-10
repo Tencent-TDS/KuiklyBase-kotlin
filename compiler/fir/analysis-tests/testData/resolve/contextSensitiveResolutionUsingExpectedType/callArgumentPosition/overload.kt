@@ -18,13 +18,10 @@ fun overload(arg: MyClass) = arg
 
 fun test() {
     overload(<!UNRESOLVED_REFERENCE!>EnumValue1<!>)
-    // [UNRESOLVED_REFERENCE] Unresolved reference 'EnumValue1'.
 
     var v1: MyEnum = overload(<!UNRESOLVED_REFERENCE!>EnumValue1<!>)
-    // [UNRESOLVED_REFERENCE] Unresolved reference 'EnumValue1'.
 
     overload(<!UNRESOLVED_REFERENCE!>InheritorObject<!>)
-    // [UNRESOLVED_REFERENCE] Unresolved reference 'InheritorObject'.
 
 }
 

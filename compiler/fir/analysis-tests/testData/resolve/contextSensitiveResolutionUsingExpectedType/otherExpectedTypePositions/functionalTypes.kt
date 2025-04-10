@@ -1,7 +1,7 @@
 // RUN_PIPELINE_TILL: FRONTEND
 // ISSUE: KT-75316
+// WITH_STDLIB
 // LANGUAGE: +ContextSensitiveResolutionUsingExpectedType, +ContextParameters
-
 
 enum class MyEnum {
     Option1, Option2, Option3;
@@ -36,6 +36,6 @@ val enumAnonFuncProp: (arg: Boolean) -> MyEnum = fun(arg: Boolean): MyEnum {
     return if (arg) enumProp else Option1
 }
 
-//val withContextProp : context(MyEnum)() -> Unit = {
-//    contextOf<MyEnum>() == Option1
-//}
+val withContextProp : context(MyEnum)() -> Unit = {
+    contextOf<MyEnum>() == Option1
+}

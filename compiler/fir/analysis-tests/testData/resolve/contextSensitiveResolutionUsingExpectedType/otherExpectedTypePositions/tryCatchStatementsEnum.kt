@@ -1,4 +1,4 @@
-// RUN_PIPELINE_TILL: FRONTEND
+// RUN_PIPELINE_TILL: BACKEND
 // ISSUE: KT-75316
 // LANGUAGE: +ContextSensitiveResolutionUsingExpectedType
 

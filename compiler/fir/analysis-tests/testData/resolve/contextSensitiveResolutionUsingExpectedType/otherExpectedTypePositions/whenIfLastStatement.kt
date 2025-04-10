@@ -21,12 +21,10 @@ fun testIfElse(i: Int) {
     val s: MyClass =
         if (i == 0) {
             <!UNRESOLVED_REFERENCE!>NestedInheritor<!>
-            // [UNRESOLVED_REFERENCE] Unresolved reference 'NestedInheritor'.
             NestedInheritor
         }
         else if (i == 1) {
             <!UNRESOLVED_REFERENCE!>myClassProp<!>
-            // [UNRESOLVED_REFERENCE] Unresolved reference 'myClassProp'.
             myClassProp
         }
         else ClassMemberAlias

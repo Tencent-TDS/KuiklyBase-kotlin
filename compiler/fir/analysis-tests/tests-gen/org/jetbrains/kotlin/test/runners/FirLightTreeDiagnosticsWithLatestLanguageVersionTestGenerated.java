@@ -2451,15 +2451,15 @@ public class FirLightTreeDiagnosticsWithLatestLanguageVersionTestGenerated exten
         }
 
         @Test
-        @TestMetadata("infixFun.kt")
-        public void testInfixFun() {
-          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/infixFun.kt");
+        @TestMetadata("generic.kt")
+        public void testGeneric() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/generic.kt");
         }
 
         @Test
-        @TestMetadata("inlineFun.kt")
-        public void testInlineFun() {
-          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/inlineFun.kt");
+        @TestMetadata("infixFun.kt")
+        public void testInfixFun() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/infixFun.kt");
         }
 
         @Test
@@ -2565,21 +2565,15 @@ public class FirLightTreeDiagnosticsWithLatestLanguageVersionTestGenerated exten
         }
 
         @Test
-        @TestMetadata("simpleGenericEnum.kt")
-        public void testSimpleGenericEnum() {
-          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/simpleGenericEnum.kt");
+        @TestMetadata("simpleVarargs.kt")
+        public void testSimpleVarargs() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/simpleVarargs.kt");
         }
 
         @Test
         @TestMetadata("varargs.kt")
         public void testVarargs() {
           runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/varargs.kt");
-        }
-
-        @Test
-        @TestMetadata("varargsEnum.kt")
-        public void testVarargsEnum() {
-          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/callArgumentPosition/varargsEnum.kt");
         }
       }
 
