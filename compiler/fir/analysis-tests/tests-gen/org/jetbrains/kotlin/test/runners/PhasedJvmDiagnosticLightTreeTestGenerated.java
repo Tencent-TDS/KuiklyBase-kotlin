@@ -52877,6 +52877,24 @@ public class PhasedJvmDiagnosticLightTreeTestGenerated extends AbstractPhasedJvm
         }
 
         @Test
+        @TestMetadata("isInIf.kt")
+        public void testIsInIf() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/isInIf.kt");
+        }
+
+        @Test
+        @TestMetadata("isInWhen.kt")
+        public void testIsInWhen() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/isInWhen.kt");
+        }
+
+        @Test
+        @TestMetadata("javaInterop.kt")
+        public void testJavaInterop() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/javaInterop.kt");
+        }
+
+        @Test
         @TestMetadata("nonSealed.kt")
         public void testNonSealed() {
           runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/nonSealed.kt");
@@ -52919,9 +52937,33 @@ public class PhasedJvmDiagnosticLightTreeTestGenerated extends AbstractPhasedJvm
         }
 
         @Test
+        @TestMetadata("singleDefiniteExpectedType.kt")
+        public void testSingleDefiniteExpectedType() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/singleDefiniteExpectedType.kt");
+        }
+
+        @Test
+        @TestMetadata("typeCast.kt")
+        public void testTypeCast() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/typeCast.kt");
+        }
+
+        @Test
         @TestMetadata("typeParameter.kt")
         public void testTypeParameter() {
           runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/typeParameter.kt");
+        }
+
+        @Test
+        @TestMetadata("typeParametersComplex.kt")
+        public void testTypeParametersComplex() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/typeParametersComplex.kt");
+        }
+
+        @Test
+        @TestMetadata("unsupportedTypePosition.kt")
+        public void testUnsupportedTypePosition() {
+          runTest("compiler/fir/analysis-tests/testData/resolve/contextSensitiveResolutionUsingExpectedType/typePosition/unsupportedTypePosition.kt");
         }
       }
     }
