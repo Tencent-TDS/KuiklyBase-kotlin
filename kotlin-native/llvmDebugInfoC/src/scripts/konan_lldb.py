@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 ##
-# Copyright 2010-2023 JetBrains s.r.o.
+# Copyright 2010-2025 JetBrains s.r.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,18 +21,17 @@
 # (lldb) p kotlin_variable
 #
 
-import lldb
-import struct
+import io
+import os
 import re
 import sys
-import os
 import time
-import io
-import traceback
+
+import lldb
 
 NULL = 'null'
 logging=False
-exe_logging=True if (os.getenv('GLOG_log_dir') != None) else False # Same as in LLDBFrontend
+exe_logging=os.getenv('GLOG_log_dir') is not None # Same as in LLDBFrontend
 bench_logging=False
 
 def log(msg):
@@ -132,8 +131,7 @@ def _max_children_count():
 def _symbol_loaded_address(name, debugger = lldb.debugger):
     target = debugger.GetSelectedTarget()
     process = target.GetProcess()
-    thread = process.GetSelectedThread()
-    frame = thread.GetSelectedFrame()
+    thread = process.GetSelectedThread(); frame = thread.GetSelectedFrame()
     candidates = frame.module.symbol[name]
     # take first
     for candidate in candidates:
@@ -251,14 +249,16 @@ def select_provider(lldb_val, tip, internal_dict):
     bench(start, lambda: "select_provider({:#x})".format(lldb_val.unsigned))
     return ret
 
+# noinspection PyUnresolvedReferences
 class KonanHelperProvider(lldb.SBSyntheticValueProvider):
-    def __init__(self, valobj, amString, type_name, internal_dict = {}):
+    def __init__(self, valobj, am_string, type_name, internal_dict={}):
+        super().__init__(valobj)
         self._target = lldb.debugger.GetSelectedTarget()
         self._process = self._target.GetProcess()
         self._valobj = valobj
         self._internal_dict = internal_dict.copy()
         self._type_name = type_name
-        if amString:
+        if am_string:
             return
         if self._children_count == 0:
             children_count = evaluate("(int)Konan_DebugGetFieldCount({:#x})".format(self._valobj.unsigned)).signed
@@ -276,12 +276,12 @@ class KonanHelperProvider(lldb.SBSyntheticValueProvider):
         return _TYPE_CONVERSION[int(value_type)](self, self._valobj, address, str(self._field_name(index)))
 
     def _read_type(self, index):
-        type = _TYPES[self._field_type(index)](self._valobj)
-        log(lambda: "type:{0} of {1:#x} of {2:#x}".format(type, self._valobj.unsigned,
+        obj_type = _TYPES[self._field_type(index)](self._valobj)
+        log(lambda: "type:{0} of {1:#x} of {2:#x}".format(obj_type, self._valobj.unsigned,
                                                           self._valobj.unsigned + self._children[index].offset()))
-        return type
+        return obj_type
 
-    def _deref_or_obj_summary(self, index, internal_dict = {}):
+    def _deref_or_obj_summary(self, index):
         value = self._read_value(index)
         if not value:
             log(lambda : "_deref_or_obj_summary: value none, index:{}, type:{}".format(index, self._children[index].type()))
@@ -294,19 +294,20 @@ class KonanHelperProvider(lldb.SBSyntheticValueProvider):
     def _field_type(self, index):
         return evaluate("(int)Konan_DebugGetFieldType({:#x}, {})".format(self._valobj.unsigned, index)).unsigned
 
-    def to_string(self, representation):
+    def render_string(self, representation):
         writer = io.StringIO()
         max_children_count=_max_children_count()
         limit = min(self._children_count, max_children_count)
         for i in range(limit):
             writer.write(representation(i))
-            if (i != limit - 1):
+            if i != limit - 1:
                 writer.write(", ")
         if max_children_count < self._children_count:
             writer.write(', ...')
         return "[{}]".format(writer.getvalue())
 
 
+# noinspection PyUnresolvedReferences
 class KonanStringSyntheticProvider(KonanHelperProvider):
     def __init__(self, valobj):
         log(lambda: "KonanStringSyntheticProvider:{:#x} name:{}".format(valobj.unsigned, valobj.name))
@@ -353,7 +354,7 @@ class KonanStringSyntheticProvider(KonanHelperProvider):
 
 
 class KonanObjectSyntheticProvider(KonanHelperProvider):
-    def __init__(self, valobj, tip, internal_dict):
+    def __init__(self, valobj, _, internal_dict):
         # Save an extra call into the process
         log(lambda: "KonanObjectSyntheticProvider({:#x})".format(valobj.unsigned))
         self._children_count = 0
@@ -397,11 +398,11 @@ class KonanObjectSyntheticProvider(KonanHelperProvider):
 
     def to_short_string(self):
         log(lambda: "to_short_string:{:#x}".format(self._valobj.unsigned))
-        return super().to_string(lambda index: "{}: ...".format(self._field_name(index)))
+        return self.render_string(lambda index: "{}: ...".format(self._field_name(index)))
 
     def to_string(self):
         log(lambda: "to_string:{:#x}".format(self._valobj.unsigned))
-        return super().to_string(lambda index: "{}: {}".format(self._field_name(index),
+        return self.render_string(lambda index: "{}: {}".format(self._field_name(index),
                                                                self._deref_or_obj_summary(index)))
 
 class KonanArraySyntheticProvider(KonanHelperProvider):
@@ -412,7 +413,6 @@ class KonanArraySyntheticProvider(KonanHelperProvider):
         if self._valobj is None:
             return
         valobj.SetSyntheticChildrenGenerated(True)
-        type = self._field_type(0)
 
     def num_children(self):
         log(lambda: "KonanArraySyntheticProvider::num_children({:#x}) = {}".format(self._valobj.unsigned,
@@ -439,14 +439,15 @@ class KonanArraySyntheticProvider(KonanHelperProvider):
 
     def to_short_string(self):
         log(lambda: "to_short_string:{:#x}".format(self._valobj.unsigned))
-        return super().to_string(lambda index: "...")
+        return self.render_string(lambda index: "...")
 
     def to_string(self):
         log(lambda: "to_string:{self._valobj.unsigned:#x}")
-        return super().to_string(lambda index: "{}".format(self._deref_or_obj_summary(index)))
+        return self.render_string(lambda index: "{}".format(self._deref_or_obj_summary(index)))
 
 class KonanZerroSyntheticProvider(lldb.SBSyntheticValueProvider):
     def __init__(self, valobj):
+        super().__init__(valobj)
         log(lambda: "KonanZerroSyntheticProvider::__init__ {}".format(valobj.name))
 
 
@@ -569,8 +570,6 @@ def type_by_address_command(debugger, command, result, internal_dict):
     result.AppendMessage("DEBUG: {}".format(command))
     tokens = command.split()
     target = debugger.GetSelectedTarget()
-    process = target.GetProcess()
-    thread = process.GetSelectedThread()
     types = _type_info_by_address(tokens[0])
     result.AppendMessage("DEBUG: {}".format(types))
     for t in types:
@@ -626,6 +625,7 @@ def konan_globals_command(debugger, command, result, internal_dict):
        result.AppendMessage('{} {}: {}'.format(type, name, str_value))
 
 
+# noinspection PyUnresolvedReferences
 class KonanStep(object):
     def __init__(self, thread_plan):
         self.thread_plan = thread_plan
@@ -635,10 +635,10 @@ class KonanStep(object):
         self.avoid_no_debug = debugger.GetInternalVariableValue('target.process.thread.step-in-avoid-nodebug',
                                                                 debugger.GetInstanceName()).GetStringAtIndex(0)
 
-    def explains_stop(self, event):
+    def explains_stop(self, _):
         return True
 
-    def should_stop(self, event):
+    def should_stop(self, _):
         frame = self.thread_plan.GetThread().GetFrameAtIndex(0)
         source_file = frame.GetLineEntry().GetFileSpec().GetFilename()
 
@@ -661,7 +661,7 @@ class KonanStep(object):
 
 
 class KonanStepIn(KonanStep):
-    def __init__(self, thread_plan, dict, *args):
+    def __init__(self, thread_plan, _):
         KonanStep.__init__(self, thread_plan)
 
     def do_queue_thread_plan(self, address, offset):
@@ -669,7 +669,7 @@ class KonanStepIn(KonanStep):
 
 
 class KonanStepOver(KonanStep):
-    def __init__(self, thread_plan, dict, *args):
+    def __init__(self, thread_plan, _):
         KonanStep.__init__(self, thread_plan)
 
     def do_queue_thread_plan(self, address, offset):
@@ -677,10 +677,10 @@ class KonanStepOver(KonanStep):
 
 
 class KonanStepOut(KonanStep):
-    def __init__(self, thread_plan, dict, *args):
+    def __init__(self, thread_plan, _):
         KonanStep.__init__(self, thread_plan)
 
-    def do_queue_thread_plan(self, address, offset):
+    def do_queue_thread_plan(self, _address, _offset):
       return self.thread_plan.QueueThreadPlanForStepOut(0)
 
 
