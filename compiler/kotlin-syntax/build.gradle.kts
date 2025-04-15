@@ -8,6 +8,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(kotlinStdlib())
+                implementation("org.jetbrains:annotations:24.0.0")
             }
             kotlin {
                 srcDir("common/src")
