@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.native
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.gradle.testbase.BuildOptions.NativeOptions
+import org.jetbrains.kotlin.gradle.uklibs.applyMultiplatform
 import org.jetbrains.kotlin.gradle.util.DSL_REPLACE_PLACEHOLDER
 import org.jetbrains.kotlin.gradle.util.SimpleSwiftExportProperties
 import org.jetbrains.kotlin.gradle.util.replaceText
@@ -160,6 +161,13 @@ class SwiftExportDslIT : KGPBaseTest() {
     ) {
         // Publish dependency
         val multiplatformLibrary = nativeProject("multiplatformLibrary", gradleVersion) {
+            buildScriptInjection {
+                project.applyMultiplatform {
+                    iosX64()
+                    iosArm64()
+                    iosSimulatorArm64()
+                }
+            }
             build(
                 "publishAllPublicationsToMavenRepository"
             )

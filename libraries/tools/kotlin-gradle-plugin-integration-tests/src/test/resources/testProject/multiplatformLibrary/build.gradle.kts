@@ -5,13 +5,6 @@ plugins {
 
 group = "com.jetbrains.library"
 version = "1.0"
-
-kotlin {
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-}
-
 publishing {
     repositories {
         maven {
