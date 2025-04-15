@@ -183,6 +183,7 @@ internal class YarnPluginApplier(
         yarnRootExtension: BaseYarnRootExtension,
     ) {
         download.convention(yarnRootExtension.downloadProperty)
+        // set instead of convention because it is possible to have null value
         downloadBaseUrl.set(yarnRootExtension.downloadBaseUrlProperty)
         allowInsecureProtocol.convention(false)
         installationDirectory.convention(yarnRootExtension.installationDirectory)

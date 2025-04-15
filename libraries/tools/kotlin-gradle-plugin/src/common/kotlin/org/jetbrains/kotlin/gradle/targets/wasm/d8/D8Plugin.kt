@@ -9,7 +9,6 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.ExtensionContainer
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.InternalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.MultiplePluginDeclarationDetector
 import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmPlatformDisambiguator
 import org.jetbrains.kotlin.gradle.tasks.CleanDataTask
@@ -67,7 +66,8 @@ abstract class D8Plugin internal constructor() :
         d8: D8RootExtension,
     ) {
         download.convention(d8.downloadProperty)
-        downloadBaseUrl.convention(d8.downloadBaseUrlProperty)
+        // set instead of convention because it is possible to have null value
+        downloadBaseUrl.set(d8.downloadBaseUrlProperty)
         allowInsecureProtocol.convention(false)
         installationDirectory.convention(d8.installationDirectory)
         version.convention(d8.versionProperty)
