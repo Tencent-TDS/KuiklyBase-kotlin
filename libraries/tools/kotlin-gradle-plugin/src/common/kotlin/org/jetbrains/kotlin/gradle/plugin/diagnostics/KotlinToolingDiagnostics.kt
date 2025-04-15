@@ -19,9 +19,11 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.KOTLIN_SUPPRESS_GRADLE_PLUGIN_WARNINGS_PROPERTY
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_MPP_APPLY_DEFAULT_HIERARCHY_TEMPLATE
+import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_NATIVE_DISABLE_KLIBS_CROSSCOMPILATION
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_NATIVE_IGNORE_DISABLED_TARGETS
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_NATIVE_SUPPRESS_EXPERIMENTAL_ARTIFACTS_DSL_WARNING
 import org.jetbrains.kotlin.gradle.plugin.diagnostics.ToolingDiagnostic.Severity.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.uklibs.Uklib
 import org.jetbrains.kotlin.gradle.plugin.sources.android.multiplatformAndroidSourceSetLayoutV1
 import org.jetbrains.kotlin.gradle.plugin.sources.android.multiplatformAndroidSourceSetLayoutV2
 import org.jetbrains.kotlin.gradle.targets.jvm.JAVA_TEST_FIXTURES_PLUGIN_ID
@@ -65,10 +67,11 @@ internal object KotlinToolingDiagnostics {
         }
     }
 
-    data class UklibPublicationWithoutCrossCompilation(val severity: ToolingDiagnostic.Severity) : ToolingDiagnosticFactory(severity, DiagnosticGroup.Kgp.Misconfiguration) {
+    data class UklibPublicationWithoutCrossCompilation(val severity: ToolingDiagnostic.Severity) :
+        ToolingDiagnosticFactory(severity, DiagnosticGroup.Kgp.Misconfiguration) {
         fun get() = build {
             title("UklibPublicationWithoutCrossCompilation")
-                .description("Publication of ${Uklib.UKLIB_NAME} without cross compilation will not work on non-macOS hosts. Please enable it by specifying ${PropertiesProvider.PropertyNames.KOTLIN_NATIVE_ENABLE_KLIBS_CROSSCOMPILATION}=true in gradle.properties")
+                .description("Publication of ${Uklib.UKLIB_NAME} without cross compilation will not work on non-macOS hosts. Please enable it by specifying ${PropertiesProvider.PropertyNames.KOTLIN_NATIVE_DISABLE_KLIBS_CROSSCOMPILATION}=false in gradle.properties")
                 .solution("FIXME: KT-76659")
         }
     }
@@ -82,13 +85,32 @@ internal object KotlinToolingDiagnostics {
     }
 
     object UklibSourceSetStructureUnderRefinementViolation : ToolingDiagnosticFactory(ERROR, DiagnosticGroup.Kgp.Misconfiguration) {
-        operator fun invoke(sourceSet: KotlinSourceSet, shouldRefine: List<KotlinSourceSet>, actuallyRefines: List<KotlinSourceSet>) = build {
-            title("UklibSourceSetStructureUnderRefinementViolation")
-                .description("Source set '${sourceSet}' should refine source sets ${shouldRefine}, but only refines source sets $actuallyRefines")
-                .solution("FIXME: KT-76659")
-        }
+        operator fun invoke(sourceSet: KotlinSourceSet, shouldRefine: List<KotlinSourceSet>, actuallyRefines: List<KotlinSourceSet>) =
+            build {
+                title("UklibSourceSetStructureUnderRefinementViolation")
+                    .description("Source set '${sourceSet}' should refine source sets ${shouldRefine}, but only refines source sets $actuallyRefines")
+                    .solution("FIXME: KT-76659")
+            }
     }
 
+    object CrossCompilationWithCinterops : ToolingDiagnosticFactory(WARNING, DiagnosticGroup.Kgp.Misconfiguration) {
+        operator fun invoke(target: String, interops: List<String>, hostname: String) = build {
+            title("Cross Compilation with Cinterop Not Supported")
+                .description {
+                    """
+                    Cross compilation to target '$target' has been disabled because it contains cinterops: '${interops.joinToString(", ")}' which cannot be processed on host '$hostname'.
+                    Cinterop libraries require platform-specific native toolchains that aren't available on the current host system.
+                    """.trimIndent()
+                }
+                .solutions {
+                    listOf(
+                        "Remove the cinterops dependencies '${interops.joinToString(", ")}' from target '$target'",
+                        "Build on a compatible host platform for this target/cinterop combination",
+                        "To disable klib cross compilation entirely, add '$KOTLIN_NATIVE_DISABLE_KLIBS_CROSSCOMPILATION=true' to your Gradle properties"
+                    )
+                }
+        }
+    }
 
     object DeprecatedKotlinNativeTargetsDiagnostic : ToolingDiagnosticFactory(ERROR, DiagnosticGroup.Kgp.Misconfiguration) {
         operator fun invoke(usedTargetIds: List<String>) = buildDiagnostic(
@@ -717,7 +739,8 @@ internal object KotlinToolingDiagnostics {
             }
     }
 
-    object PlatformSourceSetConventionUsedWithoutCorrespondingTarget : ToolingDiagnosticFactory(WARNING, DiagnosticGroup.Kgp.Misconfiguration) {
+    object PlatformSourceSetConventionUsedWithoutCorrespondingTarget :
+        ToolingDiagnosticFactory(WARNING, DiagnosticGroup.Kgp.Misconfiguration) {
         operator fun invoke(sourceSet: KotlinSourceSet, expectedTargetName: String) =
             build(throwable = sourceSet.isAccessedByKotlinSourceSetConventionAt) {
                 title("Source Set Used Without a Corresponding Target")
