@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.gradle.targets.js.EnvSpec
 import org.jetbrains.kotlin.gradle.targets.wasm.d8.D8Env
 import org.jetbrains.kotlin.gradle.targets.wasm.d8.D8Platform
 import org.jetbrains.kotlin.gradle.targets.wasm.d8.D8SetupTask
+import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmPlatformDisambiguator
 import org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore
 import org.jetbrains.kotlin.gradle.utils.getFile
 
@@ -89,7 +90,8 @@ abstract class D8EnvSpec : EnvSpec<D8Env>() {
     }
 
     val Project.d8SetupTaskProvider: TaskProvider<out D8SetupTask>
-        get() = project.tasks.withType(D8SetupTask::class.java).named(D8SetupTask.NAME)
+        get() = project.tasks.withType(D8SetupTask::class.java)
+            .named(WasmPlatformDisambiguator.extensionName(D8SetupTask.NAME))
 
     companion object {
         const val EXTENSION_NAME: String = org.jetbrains.kotlin.gradle.targets.wasm.d8.D8EnvSpec.EXTENSION_NAME

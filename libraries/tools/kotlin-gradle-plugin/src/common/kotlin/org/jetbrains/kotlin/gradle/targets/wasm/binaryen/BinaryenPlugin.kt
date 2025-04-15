@@ -11,6 +11,7 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.internal.unameExecResult
 import org.jetbrains.kotlin.gradle.targets.js.MultiplePluginDeclarationDetector
+import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmPlatformDisambiguator
 import org.jetbrains.kotlin.gradle.tasks.CleanDataTask
 import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.utils.castIsolatedKotlinPluginClassLoaderAware
@@ -38,7 +39,7 @@ abstract class BinaryenPlugin internal constructor() :
 
         addPlatform(project, settings)
 
-        project.registerTask<BinaryenSetupTask>(BinaryenSetupTask.NAME, listOf(spec)) {
+        project.registerTask<BinaryenSetupTask>(WasmPlatformDisambiguator.extensionName(BinaryenSetupTask.NAME), listOf(spec)) {
             it.group = TASKS_GROUP_NAME
             it.description = "Download and install a binaryen"
             it.configuration = it.ivyDependencyProvider.map { ivyDependency ->
@@ -47,7 +48,7 @@ abstract class BinaryenPlugin internal constructor() :
             }
         }
 
-        project.registerTask<CleanDataTask>("binaryen" + CleanDataTask.NAME_SUFFIX) {
+        project.registerTask<CleanDataTask>(WasmPlatformDisambiguator.extensionName("binaryen" + CleanDataTask.NAME_SUFFIX)) {
             it.cleanableStoreProvider = project.provider { settings.requireConfigured().cleanableStore }
             it.group = TASKS_GROUP_NAME
             it.description = "Clean unused local binaryen version"
