@@ -11,6 +11,7 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.InternalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.MultiplePluginDeclarationDetector
+import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmPlatformDisambiguator
 import org.jetbrains.kotlin.gradle.tasks.CleanDataTask
 import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.utils.castIsolatedKotlinPluginClassLoaderAware
@@ -39,7 +40,7 @@ abstract class D8Plugin internal constructor() :
 
         spec.initializeD8EnvSpec(d8RootExtension)
 
-        project.registerTask<D8SetupTask>(D8SetupTask.NAME, listOf(spec)) {
+        project.registerTask<D8SetupTask>(WasmPlatformDisambiguator.extensionName(D8SetupTask.NAME), listOf(spec)) {
             it.group = TASKS_GROUP_NAME
             it.description = "Download and install a D8"
             it.configuration = it.ivyDependencyProvider.map { ivyDependency ->
@@ -48,7 +49,7 @@ abstract class D8Plugin internal constructor() :
             }
         }
 
-        project.registerTask<CleanDataTask>("d8" + CleanDataTask.NAME_SUFFIX) {
+        project.registerTask<CleanDataTask>(WasmPlatformDisambiguator.extensionName("d8" + CleanDataTask.NAME_SUFFIX)) {
             it.cleanableStoreProvider = spec.env.map { it.cleanableStore }
             it.group = TASKS_GROUP_NAME
             it.description = "Clean unused local d8 version"
