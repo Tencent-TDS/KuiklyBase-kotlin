@@ -8,13 +8,14 @@ package org.jetbrains.kotlin.ir.inline
 import org.jetbrains.kotlin.backend.common.ir.Symbols
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.types.impl.buildSimpleType
@@ -149,7 +150,7 @@ internal class InlineFunctionBodyPreprocessor(
         }
     }
 
-    private class SymbolRemapperImpl(descriptorsRemapper: DescriptorsRemapper) : DeepCopySymbolRemapper(descriptorsRemapper) {
+    private class SymbolRemapperImpl() : DeepCopySymbolRemapper(NullDescriptorsRemapper) {
 
         var typeArguments: Map<IrTypeParameterSymbol, IrType?>? = null
             set(value) {
@@ -165,9 +166,18 @@ internal class InlineFunctionBodyPreprocessor(
                 return result
             return typeArguments?.get(result)?.classifierOrNull ?: result
         }
+
+        override fun visitSimpleFunction(declaration: IrSimpleFunction) {
+            if (!declaration.isInline) return super.visitSimpleFunction(declaration)
+
+            remapSymbol(functions, declaration) {
+                IrSimpleFunctionSymbolImpl(null, declaration.symbol.signature)
+            }
+            visitElement(declaration)
+        }
     }
 
-    private val symbolRemapper = SymbolRemapperImpl(NullDescriptorsRemapper)
+    private val symbolRemapper = SymbolRemapperImpl()
     private val typeRemapper = InlinerTypeRemapper(symbolRemapper, typeArguments)
     private val copier = object : DeepCopyIrTreeWithSymbols(symbolRemapper, typeRemapper) {
         var typeOfNodes = mutableMapOf<IrCall, IrType>()
