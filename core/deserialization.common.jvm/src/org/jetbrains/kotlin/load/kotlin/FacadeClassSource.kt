@@ -9,5 +9,6 @@ import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 
 interface FacadeClassSource {
     val className: JvmClassName
+    val jvmClassName: JvmClassName?
     val facadeClassName: JvmClassName?
 }
