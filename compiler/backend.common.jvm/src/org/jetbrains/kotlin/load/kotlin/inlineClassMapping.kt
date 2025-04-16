@@ -6,15 +6,18 @@
 package org.jetbrains.kotlin.load.kotlin
 
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
+import org.jetbrains.kotlin.types.UnderlyingTypeKind
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 
 internal fun TypeSystemCommonBackendContext.computeUnderlyingType(inlineClassType: KotlinTypeMarker): KotlinTypeMarker? {
     if (!shouldUseUnderlyingType(inlineClassType)) return null
 
-    val underlyingType = inlineClassType.getUnsubstitutedUnderlyingType() ?: return null
-    return underlyingType.typeConstructor().getTypeParameterClassifier()?.getRepresentativeUpperBound()
-        ?: inlineClassType.getSubstitutedUnderlyingType()
+    return when (val underlyingType = inlineClassType.getUnsubstitutedUnderlyingKind()) {
+        null -> null
+        is UnderlyingTypeKind.TypeParameter -> underlyingType.representativeUpperBound
+        else -> inlineClassType.getSubstitutedUnderlyingType()
+    }
 }
 
 internal fun TypeSystemCommonBackendContext.shouldUseUnderlyingType(inlineClassType: KotlinTypeMarker): Boolean {

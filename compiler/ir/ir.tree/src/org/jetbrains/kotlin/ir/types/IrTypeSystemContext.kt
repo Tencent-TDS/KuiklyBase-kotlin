@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.TypeCheckerState
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
+import org.jetbrains.kotlin.types.UnderlyingTypeKind
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.utils.compactIfPossible
@@ -472,21 +473,52 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
             irClass.kind != ClassKind.INTERFACE && irClass.kind != ClassKind.ANNOTATION_CLASS
         } ?: owner.superTypes.first()
 
-    override fun KotlinTypeMarker.getUnsubstitutedUnderlyingType(): KotlinTypeMarker? =
-        (this as IrType).classOrNull?.owner?.inlineClassRepresentation?.underlyingType
+    override fun KotlinTypeMarker.getUnsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
+        val underlyingType = (this as IrType).classOrNull?.owner?.inlineClassRepresentation?.underlyingType ?: return null
+        val underlyingTypeParameter = underlyingType.classifier as? IrTypeParameterSymbol
+        return when {
+            underlyingTypeParameter != null -> {
+                val bound = substitute(from = this, into = underlyingTypeParameter.getRepresentativeUpperBound())
+                return UnderlyingTypeKind.TypeParameter(underlyingType, bound)
+            }
+            underlyingType.isArrayOrNullableArray() -> {
+                val argument = underlyingType.arguments.single()
+                when (val elementTypeParameter = argument.getType()?.typeConstructor()?.getTypeParameterClassifier()) {
+                    null -> UnderlyingTypeKind.Regular(underlyingType)
+                    else -> {
+                        val elementBound = substitute(
+                            from = this,
+                            into = elementTypeParameter.getRepresentativeUpperBound()
+                        )
+                        return UnderlyingTypeKind.ArrayOfTypeParameter(
+                            underlyingType,
+                            argument.getVariance().convertVariance(),
+                            elementBound
+                        )
+                    }
+                }
+            }
+            else -> UnderlyingTypeKind.Regular(underlyingType)
+        }
+
+    }
 
     override fun KotlinTypeMarker.getSubstitutedUnderlyingType(): KotlinTypeMarker? =
-        getUnsubstitutedUnderlyingType()?.let { type ->
-            // Taking only the type parameters of the class (and not its outer classes) is OK since inner classes are always top level
-            val typeParameters = (this as IrType).getClass()!!.typeParameters.memoryOptimizedMap { it.symbol }
-            val typeArguments = (this as? IrSimpleType)?.arguments.orEmpty().mapIndexed { index, typeArgument ->
-                if (typeArgument is IrStarProjection) {
+        getUnsubstitutedUnderlyingType()?.let { substitute(from = this, into = it) }
+
+    private fun substitute(from: KotlinTypeMarker, into: KotlinTypeMarker): IrType {
+        val typeParameters = (from as IrType).getClass()!!.typeParameters.memoryOptimizedMap { it.symbol }
+        val typeArguments = (from as? IrSimpleType)?.arguments.orEmpty().mapIndexed { index, typeArgument ->
+            when {
+                typeArgument is IrStarProjection -> {
                     val typeParameter = typeParameters[index]
                     makeTypeProjection(typeParameter.getRepresentativeUpperBound() as IrType, typeParameter.owner.variance)
-                } else typeArgument
+                }
+                else -> typeArgument
             }
-            IrTypeSubstitutor(typeParameters, typeArguments).substitute(type as IrType)
         }
+        return IrTypeSubstitutor(typeParameters, typeArguments).substitute(into as IrType)
+    }
 
     override fun TypeConstructorMarker.getPrimitiveType(): PrimitiveType? =
         getNameForClassUnderKotlinPackage()?.let(PrimitiveType::getByShortName)

@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.types.TypeCheckerState
 import org.jetbrains.kotlin.types.TypeCheckerState.SupertypesPolicy.DoCustomTransform
 import org.jetbrains.kotlin.types.TypeCheckerState.SupertypesPolicy.LowerIfFlexible
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
+import org.jetbrains.kotlin.types.UnderlyingTypeKind
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.utils.exceptions.errorWithAttachment
 
@@ -552,9 +553,9 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
     @Suppress("NOTHING_TO_INLINE")
     private inline fun ConeTypeParameterLookupTag.bounds(): List<FirTypeRef> = symbol.resolvedBounds
 
-    override fun KotlinTypeMarker.getUnsubstitutedUnderlyingType(): KotlinTypeMarker? {
+    override fun KotlinTypeMarker.getUnsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
         require(this is ConeKotlinType)
-        return unsubstitutedUnderlyingTypeForInlineClass(session)
+        return unsubstitutedUnderlyingTypeForInlineClass(session, this@ConeTypeContext)
     }
 
     override fun KotlinTypeMarker.getSubstitutedUnderlyingType(): KotlinTypeMarker? {

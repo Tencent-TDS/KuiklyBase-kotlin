@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.resolve
 
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -12,8 +13,11 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.inlineClassRepresentation
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeSubstitutor
 import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.types.UnderlyingTypeKind
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext.isNullableType
+import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
+import org.jetbrains.kotlin.types.typeUtil.representativeUpperBound
 
 val JVM_INLINE_ANNOTATION_FQ_NAME = FqName("kotlin.jvm.JvmInline")
 val JVM_INLINE_ANNOTATION_CLASS_ID = ClassId.topLevel(JVM_INLINE_ANNOTATION_FQ_NAME)
@@ -29,13 +33,47 @@ fun DeclarationDescriptor.isMultiFieldValueClass(): Boolean =
 
 fun DeclarationDescriptor.isValueClass(): Boolean = isInlineClass() || isMultiFieldValueClass()
 
-fun KotlinType.unsubstitutedUnderlyingType(): KotlinType? =
-    (constructor.declarationDescriptor as? ClassDescriptor)?.inlineClassRepresentation?.underlyingType
+fun KotlinType.unsubstitutedUnderlyingType(): UnderlyingTypeKind? {
+    val underlyingType = (constructor.declarationDescriptor as? ClassDescriptor)?.inlineClassRepresentation?.underlyingType ?: return null
+
+    val substitutor = this.constructor.parameters.zip(this.arguments).associate { (parameter, argument) ->
+        parameter.typeConstructor to when {
+            argument.isStarProjection -> parameter.representativeUpperBound.asTypeProjection()
+            else -> argument
+        }
+    }.let { TypeSubstitutor.create(it) }
+
+    val underlyingTypeParameter = TypeUtils.getTypeParameterDescriptorOrNull(underlyingType)
+
+    return when {
+        underlyingTypeParameter != null -> {
+            val representative = underlyingTypeParameter.representativeUpperBound
+            val substitutedRepresentative = substitutor.substitute(representative, Variance.INVARIANT)
+            UnderlyingTypeKind.TypeParameter(underlyingType, substitutedRepresentative ?: representative)
+        }
+        KotlinBuiltIns.isArray(underlyingType) -> {
+            val argument = underlyingType.arguments.single()
+            when (val elementTypeParameter = TypeUtils.getTypeParameterDescriptorOrNull(argument.type)) {
+                null -> UnderlyingTypeKind.Regular(underlyingType)
+                else -> {
+                    val representative = elementTypeParameter.representativeUpperBound
+                    val substitutedRepresentative = substitutor.substitute(representative, Variance.INVARIANT)
+                    UnderlyingTypeKind.ArrayOfTypeParameter(
+                        underlyingType,
+                        argument.projectionKind,
+                        substitutedRepresentative ?: representative
+                    )
+                }
+            }
+        }
+        else -> UnderlyingTypeKind.Regular(underlyingType)
+    }
+}
 
 fun KotlinType.unsubstitutedUnderlyingTypes(): List<KotlinType> {
     val declarationDescriptor = constructor.declarationDescriptor as? ClassDescriptor ?: return emptyList()
     return when {
-        declarationDescriptor.isInlineClass() -> listOfNotNull(unsubstitutedUnderlyingType())
+        declarationDescriptor.isInlineClass() -> listOfNotNull(unsubstitutedUnderlyingType()?.type as KotlinType?)
         declarationDescriptor.isMultiFieldValueClass() ->
             declarationDescriptor.unsubstitutedPrimaryConstructor?.valueParameters?.map { it.type } ?: emptyList()
         else -> emptyList()
@@ -50,7 +88,7 @@ fun KotlinType.needsMfvcFlattening(): Boolean =
     constructor.declarationDescriptor?.run { isMultiFieldValueClass() && !isNullableType() } == true
 
 fun KotlinType.substitutedUnderlyingType(): KotlinType? =
-    unsubstitutedUnderlyingType()?.let { TypeSubstitutor.create(this).substitute(it, Variance.INVARIANT) }
+    unsubstitutedUnderlyingType()?.let { TypeSubstitutor.create(this).substitute(it.type as KotlinType, Variance.INVARIANT) }
 
 fun KotlinType.substitutedUnderlyingTypes(): List<KotlinType?> =
     unsubstitutedUnderlyingTypes().map { TypeSubstitutor.create(this).substitute(it, Variance.INVARIANT) }
@@ -74,7 +112,7 @@ fun KotlinType.isNullableUnderlyingType(): Boolean {
     if (!isInlineClassType()) return false
     val underlyingType = unsubstitutedUnderlyingType() ?: return false
 
-    return TypeUtils.isNullableType(underlyingType)
+    return TypeUtils.isNullableType(underlyingType.type as KotlinType)
 }
 
 fun CallableDescriptor.isGetterOfUnderlyingPropertyOfValueClass() =

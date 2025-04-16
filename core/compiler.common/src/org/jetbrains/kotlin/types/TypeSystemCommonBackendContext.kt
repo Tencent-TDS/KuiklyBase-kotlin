@@ -11,6 +11,18 @@ import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.model.*
 
+sealed interface UnderlyingTypeKind {
+    val type: KotlinTypeMarker
+
+    class TypeParameter(override val type: KotlinTypeMarker, val representativeUpperBound: KotlinTypeMarker) :
+        UnderlyingTypeKind
+
+    class ArrayOfTypeParameter(override val type: KotlinTypeMarker, val variance: Variance, val representativeElementUpperBound: KotlinTypeMarker) :
+        UnderlyingTypeKind
+
+    class Regular(override val type: KotlinTypeMarker) : UnderlyingTypeKind
+}
+
 interface TypeSystemCommonBackendContext : TypeSystemContext {
     fun nullableAnyType(): SimpleTypeMarker
     fun arrayType(componentType: KotlinTypeMarker): SimpleTypeMarker
@@ -35,7 +47,8 @@ interface TypeSystemCommonBackendContext : TypeSystemContext {
     fun TypeConstructorMarker.getValueClassProperties(): List<Pair<Name, RigidTypeMarker>>?
     fun TypeConstructorMarker.isInnerClass(): Boolean
     fun TypeParameterMarker.getRepresentativeUpperBound(): KotlinTypeMarker
-    fun KotlinTypeMarker.getUnsubstitutedUnderlyingType(): KotlinTypeMarker?
+    fun KotlinTypeMarker.getUnsubstitutedUnderlyingKind(): UnderlyingTypeKind?
+    fun KotlinTypeMarker.getUnsubstitutedUnderlyingType(): KotlinTypeMarker? = getUnsubstitutedUnderlyingKind()?.type
     fun KotlinTypeMarker.getSubstitutedUnderlyingType(): KotlinTypeMarker?
 
     fun KotlinTypeMarker.makeNullable(): KotlinTypeMarker =
