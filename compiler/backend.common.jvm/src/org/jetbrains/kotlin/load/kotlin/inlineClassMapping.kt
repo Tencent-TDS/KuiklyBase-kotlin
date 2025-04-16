@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.load.kotlin
 
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
 import org.jetbrains.kotlin.types.UnderlyingTypeKind
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 
@@ -20,7 +21,10 @@ internal fun TypeSystemCommonBackendContext.computeUnderlyingType(inlineClassTyp
             if (underlyingType.type.isMarkedNullable()) type.makeNullable() else type
         }
         is UnderlyingTypeKind.ArrayOfTypeParameter -> {
-            val arrayType = arrayType(underlyingType.representativeElementUpperBound)
+            val arrayType = when (underlyingType.variance) {
+                Variance.IN_VARIANCE -> nullableAnyType()
+                else -> underlyingType.representativeElementUpperBound
+            }.let { arrayType(it) }
             if (underlyingType.type.isMarkedNullable()) arrayType.makeNullable() else arrayType
         }
         else -> inlineClassType.getSubstitutedUnderlyingType()
