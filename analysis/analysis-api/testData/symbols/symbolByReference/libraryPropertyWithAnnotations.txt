@@ -42,7 +42,7 @@ KaKotlinPropertySymbol:
     hasBody: false
     hasStableParameterNames: true
     isActual: false
-    isDefault: false
+    isDefault: true
     isExpect: false
     isExtension: false
     isInline: false
