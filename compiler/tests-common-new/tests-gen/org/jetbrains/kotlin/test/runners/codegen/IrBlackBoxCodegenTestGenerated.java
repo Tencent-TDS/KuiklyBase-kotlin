@@ -13661,6 +13661,12 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
       }
 
       @Test
+      @TestMetadata("nextLineNumber.kt")
+      public void testNextLineNumber() {
+        runTest("compiler/testData/codegen/box/coroutines/debug/nextLineNumber.kt");
+      }
+
+      @Test
       @TestMetadata("runtimeDebugMetadata.kt")
       public void testRuntimeDebugMetadata() {
         runTest("compiler/testData/codegen/box/coroutines/debug/runtimeDebugMetadata.kt");
