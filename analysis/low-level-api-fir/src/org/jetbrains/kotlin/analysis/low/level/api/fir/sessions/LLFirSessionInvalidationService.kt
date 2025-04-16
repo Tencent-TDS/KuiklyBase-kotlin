@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.analysis.api.projectStructure.*
 import org.jetbrains.kotlin.analysis.low.level.api.fir.projectStructure.LLFirBuiltinsSessionFactory
 
 /**
- * [LLFirSessionInvalidationService] listens to [modification events][org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent]
+ * [LLFirSessionInvalidationService] listens to [modification events][KotlinModificationEvent]
  * and invalidates [LLFirSession]s which depend on the modified [KaModule].
  *
  * Its invalidation functions should always be invoked in a **write action** because invalidation affects multiple sessions in
@@ -32,45 +32,62 @@ class LLFirSessionInvalidationService(private val project: Project) {
     internal class LLKotlinModificationEventListener(val project: Project) : KotlinModificationEventListener {
         override fun onModification(event: KotlinModificationEvent) {
             val invalidationService = getInstance(project)
-            when (event) {
-                is KotlinModuleStateModificationEvent ->
-                    when (val module = event.module) {
-                        is KaBuiltinsModule -> {
-                            // Modification of builtins might affect any session, so all sessions need to be invalidated.
-                            invalidationService.invalidateAll(includeLibraryModules = true)
-                        }
-                        is KaLibraryModule -> {
-                            invalidationService.invalidate(module)
-
-                            // A modification to a library module is also a (likely) modification of any fallback dependency module.
-                            invalidationService.invalidateFallbackDependencies()
-                        }
-                        else -> invalidationService.invalidate(module)
-                    }
-
-                // We do not need to handle `KaBuiltinsModule` and `KaLibraryModule` here because builtins/libraries cannot be affected by
-                // out-of-block modification.
-                is KotlinModuleOutOfBlockModificationEvent -> invalidationService.invalidate(event.module)
-
-                is KotlinGlobalModuleStateModificationEvent -> invalidationService.invalidateAll(includeLibraryModules = true)
-                is KotlinGlobalSourceModuleStateModificationEvent -> invalidationService.invalidateAll(includeLibraryModules = false)
-                is KotlinGlobalScriptModuleStateModificationEvent -> invalidationService.invalidateScriptSessions()
-                is KotlinGlobalSourceOutOfBlockModificationEvent -> invalidationService.invalidateAll(includeLibraryModules = false)
-                is KotlinCodeFragmentContextModificationEvent -> invalidationService.invalidateContextualDanglingFileSessions(event.module)
-            }
+            invalidationService.invalidator.invalidate(event)
         }
     }
 
     internal class LLPsiModificationTrackerListener(val project: Project) : PsiModificationTracker.Listener {
         override fun modificationCountChanged() {
-            getInstance(project).invalidateUnstableDanglingFileSessions()
+            getInstance(project).invalidator.invalidateUnstableDanglingFileSessions()
         }
     }
 
     @KaCachedService
-    private val sessionCache: LLFirSessionCache by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        LLFirSessionCache.getInstance(project)
+    private val invalidator: LLFirSessionInvalidator by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        LLFirSessionInvalidator(project, LLFirSessionCache.getInstance(project).storage)
     }
+
+
+    companion object {
+        fun getInstance(project: Project): LLFirSessionInvalidationService =
+            project.getService(LLFirSessionInvalidationService::class.java)
+    }
+}
+
+@KaImplementationDetail
+class LLFirSessionInvalidator(
+    private val project: Project,
+    private val storage: LLFirSessionCacheStorage
+) {
+    fun invalidate(event: KotlinModificationEvent) {
+        when (event) {
+            is KotlinModuleStateModificationEvent ->
+                when (val module = event.module) {
+                    is KaBuiltinsModule -> {
+                        // Modification of builtins might affect any session, so all sessions need to be invalidated.
+                        invalidateAll(includeLibraryModules = true)
+                    }
+                    is KaLibraryModule -> {
+                        invalidate(module)
+
+                        // A modification to a library module is also a (likely) modification of any fallback dependency module.
+                        invalidateFallbackDependencies()
+                    }
+                    else -> invalidate(module)
+                }
+
+            // We do not need to handle `KaBuiltinsModule` and `KaLibraryModule` here because builtins/libraries cannot be affected by
+            // out-of-block modification.
+            is KotlinModuleOutOfBlockModificationEvent -> invalidate(event.module)
+
+            is KotlinGlobalModuleStateModificationEvent -> invalidateAll(includeLibraryModules = true)
+            is KotlinGlobalSourceModuleStateModificationEvent -> invalidateAll(includeLibraryModules = false)
+            is KotlinGlobalScriptModuleStateModificationEvent -> invalidateScriptSessions()
+            is KotlinGlobalSourceOutOfBlockModificationEvent -> invalidateAll(includeLibraryModules = false)
+            is KotlinCodeFragmentContextModificationEvent -> invalidateContextualDanglingFileSessions(event.module)
+        }
+    }
+
 
     private val sessionInvalidationEventPublisher: LLFirSessionInvalidationEventPublisher
         get() = LLFirSessionInvalidationEventPublisher.getInstance(project)
@@ -203,7 +220,7 @@ class LLFirSessionInvalidationService(private val project: Project) {
         }
     }
 
-    private fun invalidateUnstableDanglingFileSessions() = performInvalidation {
+    fun invalidateUnstableDanglingFileSessions() = performInvalidation {
         ApplicationManager.getApplication().assertWriteAccessAllowed()
 
         // We don't need to publish any session invalidation events for unstable dangling file modules.
@@ -221,12 +238,7 @@ class LLFirSessionInvalidationService(private val project: Project) {
      */
     private inline fun performInvalidation(block: LLFirSessionCacheInvalidator.InvalidationSession.() -> Unit) {
         synchronized(this) {
-            LLFirSessionCacheInvalidator.performInvalidation(sessionCache.storage) { block() }
+            LLFirSessionCacheInvalidator.performInvalidation(storage) { block() }
         }
-    }
-
-    companion object {
-        fun getInstance(project: Project): LLFirSessionInvalidationService =
-            project.getService(LLFirSessionInvalidationService::class.java)
     }
 }
