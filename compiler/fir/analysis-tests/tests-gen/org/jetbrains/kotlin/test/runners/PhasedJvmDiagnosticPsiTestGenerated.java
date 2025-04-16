@@ -9292,6 +9292,17 @@ public class PhasedJvmDiagnosticPsiTestGenerated extends AbstractPhasedJvmDiagno
     }
 
     @Nested
+    @TestMetadata("compiler/testData/diagnostics/tests/crvDifferent")
+    @TestDataPath("$PROJECT_ROOT")
+    public class CrvDifferent {
+      @Test
+      @TestMetadata("halfEnabled.kt")
+      public void testHalfEnabled() {
+        runTest("compiler/testData/diagnostics/tests/crvDifferent/halfEnabled.kt");
+      }
+    }
+
+    @Nested
     @TestMetadata("compiler/testData/diagnostics/tests/crvDisabled")
     @TestDataPath("$PROJECT_ROOT")
     public class CrvDisabled {
