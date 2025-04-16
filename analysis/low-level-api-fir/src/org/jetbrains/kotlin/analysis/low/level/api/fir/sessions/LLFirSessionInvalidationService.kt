@@ -87,7 +87,7 @@ class LLFirSessionInvalidationService(private val project: Project) {
         ApplicationManager.getApplication().assertWriteAccessAllowed()
 
         sessionInvalidationEventPublisher.collectSessionsAndPublishInvalidationEvent {
-            val didSessionExist = sessionCache.removeSession(module)
+            val didSessionExist = removeSession(module)
 
             // We don't have to invalidate dependent sessions if the root session does not exist in the cache. It is true that sessions can
             // be created without their dependency sessions being created, as session dependencies are lazy. So some of the root session's
@@ -97,7 +97,7 @@ class LLFirSessionInvalidationService(private val project: Project) {
 
             KotlinModuleDependentsProvider.getInstance(project)
                 .getTransitiveDependents(module)
-                .forEach(::invalidateDependent)
+                .forEach { invalidateDependent(it) }
 
             // Due to a missing IDE implementation for script dependents (see KTIJ-25620), script sessions need to be invalidated globally:
             //  - A script may include other scripts, so a script modification may affect any other script.
@@ -105,13 +105,13 @@ class LLFirSessionInvalidationService(private val project: Project) {
             //  - Scripts may depend on libraries, and the IDE module dependents provider doesn't provide script dependents for libraries
             //    yet.
             if (module is KaScriptModule || module is KaScriptDependencyModule || module is KaLibraryModule) {
-                sessionCache.removeAllScriptSessions()
+                removeAllScriptSessions()
             }
 
             if (module is KaDanglingFileModule) {
-                sessionCache.removeContextualDanglingFileSessions(module)
+                removeContextualDanglingFileSessions(module)
             } else {
-                sessionCache.removeAllDanglingFileSessions()
+                removeAllDanglingFileSessions()
             }
         }
     }
@@ -128,11 +128,11 @@ class LLFirSessionInvalidationService(private val project: Project) {
      * For example, if the [KaLibraryModule] is a dependent of a [KaLibraryFallbackDependenciesModule], only resolvable library sessions
      * which actually rely on the fallback dependencies should be invalidated.
      */
-    private fun invalidateDependent(module: KaModule) {
+    private fun LLFirSessionCacheInvalidator.InvalidationSession.invalidateDependent(module: KaModule) {
         if (module is KaLibraryModule) {
-            sessionCache.removeSourceSession(module)
+            removeSourceSession(module)
         } else {
-            sessionCache.removeSession(module)
+            removeSession(module)
         }
     }
 
@@ -153,16 +153,18 @@ class LLFirSessionInvalidationService(private val project: Project) {
             // Technically, the `KaLibraryFallbackDependenciesModule` which has the modified `KaLibraryModule` as a dependent is *not*
             // affected by a modification to that library module. But there's no large practical advantage in being this selective, so the
             // simpler solution of invalidating all sessions is better.
-            sessionCache.removeAllLibraryFallbackDependenciesSessions()
+            removeAllLibraryFallbackDependenciesSessions()
 
             // This is an approximation. Not all resolvable library sessions might depend on fallback dependencies, in which case removing
             // them here is a waste. However, for all practical purposes (especially considering usage in IJ), most of them do, and so this
             // is a sensible simplification.
-            sessionCache.removeAllResolvableLibrarySessions()
+            removeAllResolvableLibrarySessions()
         }
     }
 
-    private fun invalidateScriptSessions() = sessionCache.removeAllScriptSessions()
+    private fun invalidateScriptSessions() = performInvalidation {
+        removeAllScriptSessions()
+    }
 
     /**
      * Invalidates all cached sessions. If [includeLibraryModules] is `true`, also invalidates sessions for libraries and builtins.
@@ -186,7 +188,7 @@ class LLFirSessionInvalidationService(private val project: Project) {
             anchorModules?.forEach(::invalidate)
         }
 
-        sessionCache.removeAllSessions(includeLibraryModules)
+        removeAllSessions(includeLibraryModules)
 
         // We could take `includeLibraryModules` into account here, but this will make the global session invalidation event more
         // complicated to handle, and it isn't currently necessary for `KaFirSession` invalidation to be more granular.
@@ -197,7 +199,7 @@ class LLFirSessionInvalidationService(private val project: Project) {
         ApplicationManager.getApplication().assertWriteAccessAllowed()
 
         sessionInvalidationEventPublisher.collectSessionsAndPublishInvalidationEvent {
-            sessionCache.removeContextualDanglingFileSessions(contextModule)
+            removeContextualDanglingFileSessions(contextModule)
         }
     }
 
@@ -205,7 +207,7 @@ class LLFirSessionInvalidationService(private val project: Project) {
         ApplicationManager.getApplication().assertWriteAccessAllowed()
 
         // We don't need to publish any session invalidation events for unstable dangling file modules.
-        sessionCache.removeUnstableDanglingFileSessions()
+        removeUnstableDanglingFileSessions()
     }
 
     /**
@@ -217,9 +219,9 @@ class LLFirSessionInvalidationService(private val project: Project) {
      *
      * The synchronization protects concurrent-unsafe cleanup in [SessionStorage].
      */
-    private inline fun performInvalidation(block: () -> Unit) {
+    private inline fun performInvalidation(block: LLFirSessionCacheInvalidator.InvalidationSession.() -> Unit) {
         synchronized(this) {
-            block()
+            LLFirSessionCacheInvalidator.performInvalidation(sessionCache.storage) { block() }
         }
     }
 
