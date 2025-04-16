@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.sir.providers.utils
 
+import com.intellij.util.containers.addAllIfNotNull
 import org.jetbrains.kotlin.sir.*
 import org.jetbrains.kotlin.sir.builder.*
 import org.jetbrains.kotlin.sir.providers.source.KotlinRuntimeElement
@@ -26,26 +27,32 @@ public object KotlinRuntimeModule : SirModule() {
         )
     }
 
+    public val kotlinBaseDesignatedInit: SirInit = buildInit {
+        origin = KotlinRuntimeElement()
+        isFailable = false
+        isOverride = false
+        parameters.addAllIfNotNull(
+            SirParameter(
+                argumentName = "__externalRCRefUnsafe",
+                type = SirNominalType(SirSwiftModule.unsafeMutableRawPointer).optional()
+            ),
+            SirParameter(
+                argumentName = "cache",
+                type = SirNominalType(SirSwiftModule.bool)
+            ),
+            SirParameter(
+                argumentName = "substitute",
+                type = SirNominalType(SirSwiftModule.bool)
+            ),
+        )
+    }
+
     public val kotlinBase: SirClass by lazy {
         buildClass {
             name = "KotlinBase"
             origin = KotlinRuntimeElement()
-            declarations += buildInit {
-                origin = KotlinRuntimeElement()
-                isFailable = false
-                isOverride = false
-            }
-            declarations += buildInit {
-                origin = KotlinRuntimeElement()
-                isFailable = false
-                isOverride = false
-                parameters.add(
-                    SirParameter(
-                        argumentName = "__externalRCRef",
-                        type = SirNominalType(SirSwiftModule.unsafeMutableRawPointer).optional()
-                    )
-                )
-            }
+
+            declarations += kotlinBaseDesignatedInit
 
             declarations += buildVariable {
                 origin = KotlinRuntimeElement()

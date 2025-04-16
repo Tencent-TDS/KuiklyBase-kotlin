@@ -10,11 +10,6 @@ public extension ExportedKotlinPackages.kotlin {
                 return kotlin_ByteArray_size_get(self.__externalRCRef())
             }
         }
-        package override init(
-            __externalRCRef: Swift.UnsafeMutableRawPointer?
-        ) {
-            super.init(__externalRCRef: __externalRCRef)
-        }
         public init(
             size: Swift.Int32
         ) {
@@ -25,6 +20,13 @@ public extension ExportedKotlinPackages.kotlin {
             `init`: @escaping (Swift.Int32) -> Swift.Int8
         ) {
             fatalError()
+        }
+        package override init(
+            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+            cache: Swift.Bool,
+            substitute: Swift.Bool
+        ) {
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
         }
     }
 }

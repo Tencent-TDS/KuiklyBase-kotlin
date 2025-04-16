@@ -4,15 +4,18 @@ import KotlinRuntime
 import KotlinRuntimeSupport
 
 public final class Foo: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
-    public override init() {
+    public init() {
+        precondition(Self.self == main.Foo.self, "Inheritance from exported kotlin classes is not supported yet")
         let __kt = __root___Foo_init_allocate()
-        super.init(__externalRCRef: __kt)
+        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___Foo_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
     }
     package override init(
-        __externalRCRef: Swift.UnsafeMutableRawPointer?
+        __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+        cache: Swift.Bool,
+        substitute: Swift.Bool
     ) {
-        super.init(__externalRCRef: __externalRCRef)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
     }
     public func ext(
         _ receiver: Swift.String
@@ -100,7 +103,7 @@ public func getFoo(
     return __root___foo_get__TypesOfArguments__Swift_Optional_main_Foo___(receiver.map { it in it.__externalRCRef() } ?? nil)
 }
 public func return_any_should_append_runtime_import() -> KotlinRuntime.KotlinBase {
-    return KotlinRuntime.KotlinBase(__externalRCRef: __root___return_any_should_append_runtime_import())
+    return KotlinRuntime.KotlinBase.__create(externalRCRef: __root___return_any_should_append_runtime_import())
 }
 public func setFoo(
     _ receiver: Swift.Int32,
@@ -168,15 +171,18 @@ public extension ExportedKotlinPackages.namespace2 {
 }
 public extension ExportedKotlinPackages.overload {
     public final class Foo: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
-        public override init() {
+        public init() {
+            precondition(Self.self == ExportedKotlinPackages.overload.Foo.self, "Inheritance from exported kotlin classes is not supported yet")
             let __kt = overload_Foo_init_allocate()
-            super.init(__externalRCRef: __kt)
+            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             overload_Foo_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
         }
         package override init(
-            __externalRCRef: Swift.UnsafeMutableRawPointer?
+            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+            cache: Swift.Bool,
+            substitute: Swift.Bool
         ) {
-            super.init(__externalRCRef: __externalRCRef)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
         }
     }
     public static func foo(
