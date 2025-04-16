@@ -22,10 +22,12 @@ import java.util.concurrent.ConcurrentHashMap
  * `null` keys or values are not allowed.
  */
 @LLFirInternals
-abstract class CleanableValueReferenceCache<K : Any, V : Any> {
-    private val backingMap = ConcurrentHashMap<K, ReferenceWithCleanup<K, V>>()
+abstract class CleanableValueReferenceCache<K : Any, V : Any>(
+    protected val backingMap: ConcurrentHashMap<K, ReferenceWithCleanup<K, V>>,
+    protected val referenceQueue: ReferenceQueue<V>,
+) {
 
-    protected val referenceQueue = ReferenceQueue<V>()
+    abstract fun createCopy(): CleanableValueReferenceCache<K, V>
 
     internal abstract fun createReference(key: K, value: V): ReferenceWithCleanup<K, V>
 

@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.analysis.low.level.api.fir.caches.cleanable
 import org.jetbrains.kotlin.analysis.low.level.api.fir.LLFirInternals
 import java.lang.ref.ReferenceQueue
 import java.lang.ref.SoftReference
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A [CleanableValueReferenceCache] with a [SoftReference] to values [V].
@@ -17,8 +18,15 @@ import java.lang.ref.SoftReference
  */
 @LLFirInternals
 class CleanableSoftValueReferenceCache<K : Any, V : Any>(
+    backingMap: ConcurrentHashMap<K, ReferenceWithCleanup<K, V>> = ConcurrentHashMap(),
+    referenceQueue: ReferenceQueue<V> = ReferenceQueue(),
     private val getCleaner: (V) -> ValueReferenceCleaner<V>,
-) : CleanableValueReferenceCache<K, V>() {
+) : CleanableValueReferenceCache<K, V>(backingMap, referenceQueue) {
+
+    override fun createCopy(): CleanableValueReferenceCache<K, V> {
+        return CleanableSoftValueReferenceCache(ConcurrentHashMap(backingMap), referenceQueue, getCleaner)
+    }
+
     override fun createReference(key: K, value: V): ReferenceWithCleanup<K, V> {
         return SoftReferenceWithCleanup(key, value, getCleaner(value), referenceQueue)
     }
