@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.resolve.descriptorUtil.*
 import org.jetbrains.kotlin.resolve.scopes.SubstitutingScope
 import org.jetbrains.kotlin.resolve.substitutedUnderlyingType
-import org.jetbrains.kotlin.resolve.unsubstitutedUnderlyingType
+import org.jetbrains.kotlin.resolve.unsubstitutedUnderlyingKind
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.error.ErrorTypeKind
 import org.jetbrains.kotlin.types.error.ErrorUtils
@@ -794,7 +794,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun KotlinTypeMarker.getUnsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
         require(this is KotlinType, this::errorMessage)
-        return unsubstitutedUnderlyingType()
+        return unsubstitutedUnderlyingKind()
     }
 
     override fun KotlinTypeMarker.getSubstitutedUnderlyingType(): KotlinTypeMarker? {

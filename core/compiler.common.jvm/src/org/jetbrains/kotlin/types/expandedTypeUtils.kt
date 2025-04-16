@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.types
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
-import org.jetbrains.kotlin.types.model.TypeParameterMarker
 
 fun TypeSystemCommonBackendContext.computeExpandedTypeForInlineClass(inlineClassType: KotlinTypeMarker): KotlinTypeMarker? =
     computeExpandedTypeInner(inlineClassType, hashSetOf())
@@ -75,6 +74,3 @@ private fun TypeSystemCommonBackendContext.computeExpandedTypeInner(
         else -> kotlinType
     }
 }
-
-fun TypeSystemCommonBackendContext.getTypeParameter(type: KotlinTypeMarker?): TypeParameterMarker? =
-    type?.typeConstructor()?.getTypeParameterClassifier()

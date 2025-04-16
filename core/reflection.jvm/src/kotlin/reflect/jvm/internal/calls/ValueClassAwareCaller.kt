@@ -357,7 +357,7 @@ private fun KotlinType.toInlineClass(): Class<*>? {
     val klass = constructor.declarationDescriptor.toInlineClass() ?: return null
     if (!TypeUtils.isNullableType(this)) return klass
 
-    val expandedUnderlyingType = unsubstitutedUnderlyingType()?.type as? KotlinType ?: return null
+    val expandedUnderlyingType = unsubstitutedUnderlyingType() ?: return null
     if (!TypeUtils.isNullableType(expandedUnderlyingType) && !KotlinBuiltIns.isPrimitiveType(expandedUnderlyingType)) return klass
 
     return null

@@ -15,7 +15,14 @@ internal fun TypeSystemCommonBackendContext.computeUnderlyingType(inlineClassTyp
 
     return when (val underlyingType = inlineClassType.getUnsubstitutedUnderlyingKind()) {
         null -> null
-        is UnderlyingTypeKind.TypeParameter -> underlyingType.representativeUpperBound
+        is UnderlyingTypeKind.TypeParameter -> {
+            val type = underlyingType.representativeUpperBound
+            if (underlyingType.type.isMarkedNullable()) type.makeNullable() else type
+        }
+        is UnderlyingTypeKind.ArrayOfTypeParameter -> {
+            val arrayType = arrayType(underlyingType.representativeElementUpperBound)
+            if (underlyingType.type.isMarkedNullable()) arrayType.makeNullable() else arrayType
+        }
         else -> inlineClassType.getSubstitutedUnderlyingType()
     }
 }
