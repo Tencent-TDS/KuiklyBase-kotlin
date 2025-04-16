@@ -23,12 +23,14 @@ import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes;
 
 public class KotlinPropertyAccessorStubImpl extends KotlinStubBaseImpl<KtPropertyAccessor> implements KotlinPropertyAccessorStub {
     private final boolean isGetter;
+    private final boolean isDefault;
     private final boolean hasBody;
     private final boolean hasBlockBody;
 
-    public KotlinPropertyAccessorStubImpl(StubElement parent, boolean isGetter, boolean hasBody, boolean hasBlockBody) {
+    public KotlinPropertyAccessorStubImpl(StubElement parent, boolean isGetter, boolean isDefault, boolean hasBody, boolean hasBlockBody) {
         super(parent, KtStubElementTypes.PROPERTY_ACCESSOR);
         this.isGetter = isGetter;
+        this.isDefault = isDefault;
         this.hasBody = hasBody;
         this.hasBlockBody = hasBlockBody;
     }
@@ -36,6 +38,11 @@ public class KotlinPropertyAccessorStubImpl extends KotlinStubBaseImpl<KtPropert
     @Override
     public boolean isGetter() {
         return isGetter;
+    }
+
+    @Override
+    public boolean isDefault() {
+        return isDefault;
     }
 
     @Override

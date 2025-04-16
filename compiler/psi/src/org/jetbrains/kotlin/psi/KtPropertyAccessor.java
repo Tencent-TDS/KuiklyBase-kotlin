@@ -48,6 +48,14 @@ public class KtPropertyAccessor extends KtDeclarationStub<KotlinPropertyAccessor
         return findChildByType(KtTokens.GET_KEYWORD) != null;
     }
 
+    public boolean isDefault() {
+        KotlinPropertyAccessorStub stub = getGreenStub();
+        if (stub != null) {
+            return stub.isDefault();
+        }
+        return getBodyExpression() != null;
+    }
+
     @Nullable
     public KtParameterList getParameterList() {
         return getStubOrPsiChild(KtStubElementTypes.VALUE_PARAMETER_LIST);

@@ -241,4 +241,4 @@ internal val KtProperty.hasRegularGetter: Boolean
  * @see hasRegularSetter
  */
 private val KtPropertyAccessor.isRegularAccessor: Boolean
-    get() = hasBody() || containingKtFile.isCompiled
+    get() = !isDefault

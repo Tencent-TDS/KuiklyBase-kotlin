@@ -223,24 +223,33 @@ internal class StubBasedFirMemberDeserializer(
     ): FirPropertyAccessor {
         val visibility = getter.visibility
         val accessorModality = getter.modality
-        return buildPropertyAccessor {
-            source = KtRealPsiSourceElement(getter)
-            moduleData = c.moduleData
-            origin = initialOrigin
-            this.returnTypeRef = returnTypeRef
-            resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
-            isGetter = true
-            status = FirResolvedDeclarationStatusWithLazyEffectiveVisibility(
-                visibility,
-                accessorModality,
-                visibility.toLazyEffectiveVisibility(classSymbol)
-            ).apply {
-                isInline = getter.hasModifier(KtTokens.INLINE_KEYWORD)
-                isExternal = getter.hasModifier(KtTokens.EXTERNAL_KEYWORD)
+        val effectiveVisibility = visibility.toLazyEffectiveVisibility(classSymbol)
+        return if (!getter.isDefault()) {
+            buildPropertyAccessor {
+                source = KtRealPsiSourceElement(getter)
+                moduleData = c.moduleData
+                origin = initialOrigin
+                this.returnTypeRef = returnTypeRef
+                resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
+                isGetter = true
+                status = FirResolvedDeclarationStatusWithLazyEffectiveVisibility(visibility, accessorModality, effectiveVisibility).apply {
+                    isInline = getter.hasModifier(KtTokens.INLINE_KEYWORD)
+                    isExternal = getter.hasModifier(KtTokens.EXTERNAL_KEYWORD)
+                }
+                symbol = FirPropertyAccessorSymbol()
+                dispatchReceiverType = c.dispatchReceiver
+                this.propertySymbol = propertySymbol
             }
-            this.symbol = FirPropertyAccessorSymbol()
-            dispatchReceiverType = c.dispatchReceiver
-            this.propertySymbol = propertySymbol
+        } else {
+            FirDefaultPropertyGetter(
+                source = null,
+                moduleData = c.moduleData,
+                origin = initialOrigin,
+                propertyTypeRef = returnTypeRef.copyWithNewSourceKind(KtFakeSourceElementKind.DefaultAccessor),
+                propertySymbol = propertySymbol,
+                status = FirResolvedDeclarationStatusWithLazyEffectiveVisibility(visibility, accessorModality, effectiveVisibility),
+                resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES,
+            )
         }.apply {
             replaceAnnotations(
                 c.annotationDeserializer.loadAnnotations(getter)
@@ -254,33 +263,43 @@ internal class StubBasedFirMemberDeserializer(
     private fun loadPropertySetter(
         setter: KtPropertyAccessor,
         classSymbol: FirClassSymbol<*>?,
+        returnTypeRef: FirTypeRef,
         propertySymbol: FirPropertySymbol,
         local: StubBasedFirDeserializationContext,
-    ): FirPropertyAccessor {
+    ): FirPropertyAccessor? {
         val visibility = setter.visibility
         val accessorModality = setter.modality
-        return buildPropertyAccessor {
-            source = KtRealPsiSourceElement(setter)
-            moduleData = c.moduleData
-            origin = initialOrigin
-            this.returnTypeRef = FirImplicitUnitTypeRef(source)
-            resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
-            isGetter = false
-            status = FirResolvedDeclarationStatusWithLazyEffectiveVisibility(
-                visibility,
-                accessorModality,
-                visibility.toLazyEffectiveVisibility(classSymbol)
-            ).apply {
-                isInline = setter.hasModifier(KtTokens.INLINE_KEYWORD)
-                isExternal = setter.hasModifier(KtTokens.EXTERNAL_KEYWORD)
+        val effectiveVisibility = visibility.toLazyEffectiveVisibility(classSymbol)
+        return if (!setter.isDefault()) {
+            buildPropertyAccessor {
+                source = KtRealPsiSourceElement(setter)
+                moduleData = c.moduleData
+                origin = initialOrigin
+                this.returnTypeRef = FirImplicitUnitTypeRef(source)
+                resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
+                isGetter = false
+                status = FirResolvedDeclarationStatusWithLazyEffectiveVisibility(visibility, accessorModality, effectiveVisibility).apply {
+                    isInline = setter.hasModifier(KtTokens.INLINE_KEYWORD)
+                    isExternal = setter.hasModifier(KtTokens.EXTERNAL_KEYWORD)
+                }
+                symbol = FirPropertyAccessorSymbol()
+                dispatchReceiverType = c.dispatchReceiver
+                valueParameters += local.memberDeserializer.valueParameters(
+                    setter.valueParameters,
+                    symbol
+                )
+                this.propertySymbol = propertySymbol
             }
-            this.symbol = FirPropertyAccessorSymbol()
-            dispatchReceiverType = c.dispatchReceiver
-            valueParameters += local.memberDeserializer.valueParameters(
-                setter.valueParameters,
-                symbol
+        } else {
+            FirDefaultPropertySetter(
+                source = null,
+                moduleData = c.moduleData,
+                origin = initialOrigin,
+                propertyTypeRef = returnTypeRef.copyWithNewSourceKind(KtFakeSourceElementKind.DefaultAccessor),
+                propertySymbol = propertySymbol,
+                status = FirResolvedDeclarationStatusWithLazyEffectiveVisibility(visibility, accessorModality, effectiveVisibility),
+                resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES,
             )
-            this.propertySymbol = propertySymbol
         }.apply {
             replaceAnnotations(
                 c.annotationDeserializer.loadAnnotations(setter)
@@ -371,36 +390,24 @@ internal class StubBasedFirMemberDeserializer(
                 status,
             )
 
-            this.getter = getter?.let {
-                loadPropertyGetter(
+            if (getter != null) {
+                this.getter = loadPropertyGetter(
                     getter,
                     classSymbol,
                     returnTypeRef,
-                    symbol
+                    symbol,
                 )
-            } ?: FirDefaultPropertyGetter(
-                source = source?.fakeElement(KtFakeSourceElementKind.DefaultAccessor),
-                moduleData = moduleData,
-                origin = origin,
-                propertyTypeRef = returnTypeRef.copyWithNewSourceKind(KtFakeSourceElementKind.DefaultAccessor),
-                propertySymbol = symbol,
-                status = resolvedStatus,
-                resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES,
-            )
+            }
 
             val setter = property.setter
-            this.setter = when {
-                setter != null -> loadPropertySetter(setter, classSymbol, symbol, local)
-                isVar -> FirDefaultPropertySetter(
-                    source = source?.fakeElement(KtFakeSourceElementKind.DefaultAccessor),
-                    moduleData = moduleData,
-                    origin = origin,
-                    propertyTypeRef = returnTypeRef.copyWithNewSourceKind(KtFakeSourceElementKind.DefaultAccessor),
-                    propertySymbol = symbol,
-                    status = resolvedStatus,
-                    resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES,
+            if (setter != null) {
+                this.setter = loadPropertySetter(
+                    setter,
+                    classSymbol,
+                    returnTypeRef,
+                    symbol,
+                    local,
                 )
-                else -> null
             }
 
             this.containerSource = c.containerSource

@@ -34,12 +34,13 @@ public class KtPropertyAccessorElementType extends KtStubElementType<KotlinPrope
 
     @Override
     public KotlinPropertyAccessorStub createStub(@NotNull KtPropertyAccessor psi, StubElement parentStub) {
-        return new KotlinPropertyAccessorStubImpl(parentStub, psi.isGetter(), psi.hasBody(), psi.hasBlockBody());
+        return new KotlinPropertyAccessorStubImpl(parentStub, psi.isGetter(), false, psi.hasBody(), psi.hasBlockBody());
     }
 
     @Override
     public void serialize(@NotNull KotlinPropertyAccessorStub stub, @NotNull StubOutputStream dataStream) throws IOException {
         dataStream.writeBoolean(stub.isGetter());
+        dataStream.writeBoolean(stub.isDefault());
         dataStream.writeBoolean(stub.hasBody());
         dataStream.writeBoolean(stub.hasBlockBody());
     }
@@ -48,8 +49,9 @@ public class KtPropertyAccessorElementType extends KtStubElementType<KotlinPrope
     @Override
     public KotlinPropertyAccessorStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
         boolean isGetter = dataStream.readBoolean();
+        boolean isDefault = dataStream.readBoolean();
         boolean hasBody = dataStream.readBoolean();
         boolean hasBlockBody = dataStream.readBoolean();
-        return new KotlinPropertyAccessorStubImpl(parentStub, isGetter, hasBody, hasBlockBody);
+        return new KotlinPropertyAccessorStubImpl(parentStub, isGetter, isDefault, hasBody, hasBlockBody);
     }
 }

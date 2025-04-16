@@ -119,6 +119,7 @@ interface KotlinParameterStub : KotlinStubWithFqName<KtParameter> {
 
 interface KotlinPropertyAccessorStub : StubElement<KtPropertyAccessor> {
     fun isGetter(): Boolean
+    fun isDefault(): Boolean
     fun hasBody(): Boolean
     fun hasBlockBody(): Boolean
 }

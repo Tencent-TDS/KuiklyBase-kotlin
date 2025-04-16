@@ -101,7 +101,7 @@ internal sealed interface KaFirBasePropertyAccessorSymbol : KaFirKtBasedSymbol<K
                     // unsure -> compute by fir
                     null -> null
 
-                    is KtProperty -> !property.hasDelegate() && backingPsi == null
+                    is KtProperty -> !property.hasDelegate() && backingPsi?.isDefault != false
 
                     // only properties may have non-default accessors
                     else -> true
