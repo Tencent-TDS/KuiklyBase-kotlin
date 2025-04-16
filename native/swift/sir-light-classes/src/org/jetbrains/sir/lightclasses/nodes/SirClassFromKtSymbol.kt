@@ -5,6 +5,7 @@
 
 package org.jetbrains.sir.lightclasses.nodes
 
+import com.intellij.util.containers.addAllIfNotNull
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.components.DefaultTypeClassIds
 import org.jetbrains.kotlin.analysis.api.export.utilities.isCloneable
@@ -13,6 +14,7 @@ import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.sir.*
 import org.jetbrains.kotlin.sir.builder.buildGetter
 import org.jetbrains.kotlin.sir.builder.buildInit
+import org.jetbrains.kotlin.sir.builder.buildInitCopy
 import org.jetbrains.kotlin.sir.builder.buildVariable
 import org.jetbrains.kotlin.sir.providers.SirSession
 import org.jetbrains.kotlin.sir.providers.source.KotlinSource
@@ -142,17 +144,10 @@ internal abstract class SirAbstractClassFromKtSymbol(
             .toList()
     }
 
-    private fun kotlinBaseInitDeclaration(): SirDeclaration = buildInit {
+    private fun kotlinBaseInitDeclaration(): SirDeclaration = buildInitCopy(KotlinRuntimeModule.kotlinBaseDesignatedInit) {
         origin = SirOrigin.KotlinBaseInitOverride(`for` = KotlinSource(ktSymbol))
         visibility = SirVisibility.PACKAGE // Hide from users, but not from other Swift Export modules.
-        isFailable = false
         isOverride = true
-        parameters.add(
-            SirParameter(
-                argumentName = "__externalRCRef",
-                type = SirNominalType(SirSwiftModule.unsafeMutableRawPointer).optional()
-            )
-        )
     }.also { it.parent = this }
 
     private fun syntheticDeclarations(): List<SirDeclaration> = when (ktSymbol.classKind) {

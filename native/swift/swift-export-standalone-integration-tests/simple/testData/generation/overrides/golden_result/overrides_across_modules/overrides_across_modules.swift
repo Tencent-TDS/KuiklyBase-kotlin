@@ -9,17 +9,20 @@ open class Cousin: overrides.Parent {
             return Cousin_primitiveTypeVar_get(self.__externalRCRef())
         }
     }
-    package override init(
-        __externalRCRef: Swift.UnsafeMutableRawPointer?
-    ) {
-        super.init(__externalRCRef: __externalRCRef)
-    }
     public override init(
         value: Swift.String
     ) {
+        precondition(Self.self == overrides_across_modules.Cousin.self, "Inheritance from exported kotlin classes is not supported yet")
         let __kt = __root___Cousin_init_allocate()
-        super.init(__externalRCRef: __kt)
+        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___Cousin_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_String__(__kt, value)
+    }
+    package override init(
+        __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+        cache: Swift.Bool,
+        substitute: Swift.Bool
+    ) {
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
     }
     public final override func finalOverrideFunc() -> Swift.Void {
         return Cousin_finalOverrideFunc(self.__externalRCRef())
@@ -32,21 +35,25 @@ open class Cousin: overrides.Parent {
 }
 public final class FinalDerived3: overrides.AbstractDerived2 {
     public override init() {
+        precondition(Self.self == overrides_across_modules.FinalDerived3.self, "Inheritance from exported kotlin classes is not supported yet")
         let __kt = __root___FinalDerived3_init_allocate()
-        super.init(__externalRCRef: __kt)
+        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___FinalDerived3_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
-    }
-    package override init(
-        __externalRCRef: Swift.UnsafeMutableRawPointer?
-    ) {
-        super.init(__externalRCRef: __externalRCRef)
     }
     public override init(
         x: Swift.Int32
     ) {
+        precondition(Self.self == overrides_across_modules.FinalDerived3.self, "Inheritance from exported kotlin classes is not supported yet")
         let __kt = __root___FinalDerived3_init_allocate()
-        super.init(__externalRCRef: __kt)
+        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___FinalDerived3_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Int32__(__kt, x)
+    }
+    package override init(
+        __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+        cache: Swift.Bool,
+        substitute: Swift.Bool
+    ) {
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
     }
     public override func abstractFun1() -> Swift.Void {
         return FinalDerived3_abstractFun1(self.__externalRCRef())

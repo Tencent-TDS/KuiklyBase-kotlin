@@ -176,36 +176,29 @@ using RegularRef = kotlin::mm::ObjCBackRef;
   return [self retain];
 }
 
-- (instancetype)initWithExternalRCRef:(void *)ref {
++ (id)createWithExternalRCRef:(void *)ref {
     RuntimeAssert(kotlin::compiler::swiftExport(), "Must be used in Swift Export only");
     kotlin::AssertThreadState(kotlin::ThreadState::kNative);
 
     auto externalRCRef = reinterpret_cast<kotlin::mm::RawExternalRCRef*>(ref);
-    Class bestFittingClass =
-            kotlin::swiftExportRuntime::bestFittingObjCClassFor(kotlin::mm::typeOfExternalRCRef(externalRCRef));
-    if ([self class] != bestFittingClass) {
-        if ([[self class] isSubclassOfClass:bestFittingClass]) {
-            konan::consoleErrorf(
-                    "Inheritance from Kotlin exported classes is not supported: %s inherits from %s\n", class_getName([self class]),
-                    class_getName(bestFittingClass));
-            kotlin::PrintStackTraceStderr();
-            std::abort();
-        }
+    Class bestFittingClass = kotlin::swiftExportRuntime::bestFittingObjCClassFor(kotlin::mm::typeOfExternalRCRef(externalRCRef));
+
+    if (self != bestFittingClass) {
         RuntimeAssert(
-                [bestFittingClass isSubclassOfClass:[self class]], "Best-fitting class is %s which is not a subclass of self (%s)",
-                class_getName(bestFittingClass), class_getName([self class]));
+                [bestFittingClass isSubclassOfClass:self], "Best-fitting class is %s which is not a subclass of self (%s)",
+                class_getName(bestFittingClass), class_getName(self));
 
-        KotlinBase* retiredSelf = self; // old `self`
-
-        // Rerun the entire initializer, but with the best-fitting class now.
-        self = [[bestFittingClass alloc] initWithExternalRCRef:ref]; // new `self`, retained.
-
-        // Fully release old `self` by just decrementing NSObject refcount.
-        [retiredSelf releaseAsAssociatedObject];
-
-        // Return new `self`.
-        return self;
     }
+
+    // Call unsafe initializer with the best-fitting class.
+    return [[bestFittingClass alloc] initWithExternalRCRefUnsafe:ref cache:YES substitute:YES];
+}
+
+- (instancetype)initWithExternalRCRefUnsafe:(void *)ref cache:(BOOL)shouldCache substitute:(BOOL)shouldSubstitute {
+    RuntimeAssert(kotlin::compiler::swiftExport(), "Must be used in Swift Export only");
+    kotlin::AssertThreadState(kotlin::ThreadState::kNative);
+
+    auto externalRCRef = reinterpret_cast<kotlin::mm::RawExternalRCRef*>(ref);
 
     if (auto obj = kotlin::mm::externalRCRefAsPermanentObject(externalRCRef)) {
         refHolder.emplace<PermanentRef>(obj);
@@ -216,7 +209,7 @@ using RegularRef = kotlin::mm::ObjCBackRef;
     auto& regularRef = refHolder.emplace<RegularRef>(kotlin::mm::ExternalRCRefImpl::fromRaw(externalRCRef));
 
     id newSelf = nil;
-    {
+    if (shouldCache) {
         // TODO: Make it okay to get/replace associated objects w/o runnable state.
         kotlin::CalledFromNativeGuard guard;
         // `ref` holds a strong reference to obj, no need to place obj onto a stack.
@@ -229,10 +222,9 @@ using RegularRef = kotlin::mm::ObjCBackRef;
         return self;
     }
 
-    RuntimeAssert(
-            [[newSelf class] isSubclassOfClass:[self class]],
-            "During initialization of %p (%s) for Kotlin object %p trying to replace self with %p (%s) that is not a subclass", self,
-            class_getName([self class]), regularRef.ref(), newSelf, class_getName([newSelf class]));
+    if (![[newSelf class] isSubclassOfClass:[self class]] || !shouldSubstitute) {
+        return self;
+    }
 
     KotlinBase* retiredSelf = self; // old `self`
     self = [newSelf retain]; // new `self`, retained.
