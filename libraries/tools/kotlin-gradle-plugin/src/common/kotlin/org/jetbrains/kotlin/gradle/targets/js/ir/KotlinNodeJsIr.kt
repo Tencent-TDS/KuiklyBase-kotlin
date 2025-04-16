@@ -50,7 +50,7 @@ internal constructor(
 
     @ExperimentalMainFunctionArgumentsDsl
     override fun passProcessArgvToMainFunction() {
-        target.passAsArgumentToMainFunction("process.argv")
+        target.passAsArgumentToMainFunction("process.argv.slice(2)")
     }
 
     override fun configureTestDependencies(test: KotlinJsTest, binary: JsIrBinary) {
