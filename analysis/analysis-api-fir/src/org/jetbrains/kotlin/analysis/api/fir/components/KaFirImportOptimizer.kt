@@ -37,12 +37,13 @@ import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocLink
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
-import org.jetbrains.kotlin.name.*
+import org.jetbrains.kotlin.kdoc.psi.impl.KDocTag
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
-import org.jetbrains.kotlin.psi.psiUtil.getPossiblyQualifiedCallExpression
-import org.jetbrains.kotlin.psi.psiUtil.unwrapNullability
+import org.jetbrains.kotlin.psi.psiUtil.*
 import org.jetbrains.kotlin.resolve.calls.util.getCalleeExpressionIfAny
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.exceptions.errorWithAttachment
@@ -271,18 +272,24 @@ internal class KaFirImportOptimizer(
             private fun visitKDocLink(docLink: KDocLink) {
                 val docName = docLink.getChildOfType<KDocName>() ?: return
                 val qualifiedNameAsFqName = docName.getQualifiedNameAsFqName()
-                val importableNames = with(analysisSession) {
-                    val resolvedSymbols = KDocReferenceResolver
-                        .resolveKdocFqName(useSiteSession, qualifiedNameAsFqName, qualifiedNameAsFqName, docLink)
-                    if (resolvedSymbols.none()) {
+                with(analysisSession) {
+                    val knownContainedTagSection = docName.getStrictParentOfType<KDocTag>()?.knownTag
+
+                    val mainResolvedSymbol = KDocReferenceResolver.resolveKdocFqName(
+                        useSiteSession,
+                        qualifiedNameAsFqName,
+                        qualifiedNameAsFqName,
+                        docLink,
+                        knownContainedTagSection
+                    ).firstOrNull()
+
+                    if (mainResolvedSymbol == null) {
                         unresolvedNames += qualifiedNameAsFqName.shortName()
-                        emptySequence()
                     } else {
-                        resolvedSymbols.flatMap { toImportableFqNames(it, qualifiedNameAsFqName) }
+                        toImportableFqNames(mainResolvedSymbol, qualifiedNameAsFqName).forEach { importableName ->
+                            saveReferencedItem(importableName, importableName.shortName())
+                        }
                     }
-                }
-                importableNames.forEach { importableName ->
-                    saveReferencedItem(importableName, importableName.shortName())
                 }
             }
 

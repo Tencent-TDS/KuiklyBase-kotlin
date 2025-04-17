@@ -1,8 +1,7 @@
 <caret_2>:
   KDocName(53,57): 'prop'
     KDocReference:
-      0: (in dependency.JavaBase) open fun getProp(): kotlin.String!
-      1: (in dependency.JavaBase) open val prop: kotlin.String!
+      (in dependency.JavaBase) open fun getProp(): kotlin.String!
 
 <caret_1>:
   KDocName(63,79): 'KotlinChild.prop'

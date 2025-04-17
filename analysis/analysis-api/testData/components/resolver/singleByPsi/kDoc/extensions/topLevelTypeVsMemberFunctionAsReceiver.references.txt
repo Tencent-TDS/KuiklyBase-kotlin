@@ -11,5 +11,4 @@
 <caret_3>:
   KDocName(137,140): 'Foo'
     KDocReference:
-      0: (in test) class Foo
-      1: (in test.WithMember) fun Foo()
+      (in test) class Foo

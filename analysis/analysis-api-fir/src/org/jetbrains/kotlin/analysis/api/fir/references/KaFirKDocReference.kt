@@ -22,13 +22,15 @@ internal class KaFirKDocReference(element: KDocName) : KDocReference(element), K
         val fullFqName = generateSequence(element) { it.parent as? KDocName }.last().getQualifiedNameAsFqName()
         val selectedFqName = element.getQualifiedNameAsFqName()
         val knownContainedTagSection = element.getStrictParentOfType<KDocTag>()?.knownTag
-        return KDocReferenceResolver.resolveKdocFqName(
+        val mainResolvedSymbol = KDocReferenceResolver.resolveKdocFqName(
             useSiteSession,
             selectedFqName,
             fullFqName,
             element,
             knownContainedTagSection
-        ).toSet()
+        ).firstOrNull()
+
+        return listOfNotNull(mainResolvedSymbol)
     }
 
     override fun getResolvedToPsi(

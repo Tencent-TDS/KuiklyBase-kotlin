@@ -1,25 +1,19 @@
 <caret_1>:
   KDocName(8,10): 'AA'
     KDocReference:
-      0: (in ROOT) class AA
-      1: (in AA) class AA
-      2: (in AA) fun AA(p: kotlin.Int)
+      (in ROOT) class AA
 
 <caret_2>:
   KDocName(44,49): 'AA.AA'
     KDocReference:
-      0: (in AA) class AA
-      1: (in AA) fun AA(p: kotlin.Int)
+      (in AA) class AA
 
 <caret_3>:
   KDocName(100,102): 'AA'
     KDocReference:
-      0: (in AA) class AA
-      1: (in ROOT) class AA
+      (in AA) class AA
 
 <caret_4>:
   KDocName(154,156): 'AA'
     KDocReference:
-      0: (in AA) fun AA(p: kotlin.Int)
-      1: (in AA) class AA
-      2: (in ROOT) class AA
+      (in AA) fun AA(p: kotlin.Int)

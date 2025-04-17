@@ -11,11 +11,9 @@
 <caret_3>:
   KDocName(69,71): 'AA'
     KDocReference:
-      0: (in AA) constructor(abc: kotlin.String)
-      1: (in ROOT) class AA(abc: kotlin.String)
+      (in AA) constructor(abc: kotlin.String)
 
 <caret_4>:
   KDocName(96,99): 'abc'
     KDocReference:
-      0: abc: kotlin.String
-      1: (in AA) var abc: kotlin.String
+      abc: kotlin.String
