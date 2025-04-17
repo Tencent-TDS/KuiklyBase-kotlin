@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * [debugName] is used only for debug purposes.
  */
 @ApiStatus.Experimental
-class SyntaxElementType(
+open class SyntaxElementType(
   private val debugName: String,
 ) {
   val index: Int = counter.getAndIncrement()
