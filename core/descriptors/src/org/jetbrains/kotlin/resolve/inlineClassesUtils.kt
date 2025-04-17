@@ -56,7 +56,10 @@ fun KotlinType.unsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
         KotlinBuiltIns.isArray(underlyingType) -> {
             val argument = underlyingType.arguments.single()
             when (val elementTypeParameter = TypeUtils.getTypeParameterDescriptorOrNull(argument.type)) {
-                null -> UnderlyingTypeKind.Regular(underlyingType)
+                null -> {
+                    val substitutedUnderlyingType = substitutor.substitute(underlyingType, Variance.INVARIANT)
+                    UnderlyingTypeKind.Regular(substitutedUnderlyingType ?: underlyingType)
+                }
                 else -> {
                     val representative = elementTypeParameter.representativeUpperBound
                     val substitutedRepresentative = substitutor.substitute(representative, Variance.INVARIANT)
@@ -68,7 +71,10 @@ fun KotlinType.unsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
                 }
             }
         }
-        else -> UnderlyingTypeKind.Regular(underlyingType)
+        else -> {
+            val substitutedUnderlyingType = substitutor.substitute(underlyingType, Variance.INVARIANT)
+            UnderlyingTypeKind.Regular(substitutedUnderlyingType ?: underlyingType)
+        }
     }
 }
 

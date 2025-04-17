@@ -555,7 +555,7 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
 
     override fun KotlinTypeMarker.getUnsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
         require(this is ConeKotlinType)
-        return unsubstitutedUnderlyingTypeForInlineClass(session, this@ConeTypeContext)
+        return unsubstitutedUnderlyingKindForInlineClass(session, this@ConeTypeContext)
     }
 
     override fun KotlinTypeMarker.getSubstitutedUnderlyingType(): KotlinTypeMarker? {

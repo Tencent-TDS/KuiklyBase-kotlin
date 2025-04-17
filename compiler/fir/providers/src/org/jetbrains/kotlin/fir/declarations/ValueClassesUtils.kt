@@ -25,14 +25,14 @@ import org.jetbrains.kotlin.types.model.typeConstructor
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
 internal fun ConeKotlinType.substitutedUnderlyingTypeForInlineClass(session: FirSession, context: ConeTypeContext): ConeKotlinType? {
-    val unsubstitutedType = unsubstitutedUnderlyingTypeForInlineClass(session, context) ?: return null
+    val unsubstitutedType = unsubstitutedUnderlyingKindForInlineClass(session, context)?.type as? ConeKotlinType ?: return null
     val substitutor = createTypeSubstitutorByTypeConstructor(
         mapOf(this.typeConstructor(context) to this), context, approximateIntegerLiterals = true
     )
-    return substitutor.substituteOrNull(unsubstitutedType.type as ConeKotlinType)
+    return substitutor.substituteOrNull(unsubstitutedType)
 }
 
-internal fun ConeKotlinType.unsubstitutedUnderlyingTypeForInlineClass(session: FirSession, context: ConeTypeContext): UnderlyingTypeKind? {
+internal fun ConeKotlinType.unsubstitutedUnderlyingKindForInlineClass(session: FirSession, context: ConeTypeContext): UnderlyingTypeKind? {
     val symbol = this.fullyExpandedType(session).toRegularClassSymbol(session) ?: return null
     symbol.lazyResolveToPhase(FirResolvePhase.STATUS)
     val underlyingType = symbol.fir.inlineClassRepresentation?.underlyingType ?: return null
@@ -48,7 +48,7 @@ internal fun ConeKotlinType.unsubstitutedUnderlyingTypeForInlineClass(session: F
         underlyingType.isArrayTypeOrNullableArrayType -> {
             val argument = underlyingType.typeArguments.single()
             when (val elementTypeParameter = argument.type?.toTypeParameterSymbol(session)) {
-                null -> UnderlyingTypeKind.Regular(underlyingType)
+                null -> UnderlyingTypeKind.Regular(substitutor.substituteOrNull(underlyingType) ?: underlyingType)
                 else -> {
                     val bound = elementTypeParameter.resolvedBounds.getOrNull(0)?.coneType ?: session.builtinTypes.nullableAnyType.coneType
                     UnderlyingTypeKind.ArrayOfTypeParameter(
@@ -59,8 +59,9 @@ internal fun ConeKotlinType.unsubstitutedUnderlyingTypeForInlineClass(session: F
                 }
             }
         }
-        else ->
-            UnderlyingTypeKind.Regular(underlyingType)
+        else -> {
+            UnderlyingTypeKind.Regular(substitutor.substituteOrNull(underlyingType) ?: underlyingType)
+        }
     }
 
 }

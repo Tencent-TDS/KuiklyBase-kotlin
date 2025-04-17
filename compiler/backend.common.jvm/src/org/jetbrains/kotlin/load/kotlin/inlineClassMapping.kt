@@ -6,30 +6,8 @@
 package org.jetbrains.kotlin.load.kotlin
 
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
-import org.jetbrains.kotlin.types.UnderlyingTypeKind
-import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
-
-internal fun TypeSystemCommonBackendContext.computeUnderlyingType(inlineClassType: KotlinTypeMarker): KotlinTypeMarker? {
-    if (!shouldUseUnderlyingType(inlineClassType)) return null
-
-    return when (val underlyingType = inlineClassType.getUnsubstitutedUnderlyingKind()) {
-        null -> null
-        is UnderlyingTypeKind.TypeParameter -> {
-            val type = underlyingType.representativeUpperBound
-            if (underlyingType.type.isMarkedNullable()) type.makeNullable() else type
-        }
-        is UnderlyingTypeKind.ArrayOfTypeParameter -> {
-            val arrayType = when (underlyingType.variance) {
-                Variance.IN_VARIANCE -> nullableAnyType()
-                else -> underlyingType.representativeElementUpperBound
-            }.let { arrayType(it) }
-            if (underlyingType.type.isMarkedNullable()) arrayType.makeNullable() else arrayType
-        }
-        else -> inlineClassType.getSubstitutedUnderlyingType()
-    }
-}
 
 internal fun TypeSystemCommonBackendContext.shouldUseUnderlyingType(inlineClassType: KotlinTypeMarker): Boolean {
     val underlyingType = inlineClassType.getUnsubstitutedUnderlyingType() ?: return false

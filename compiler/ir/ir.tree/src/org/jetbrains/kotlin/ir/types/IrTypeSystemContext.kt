@@ -484,7 +484,7 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
             underlyingType.isArrayOrNullableArray() -> {
                 val argument = underlyingType.arguments.single()
                 when (val elementTypeParameter = argument.getType()?.typeConstructor()?.getTypeParameterClassifier()) {
-                    null -> UnderlyingTypeKind.Regular(underlyingType)
+                    null -> UnderlyingTypeKind.Regular(substitute(from = this, into =underlyingType))
                     else -> {
                         val elementBound = substitute(
                             from = this,
@@ -498,7 +498,9 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
                     }
                 }
             }
-            else -> UnderlyingTypeKind.Regular(underlyingType)
+            else -> {
+                UnderlyingTypeKind.Regular(substitute(from = this, into = underlyingType))
+            }
         }
 
     }

@@ -14,13 +14,20 @@ import org.jetbrains.kotlin.types.model.*
 sealed interface UnderlyingTypeKind {
     val type: KotlinTypeMarker
 
-    class TypeParameter(override val type: KotlinTypeMarker, val representativeUpperBound: KotlinTypeMarker) :
-        UnderlyingTypeKind
+    class TypeParameter(
+        override val type: KotlinTypeMarker,
+        val representativeUpperBound: KotlinTypeMarker
+    ) : UnderlyingTypeKind
 
-    class ArrayOfTypeParameter(override val type: KotlinTypeMarker, val variance: Variance, val representativeElementUpperBound: KotlinTypeMarker) :
-        UnderlyingTypeKind
+    class ArrayOfTypeParameter(
+        override val type: KotlinTypeMarker,
+        val variance: Variance,
+        val representativeElementUpperBound: KotlinTypeMarker
+    ) : UnderlyingTypeKind
 
-    class Regular(override val type: KotlinTypeMarker) : UnderlyingTypeKind
+    class Regular(
+        override val type: KotlinTypeMarker
+    ) : UnderlyingTypeKind
 }
 
 interface TypeSystemCommonBackendContext : TypeSystemContext {

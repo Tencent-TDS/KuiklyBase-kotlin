@@ -38,22 +38,22 @@ private fun TypeSystemCommonBackendContext.computeExpandedTypeInner(
 
         classifier.isInlineClass() -> {
             // kotlinType is the boxed inline class type
-            val underlyingType = when (val unsubstitutedUnderlyingType = kotlinType.getUnsubstitutedUnderlyingKind()) {
+            val underlyingType = when (val unsubstitutedUnderlyingKind = kotlinType.getUnsubstitutedUnderlyingKind()) {
+                null -> return null
                 is UnderlyingTypeKind.TypeParameter -> {
-                    val bound = unsubstitutedUnderlyingType.representativeUpperBound
-                    if (unsubstitutedUnderlyingType.type.isNullableType()) bound.makeNullable() else bound
+                    val bound = unsubstitutedUnderlyingKind.representativeUpperBound
+                    if (unsubstitutedUnderlyingKind.type.isNullableType()) bound.makeNullable() else bound
                 }
                 is UnderlyingTypeKind.ArrayOfTypeParameter -> {
-                    val elementTypeBounded = when (unsubstitutedUnderlyingType.variance) {
+                    val elementTypeBounded = when (unsubstitutedUnderlyingKind.variance) {
                         Variance.IN_VARIANCE -> nullableAnyType()
-                        else -> unsubstitutedUnderlyingType.representativeElementUpperBound
+                        else -> unsubstitutedUnderlyingKind.representativeElementUpperBound
                     }
                     val arrayType = arrayType(elementTypeBounded)
-                    if (unsubstitutedUnderlyingType.type.isNullableType()) arrayType.makeNullable() else arrayType
+                    if (unsubstitutedUnderlyingKind.type.isNullableType()) arrayType.makeNullable() else arrayType
                 }
-                // otherwise
-                else -> kotlinType.getSubstitutedUnderlyingType() ?: unsubstitutedUnderlyingType?.type
-            } ?: return null
+                is UnderlyingTypeKind.Regular -> unsubstitutedUnderlyingKind.type
+            }
             val expandedUnderlyingType = computeExpandedTypeInner(underlyingType, visitedClassifiers) ?: return null
             when {
                 !kotlinType.isNullableType() -> expandedUnderlyingType
