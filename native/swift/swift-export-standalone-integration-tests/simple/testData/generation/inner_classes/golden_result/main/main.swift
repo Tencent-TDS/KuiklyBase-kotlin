@@ -8,7 +8,7 @@ public final class Outer: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._Kotlin
             public init(
                 outer__: main.Outer.Inner
             ) {
-                precondition(Self.self == main.Outer.Inner.InnerInner.self, "Inheritance from exported kotlin classes is not supported yet")
+                precondition(Self.self == main.Outer.Inner.InnerInner.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Outer.Inner.InnerInner ")
                 let __kt = Outer_Inner_InnerInner_init_allocate()
                 super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
                 Outer_Inner_InnerInner_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_main_Outer_Inner__(__kt, outer__.__externalRCRef())
@@ -24,7 +24,7 @@ public final class Outer: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._Kotlin
         public init(
             outer__: main.Outer
         ) {
-            precondition(Self.self == main.Outer.Inner.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == main.Outer.Inner.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Outer.Inner ")
             let __kt = Outer_Inner_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             Outer_Inner_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_main_Outer__(__kt, outer__.__externalRCRef())
@@ -41,7 +41,7 @@ public final class Outer: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._Kotlin
         }
     }
     public init() {
-        precondition(Self.self == main.Outer.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.Outer.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Outer ")
         let __kt = __root___Outer_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___Outer_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)

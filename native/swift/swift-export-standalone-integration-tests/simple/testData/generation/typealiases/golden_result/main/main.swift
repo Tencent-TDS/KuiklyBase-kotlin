@@ -45,7 +45,7 @@ public final class DATA_CLASS: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._K
     public init(
         a: Swift.Int32
     ) {
-        precondition(Self.self == main.DATA_CLASS.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.DATA_CLASS.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.DATA_CLASS ")
         let __kt = __root___DATA_CLASS_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___DATA_CLASS_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Int32__(__kt, a)
@@ -78,7 +78,7 @@ public final class DATA_CLASS_WITH_REF: KotlinRuntime.KotlinBase, KotlinRuntimeS
     public init(
         o: KotlinRuntime.KotlinBase
     ) {
-        precondition(Self.self == main.DATA_CLASS_WITH_REF.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.DATA_CLASS_WITH_REF.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.DATA_CLASS_WITH_REF ")
         let __kt = __root___DATA_CLASS_WITH_REF_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___DATA_CLASS_WITH_REF_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_KotlinRuntime_KotlinBase__(__kt, o.__externalRCRef())
@@ -144,7 +144,7 @@ public final class DATA_OBJECT_WITH_PACKAGE: KotlinRuntime.KotlinBase, KotlinRun
 public final class ENUM: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged, Swift.CaseIterable {
     public final class INSIDE_ENUM: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == main.ENUM.INSIDE_ENUM.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == main.ENUM.INSIDE_ENUM.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.ENUM.INSIDE_ENUM ")
             let __kt = ENUM_INSIDE_ENUM_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             ENUM_INSIDE_ENUM_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -192,7 +192,7 @@ public final class ENUM: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinB
 }
 public final class INHERITANCE_SINGLE_CLASS: main.OPEN_CLASS {
     public override init() {
-        precondition(Self.self == main.INHERITANCE_SINGLE_CLASS.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.INHERITANCE_SINGLE_CLASS.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.INHERITANCE_SINGLE_CLASS ")
         let __kt = __root___INHERITANCE_SINGLE_CLASS_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___INHERITANCE_SINGLE_CLASS_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -243,7 +243,7 @@ public final class OBJECT_WITH_INTERFACE_INHERITANCE: KotlinRuntime.KotlinBase, 
 }
 open class OPEN_CLASS: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public init() {
-        precondition(Self.self == main.OPEN_CLASS.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.OPEN_CLASS.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.OPEN_CLASS ")
         let __kt = __root___OPEN_CLASS_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___OPEN_CLASS_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -336,7 +336,7 @@ public extension ExportedKotlinPackages.typealiases.inner {
     public typealias LargeInteger = Swift.Int64
     public final class Bar: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.typealiases.inner.Bar.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.typealiases.inner.Bar.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.typealiases.inner.Bar ")
             let __kt = typealiases_inner_Bar_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             typealiases_inner_Bar_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -355,7 +355,7 @@ public extension ExportedKotlinPackages.typealiases {
     public typealias SmallInteger = Swift.Int16
     public final class Foo: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.typealiases.Foo.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.typealiases.Foo.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.typealiases.Foo ")
             let __kt = typealiases_Foo_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             typealiases_Foo_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)

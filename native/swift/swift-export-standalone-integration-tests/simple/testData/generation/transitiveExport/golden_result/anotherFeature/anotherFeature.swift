@@ -10,7 +10,7 @@ public final class FeatureC: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._Kot
         }
     }
     public init() {
-        precondition(Self.self == anotherFeature.FeatureC.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == anotherFeature.FeatureC.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from anotherFeature.FeatureC ")
         let __kt = __root___FeatureC_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___FeatureC_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)

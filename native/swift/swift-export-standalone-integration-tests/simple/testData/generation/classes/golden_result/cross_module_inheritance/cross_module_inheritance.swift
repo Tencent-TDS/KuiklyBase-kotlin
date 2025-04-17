@@ -15,7 +15,7 @@ public final class CLASS_ACROSS_MODULES: inheritance.OPEN_CLASS {
     public init(
         value: Swift.Int32
     ) {
-        precondition(Self.self == cross_module_inheritance.CLASS_ACROSS_MODULES.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == cross_module_inheritance.CLASS_ACROSS_MODULES.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from cross_module_inheritance.CLASS_ACROSS_MODULES ")
         let __kt = __root___CLASS_ACROSS_MODULES_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___CLASS_ACROSS_MODULES_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Int32__(__kt, value)

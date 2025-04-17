@@ -5,7 +5,6 @@
 
 package org.jetbrains.sir.lightclasses.nodes
 
-import com.intellij.util.containers.addAllIfNotNull
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.components.DefaultTypeClassIds
 import org.jetbrains.kotlin.analysis.api.export.utilities.isCloneable
@@ -13,7 +12,6 @@ import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.sir.*
 import org.jetbrains.kotlin.sir.builder.buildGetter
-import org.jetbrains.kotlin.sir.builder.buildInit
 import org.jetbrains.kotlin.sir.builder.buildInitCopy
 import org.jetbrains.kotlin.sir.builder.buildVariable
 import org.jetbrains.kotlin.sir.providers.SirSession

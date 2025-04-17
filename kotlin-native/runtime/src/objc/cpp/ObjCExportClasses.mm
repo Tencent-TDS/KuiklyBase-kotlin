@@ -180,15 +180,12 @@ using RegularRef = kotlin::mm::ObjCBackRef;
     RuntimeAssert(kotlin::compiler::swiftExport(), "Must be used in Swift Export only");
     kotlin::AssertThreadState(kotlin::ThreadState::kNative);
 
-    auto externalRCRef = reinterpret_cast<kotlin::mm::RawExternalRCRef*>(ref);
+    auto externalRCRef = static_cast<kotlin::mm::RawExternalRCRef *>(ref);
     Class bestFittingClass = kotlin::swiftExportRuntime::bestFittingObjCClassFor(kotlin::mm::typeOfExternalRCRef(externalRCRef));
 
-    if (self != bestFittingClass) {
-        RuntimeAssert(
-                [bestFittingClass isSubclassOfClass:self], "Best-fitting class is %s which is not a subclass of self (%s)",
-                class_getName(bestFittingClass), class_getName(self));
-
-    }
+    RuntimeAssert(
+            [bestFittingClass isSubclassOfClass:self], "Best-fitting class is %s which is not a subclass of self (%s)",
+            class_getName(bestFittingClass), class_getName(self));
 
     // Call unsafe initializer with the best-fitting class.
     return [[bestFittingClass alloc] initWithExternalRCRefUnsafe:ref cache:YES substitute:YES];
@@ -198,7 +195,7 @@ using RegularRef = kotlin::mm::ObjCBackRef;
     RuntimeAssert(kotlin::compiler::swiftExport(), "Must be used in Swift Export only");
     kotlin::AssertThreadState(kotlin::ThreadState::kNative);
 
-    auto externalRCRef = reinterpret_cast<kotlin::mm::RawExternalRCRef*>(ref);
+    auto externalRCRef = static_cast<kotlin::mm::RawExternalRCRef *>(ref);
 
     if (auto obj = kotlin::mm::externalRCRefAsPermanentObject(externalRCRef)) {
         refHolder.emplace<PermanentRef>(obj);
@@ -208,21 +205,16 @@ using RegularRef = kotlin::mm::ObjCBackRef;
 
     auto& regularRef = refHolder.emplace<RegularRef>(kotlin::mm::ExternalRCRefImpl::fromRaw(externalRCRef));
 
-    id newSelf = nil;
-    if (shouldCache) {
-        // TODO: Make it okay to get/replace associated objects w/o runnable state.
-        kotlin::CalledFromNativeGuard guard;
-        // `ref` holds a strong reference to obj, no need to place obj onto a stack.
-        KRef obj = regularRef.ref();
-        newSelf = AtomicCompareAndSwapAssociatedObject(obj, nullptr, self);
-    }
 
-    if (newSelf == nil) {
-        // No previous associated object was set, `self` is the associated object.
-        return self;
-    }
+    // TODO: Make it okay to get/replace associated objects w/o runnable state.
+    kotlin::CalledFromNativeGuard guard;
+    // `ref` holds a strong reference to obj, no need to place obj onto a stack.
+    KRef obj = regularRef.ref();
+
+    id newSelf = shouldCache ? AtomicCompareAndSwapAssociatedObject(obj, nullptr, self) : Kotlin_ObjCExport_GetAssociatedObject(obj);
 
     if (![[newSelf class] isSubclassOfClass:[self class]] || !shouldSubstitute) {
+        // No previous associated object was set or it wasn't fitting for substitution.
         return self;
     }
 
@@ -246,7 +238,7 @@ using RegularRef = kotlin::mm::ObjCBackRef;
             return arg.get()->toRaw();
         }
     }, refHolder);
-    return reinterpret_cast<void*>(ref);
+    return static_cast<void *>(ref);
 }
 
 - (NSString *)description {

@@ -1,1 +1,1 @@
-.*Inheritance from exported kotlin classes is not supported yet.*
+.*Inheritance from exported Kotlin classes is not supported yet.*
