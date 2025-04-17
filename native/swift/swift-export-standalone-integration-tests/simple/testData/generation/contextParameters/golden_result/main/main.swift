@@ -4,7 +4,7 @@ import KotlinRuntimeSupport
 
 public final class Context: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public init() {
-        precondition(Self.self == main.Context.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.Context.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Context ")
         let __kt = __root___Context_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___Context_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)

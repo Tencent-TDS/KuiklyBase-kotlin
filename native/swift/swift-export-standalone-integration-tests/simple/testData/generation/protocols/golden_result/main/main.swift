@@ -50,7 +50,7 @@ public final class Bar: KotlinRuntime.KotlinBase, main.Barable, main.Foeble, mai
         }
     }
     public init() {
-        precondition(Self.self == main.Bar.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.Bar.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Bar ")
         let __kt = __root___Bar_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___Bar_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -75,7 +75,7 @@ public final class Foo: KotlinRuntime.KotlinBase, main.Foeble, KotlinRuntimeSupp
         }
     }
     public init() {
-        precondition(Self.self == main.Foo.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.Foo.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Foo ")
         let __kt = __root___Foo_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___Foo_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -129,7 +129,7 @@ public final class SomeBazzable: KotlinRuntime.KotlinBase, main.SealedBazzable, 
 }
 open class _ContainerProtocol_NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public init() {
-        precondition(Self.self == main._ContainerProtocol_NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main._ContainerProtocol_NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main._ContainerProtocol_NestedClass ")
         let __kt = ContainerProtocol_NestedClass_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         ContainerProtocol_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -144,7 +144,7 @@ open class _ContainerProtocol_NestedClass: KotlinRuntime.KotlinBase, KotlinRunti
 }
 open class _ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public init() {
-        precondition(Self.self == main._ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main._ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main._ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedClass ")
         let __kt = packagewithprotocols_ContainerProtocol_NestedClass_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         packagewithprotocols_ContainerProtocol_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -160,7 +160,7 @@ open class _ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_Nested
 public final class _ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public final class NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == main._ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_NestedClass.NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == main._ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_NestedClass.NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main._ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_NestedClass.NestedClass ")
             let __kt = packagewithprotocols_SiblingProtocol_NestedClass_NestedClass_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             packagewithprotocols_SiblingProtocol_NestedClass_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -174,7 +174,7 @@ public final class _ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_
         }
     }
     public init() {
-        precondition(Self.self == main._ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main._ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main._ExportedKotlinPackages_packagewithprotocols_SiblingProtocol_NestedClass ")
         let __kt = packagewithprotocols_SiblingProtocol_NestedClass_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         packagewithprotocols_SiblingProtocol_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -224,7 +224,7 @@ public final class _SealedFoeble_SomeFoeble: KotlinRuntime.KotlinBase, main.Seal
 public final class _SiblingProtocol_NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public final class NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == main._SiblingProtocol_NestedClass.NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == main._SiblingProtocol_NestedClass.NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main._SiblingProtocol_NestedClass.NestedClass ")
             let __kt = SiblingProtocol_NestedClass_NestedClass_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             SiblingProtocol_NestedClass_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -238,7 +238,7 @@ public final class _SiblingProtocol_NestedClass: KotlinRuntime.KotlinBase, Kotli
         }
     }
     public init() {
-        precondition(Self.self == main._SiblingProtocol_NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main._SiblingProtocol_NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main._SiblingProtocol_NestedClass ")
         let __kt = SiblingProtocol_NestedClass_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         SiblingProtocol_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -253,7 +253,7 @@ public final class _SiblingProtocol_NestedClass: KotlinRuntime.KotlinBase, Kotli
 }
 open class __ContainerProtocol_NestedProtocol_NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public init() {
-        precondition(Self.self == main.__ContainerProtocol_NestedProtocol_NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.__ContainerProtocol_NestedProtocol_NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.__ContainerProtocol_NestedProtocol_NestedClass ")
         let __kt = ContainerProtocol_NestedProtocol_NestedClass_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         ContainerProtocol_NestedProtocol_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -268,7 +268,7 @@ open class __ContainerProtocol_NestedProtocol_NestedClass: KotlinRuntime.KotlinB
 }
 open class __ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedProtocol_NestedClass: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public init() {
-        precondition(Self.self == main.__ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedProtocol_NestedClass.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.__ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedProtocol_NestedClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.__ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedProtocol_NestedClass ")
         let __kt = packagewithprotocols_ContainerProtocol_NestedProtocol_NestedClass_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         packagewithprotocols_ContainerProtocol_NestedProtocol_NestedClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -417,7 +417,7 @@ public extension ExportedKotlinPackages.packagewithprotocols {
     }
     public final class INHERITANCE_COUPLE: main._ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedClass, ExportedKotlinPackages.packagewithprotocols.ContainerProtocol {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.packagewithprotocols.INHERITANCE_COUPLE.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.packagewithprotocols.INHERITANCE_COUPLE.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.packagewithprotocols.INHERITANCE_COUPLE ")
             let __kt = packagewithprotocols_INHERITANCE_COUPLE_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             packagewithprotocols_INHERITANCE_COUPLE_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -432,7 +432,7 @@ public extension ExportedKotlinPackages.packagewithprotocols {
     }
     public final class INHERITANCE_SINGLE_PROTO: main._ExportedKotlinPackages_packagewithprotocols_ContainerProtocol_NestedClass {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.packagewithprotocols.INHERITANCE_SINGLE_PROTO.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.packagewithprotocols.INHERITANCE_SINGLE_PROTO.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.packagewithprotocols.INHERITANCE_SINGLE_PROTO ")
             let __kt = packagewithprotocols_INHERITANCE_SINGLE_PROTO_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             packagewithprotocols_INHERITANCE_SINGLE_PROTO_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -490,7 +490,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Child1: ExportedKotlinPackages.repeating_conformances.Parent1 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child1.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child1.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Child1 ")
             let __kt = repeating_conformances_Child1_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Child1_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -505,7 +505,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Child2: ExportedKotlinPackages.repeating_conformances.Parent2 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child2.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child2.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Child2 ")
             let __kt = repeating_conformances_Child2_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Child2_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -520,7 +520,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Child3: ExportedKotlinPackages.repeating_conformances.Parent3 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child3.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child3.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Child3 ")
             let __kt = repeating_conformances_Child3_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Child3_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -535,7 +535,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Child4: ExportedKotlinPackages.repeating_conformances.Parent4 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child4.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child4.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Child4 ")
             let __kt = repeating_conformances_Child4_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Child4_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -550,7 +550,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Child5: ExportedKotlinPackages.repeating_conformances.Parent5 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child5.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Child5.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Child5 ")
             let __kt = repeating_conformances_Child5_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Child5_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -565,7 +565,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class GrandChild1: ExportedKotlinPackages.repeating_conformances.Child1 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild1.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild1.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.GrandChild1 ")
             let __kt = repeating_conformances_GrandChild1_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_GrandChild1_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -580,7 +580,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class GrandChild2: ExportedKotlinPackages.repeating_conformances.Child2 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild2.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild2.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.GrandChild2 ")
             let __kt = repeating_conformances_GrandChild2_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_GrandChild2_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -595,7 +595,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class GrandChild3: ExportedKotlinPackages.repeating_conformances.Child3 {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild3.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild3.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.GrandChild3 ")
             let __kt = repeating_conformances_GrandChild3_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_GrandChild3_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -610,7 +610,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class GrandChild4: ExportedKotlinPackages.repeating_conformances.Child4, ExportedKotlinPackages.repeating_conformances.Barable {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild4.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild4.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.GrandChild4 ")
             let __kt = repeating_conformances_GrandChild4_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_GrandChild4_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -625,7 +625,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class GrandChild5: ExportedKotlinPackages.repeating_conformances.Child5, ExportedKotlinPackages.repeating_conformances.Barable, ExportedKotlinPackages.repeating_conformances.Foeble {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild5.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.GrandChild5.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.GrandChild5 ")
             let __kt = repeating_conformances_GrandChild5_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_GrandChild5_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -640,7 +640,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Parent1: KotlinRuntime.KotlinBase, ExportedKotlinPackages.repeating_conformances.Foeble, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent1.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent1.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Parent1 ")
             let __kt = repeating_conformances_Parent1_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Parent1_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -655,7 +655,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Parent2: KotlinRuntime.KotlinBase, ExportedKotlinPackages.repeating_conformances.Foeble, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent2.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent2.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Parent2 ")
             let __kt = repeating_conformances_Parent2_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Parent2_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -670,7 +670,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Parent3: KotlinRuntime.KotlinBase, ExportedKotlinPackages.repeating_conformances.Barable, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent3.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent3.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Parent3 ")
             let __kt = repeating_conformances_Parent3_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Parent3_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -685,7 +685,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Parent4: KotlinRuntime.KotlinBase, ExportedKotlinPackages.repeating_conformances.Foeble, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent4.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent4.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Parent4 ")
             let __kt = repeating_conformances_Parent4_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Parent4_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -700,7 +700,7 @@ public extension ExportedKotlinPackages.repeating_conformances {
     }
     open class Parent5: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent5.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.repeating_conformances.Parent5.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.repeating_conformances.Parent5 ")
             let __kt = repeating_conformances_Parent5_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             repeating_conformances_Parent5_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)

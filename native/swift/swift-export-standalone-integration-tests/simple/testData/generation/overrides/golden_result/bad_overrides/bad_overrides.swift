@@ -11,7 +11,7 @@ public extension ExportedKotlinPackages.weird {
             }
         }
         public init() throws {
-            precondition(Self.self == ExportedKotlinPackages.weird.A.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.weird.A.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.weird.A ")
             let __kt = weird_A_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             var __error: UnsafeMutableRawPointer? = nil
@@ -45,7 +45,7 @@ public extension ExportedKotlinPackages.weird {
         }
         @_nonoverride
         public init() {
-            precondition(Self.self == ExportedKotlinPackages.weird.B.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.weird.B.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.weird.B ")
             let __kt = weird_B_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             weird_B_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)

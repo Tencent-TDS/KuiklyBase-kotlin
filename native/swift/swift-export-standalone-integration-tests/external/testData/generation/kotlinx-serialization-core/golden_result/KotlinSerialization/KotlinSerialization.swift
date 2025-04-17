@@ -160,7 +160,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
             missingFields: [Swift.String],
             serialName: Swift.String
         ) {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.MissingFieldException ")
             let __kt = kotlinx_serialization_MissingFieldException_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_MissingFieldException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Array_Swift_String__Swift_String__(__kt, missingFields, serialName)
@@ -169,7 +169,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
             missingField: Swift.String,
             serialName: Swift.String
         ) {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.MissingFieldException ")
             let __kt = kotlinx_serialization_MissingFieldException_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_MissingFieldException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_String_Swift_String__(__kt, missingField, serialName)
@@ -179,7 +179,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
             message: Swift.String?,
             cause: ExportedKotlinPackages.kotlin.Throwable?
         ) {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.MissingFieldException ")
             let __kt = kotlinx_serialization_MissingFieldException_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_MissingFieldException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Array_Swift_String__Swift_Optional_Swift_String__Swift_Optional_ExportedKotlinPackages_kotlin_Throwable___(__kt, missingFields, message ?? nil, cause.map { it in it.__externalRCRef() } ?? nil)
@@ -198,7 +198,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
     }
     open class SerializationException: ExportedKotlinPackages.kotlin.IllegalArgumentException {
         public override init() {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -206,7 +206,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         public override init(
             message: Swift.String?
         ) {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Optional_Swift_String___(__kt, message ?? nil)
@@ -215,7 +215,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
             message: Swift.String?,
             cause: ExportedKotlinPackages.kotlin.Throwable?
         ) {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Optional_Swift_String__Swift_Optional_ExportedKotlinPackages_kotlin_Throwable___(__kt, message ?? nil, cause.map { it in it.__externalRCRef() } ?? nil)
@@ -223,7 +223,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         public override init(
             cause: ExportedKotlinPackages.kotlin.Throwable?
         ) {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Optional_ExportedKotlinPackages_kotlin_Throwable___(__kt, cause.map { it in it.__externalRCRef() } ?? nil)
@@ -364,7 +364,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization.`internal` {
             descriptor: any ExportedKotlinPackages.kotlinx.serialization.descriptors.SerialDescriptor,
             readIfAbsent: @escaping (any ExportedKotlinPackages.kotlinx.serialization.descriptors.SerialDescriptor, Swift.Int32) -> Swift.Bool
         ) {
-            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.`internal`.ElementMarker.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.`internal`.ElementMarker.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.`internal`.ElementMarker ")
             let __kt = kotlinx_serialization_internal_ElementMarker_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             kotlinx_serialization_internal_ElementMarker_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_anyU20ExportedKotlinPackages_kotlinx_serialization_descriptors_SerialDescriptor_U28anyU20ExportedKotlinPackages_kotlinx_serialization_descriptors_SerialDescriptor_U20Swift_Int32U29202D_U20Swift_Bool__(__kt, descriptor.__externalRCRef(), {

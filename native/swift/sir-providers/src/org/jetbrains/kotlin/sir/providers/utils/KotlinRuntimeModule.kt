@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.sir.providers.utils
 
-import com.intellij.util.containers.addAllIfNotNull
 import org.jetbrains.kotlin.sir.*
 import org.jetbrains.kotlin.sir.builder.*
 import org.jetbrains.kotlin.sir.providers.source.KotlinRuntimeElement
@@ -31,19 +30,21 @@ public object KotlinRuntimeModule : SirModule() {
         origin = KotlinRuntimeElement()
         isFailable = false
         isOverride = false
-        parameters.addAllIfNotNull(
-            SirParameter(
-                argumentName = "__externalRCRefUnsafe",
-                type = SirNominalType(SirSwiftModule.unsafeMutableRawPointer).optional()
-            ),
-            SirParameter(
-                argumentName = "cache",
-                type = SirNominalType(SirSwiftModule.bool)
-            ),
-            SirParameter(
-                argumentName = "substitute",
-                type = SirNominalType(SirSwiftModule.bool)
-            ),
+        parameters.addAll(
+            listOf(
+                SirParameter(
+                    argumentName = "__externalRCRefUnsafe",
+                    type = SirNominalType(SirSwiftModule.unsafeMutableRawPointer).optional()
+                ),
+                SirParameter(
+                    argumentName = "cache",
+                    type = SirNominalType(SirSwiftModule.bool)
+                ),
+                SirParameter(
+                    argumentName = "substitute",
+                    type = SirNominalType(SirSwiftModule.bool)
+                ),
+            )
         )
     }
 

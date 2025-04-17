@@ -8,7 +8,7 @@ public final class Foo: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBr
         public init(
             outer__: main.Foo
         ) {
-            precondition(Self.self == main.Foo.Inner.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == main.Foo.Inner.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Foo.Inner ")
             let __kt = Foo_Inner_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             Foo_Inner_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_main_Foo__(__kt, outer__.__externalRCRef())
@@ -23,7 +23,7 @@ public final class Foo: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBr
     }
     public final class Nested: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
-            precondition(Self.self == main.Foo.Nested.self, "Inheritance from exported kotlin classes is not supported yet")
+            precondition(Self.self == main.Foo.Nested.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Foo.Nested ")
             let __kt = Foo_Nested_init_allocate()
             super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
             Foo_Nested_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
@@ -37,7 +37,7 @@ public final class Foo: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBr
         }
     }
     public init() {
-        precondition(Self.self == main.Foo.self, "Inheritance from exported kotlin classes is not supported yet")
+        precondition(Self.self == main.Foo.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Foo ")
         let __kt = __root___Foo_init_allocate()
         super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
         __root___Foo_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
