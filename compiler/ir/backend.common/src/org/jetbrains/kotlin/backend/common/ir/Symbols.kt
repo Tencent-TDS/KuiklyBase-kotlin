@@ -181,7 +181,9 @@ open class BuiltinSymbolsBase(val irBuiltIns: IrBuiltIns) {
             )
     }
 
-    private val refNamespaceClass: IrClassSymbol = symbolFinder.findClass(Name.identifier("Ref"), StandardNames.KOTLIN_INTERNAL_FQ_NAME)!!
+    private val refNamespaceClass: IrClassSymbol by lazy {
+        symbolFinder.findClass(Name.identifier("Ref"), StandardNames.KOTLIN_INTERNAL_FQ_NAME)!!
+    }
 
     private fun createRefProvider(namePrefix: String, hasTypeParameter: Boolean): RefProvider {
         val refClass = symbolFinder.findNestedClass(refNamespaceClass, Name.identifier("${namePrefix}Ref"))!!
@@ -193,11 +195,13 @@ open class BuiltinSymbolsBase(val irBuiltIns: IrBuiltIns) {
         )
     }
 
-    private val primitiveRefProviders: Map<IrType, RefProvider> = PrimitiveType.entries.associate {
-        irBuiltIns.primitiveTypeToIrType.getValue(it) to createRefProvider(it.typeName.asString(), hasTypeParameter = false)
+    private val primitiveRefProviders: Map<IrType, RefProvider> by lazy {
+        PrimitiveType.entries.associate {
+            irBuiltIns.primitiveTypeToIrType.getValue(it) to createRefProvider(it.typeName.asString(), hasTypeParameter = false)
+        }
     }
 
-    private val objectRefProvider: RefProvider = createRefProvider("Object", hasTypeParameter = true)
+    private val objectRefProvider: RefProvider by lazy { createRefProvider("Object", hasTypeParameter = true) }
 
     fun getRefProvider(type: IrType): RefProvider = primitiveRefProviders[type] ?: objectRefProvider
 
