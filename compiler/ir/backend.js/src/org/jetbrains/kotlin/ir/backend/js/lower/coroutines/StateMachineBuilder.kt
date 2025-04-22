@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.JsCommonBackendContext
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.*
@@ -550,7 +551,7 @@ class StateMachineBuilder(
                     arg.acceptVoid(this)
                     val irVar = tempVar(arg.type, "ARGUMENT")
                     transformLastExpression {
-                        irVar.apply { initializer = it }
+                        JsIrBuilder.buildSetValue(irVar.symbol, it)
                     }
                     @Suppress("UNCHECKED_CAST")
                     JsIrBuilder.buildGetValue(irVar.symbol) as E
@@ -759,5 +760,7 @@ class StateMachineBuilder(
         )
 
     private fun tempVar(type: IrType, name: String = "tmp") =
-        JsIrBuilder.buildVar(type, function.owner, name)
+        JsIrBuilder.buildVar(type, function.owner, name, origin = IrDeclarationOrigin.IR_TEMPORARY_VARIABLE).also {
+            entryState.entryBlock.statements.add(0, it)
+        }
 }
