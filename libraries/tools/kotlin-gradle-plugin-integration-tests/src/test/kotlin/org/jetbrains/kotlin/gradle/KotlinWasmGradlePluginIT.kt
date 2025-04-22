@@ -612,59 +612,57 @@ class KotlinWasmGradlePluginIT : KGPBaseTest() {
         ) {
 
             settingsBuildScriptInjection {
-                settings.dependencyResolutionManagement {
-                    it.repositories {
-                        it.ivy {
-                            it.name = "Node.JS dist"
-                            it.url = URI("https://nodejs.org/dist")
-                            it.patternLayout {
-                                it.artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]")
-                            }
-                            it.metadataSources {
-                                it.artifact()
-                            }
-                            it.content {
-                                it.includeModule("org.nodejs", "node")
-                            }
+                settings.dependencyResolutionManagement.repositories.apply {
+                    ivy { repo ->
+                        repo.name = "Node.JS dist"
+                        repo.url = URI("https://nodejs.org/dist")
+                        repo.patternLayout {
+                            it.artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]")
                         }
-                        it.ivy {
-                            it.name = "Yarn dist"
-                            it.url = URI("https://github.com/yarnpkg/yarn/releases/download")
-                            it.patternLayout {
-                                it.artifact("v[revision]/[artifact](-v[revision]).[ext]")
-                            }
-                            it.metadataSources {
-                                it.artifact()
-                            }
-                            it.content {
-                                it.includeModule("com.yarnpkg", "yarn")
-                            }
+                        repo.metadataSources {
+                            it.artifact()
                         }
-                        it.ivy {
-                            it.name = "Binaryen dist"
-                            it.url = URI("https://github.com/WebAssembly/binaryen/releases/download")
-                            it.patternLayout {
-                                it.artifact("version_[revision]/binaryen-version_[revision]-[classifier].[ext]")
-                            }
-                            it.metadataSources {
-                                it.artifact()
-                            }
-                            it.content {
-                                it.includeModule("com.github.webassembly", "binaryen")
-                            }
+                        repo.content {
+                            it.includeModule("org.nodejs", "node")
                         }
-                        it.ivy {
-                            it.name = "D8 dist"
-                            it.url = URI("https://storage.googleapis.com/chromium-v8/official/canary")
-                            it.patternLayout {
-                                it.artifact("[artifact]-[revision].[ext]")
-                            }
-                            it.metadataSources {
-                                it.artifact()
-                            }
-                            it.content {
-                                it.includeModule("google.d8", "v8")
-                            }
+                    }
+                    ivy { repo ->
+                        repo.name = "Yarn dist"
+                        repo.url = URI("https://github.com/yarnpkg/yarn/releases/download")
+                        repo.patternLayout {
+                            it.artifact("v[revision]/[artifact](-v[revision]).[ext]")
+                        }
+                        repo.metadataSources {
+                            it.artifact()
+                        }
+                        repo.content {
+                            it.includeModule("com.yarnpkg", "yarn")
+                        }
+                    }
+                    ivy { repo ->
+                        repo.name = "Binaryen dist"
+                        repo.url = URI("https://github.com/WebAssembly/binaryen/releases/download")
+                        repo.patternLayout {
+                            it.artifact("version_[revision]/binaryen-version_[revision]-[classifier].[ext]")
+                        }
+                        repo.metadataSources {
+                            it.artifact()
+                        }
+                        repo.content {
+                            it.includeModule("com.github.webassembly", "binaryen")
+                        }
+                    }
+                    ivy { repo ->
+                        repo.name = "D8 dist"
+                        repo.url = URI("https://storage.googleapis.com/chromium-v8/official/canary")
+                        repo.patternLayout {
+                            it.artifact("[artifact]-[revision].[ext]")
+                        }
+                        repo.metadataSources {
+                            it.artifact()
+                        }
+                        repo.content {
+                            it.includeModule("google.d8", "v8")
                         }
                     }
                 }
