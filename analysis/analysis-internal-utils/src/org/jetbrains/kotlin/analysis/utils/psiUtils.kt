@@ -8,8 +8,14 @@ package org.jetbrains.kotlin.analysis.utils
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtFile
 
 public val PsiClass.classId: ClassId?
     get() {
@@ -25,7 +31,20 @@ public val PsiClass.classId: ClassId?
         return ClassId(FqName(packageName), FqName(classNames.joinToString(separator = ".")), isLocal = false)
     }
 
-
+public val KtCallableDeclaration.callableId: CallableId?
+    get() {
+        val callableName = this.nameAsName ?: return null
+        when (val owner = PsiTreeUtil.getParentOfType(this, KtDeclaration::class.java, KtFile::class.java)) {
+            is KtClassOrObject -> {
+                val classId = owner.getClassId() ?: return null
+                return CallableId(classId, callableName)
+            }
+            is KtFile -> {
+                return CallableId(owner.packageFqName, callableName)
+            }
+            else -> return null
+        }
+    }
 
 public fun PsiClass.isLocalClass(): Boolean {
     val qualifiedName = this.qualifiedName ?: return true
