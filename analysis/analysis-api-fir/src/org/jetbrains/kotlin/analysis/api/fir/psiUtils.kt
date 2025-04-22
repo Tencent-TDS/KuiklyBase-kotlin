@@ -194,7 +194,7 @@ internal val KtDeclaration.visibilityByModifiers: Visibility?
 
 internal val KtDeclaration.location: KaSymbolLocation
     get() {
-        // the declaration can be nested inside a dangling annotation, hence the KtModifierList
+        // Note: a declaration can be nested inside a modifier list (for example, in the case of dangling annotations or context parameters)
         val parent = getParentOfTypes2<KtDeclaration, KtModifierList>()
 
         if (this is KtTypeParameter) {
