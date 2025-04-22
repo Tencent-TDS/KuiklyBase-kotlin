@@ -236,7 +236,9 @@ class JsSuspendFunctionsLowering(
         }
 
         val functionBody = context.irFactory.createBlockBody(
-            stateMachineFunction.startOffset, stateMachineFunction.endOffset, listOf(suspendResult, rootLoop)
+            stateMachineFunction.startOffset,
+            stateMachineFunction.endOffset,
+            stateMachineBuilder.allTheIntermediateLocals + suspendResult + rootLoop
         )
 
         stateMachineFunction.body = functionBody

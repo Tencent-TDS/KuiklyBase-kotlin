@@ -85,6 +85,7 @@ class StateMachineBuilder(
 
     val entryState = SuspendState(unit)
     val rootExceptionTrap = buildExceptionTrapState()
+    val allTheIntermediateLocals = mutableListOf<IrVariable>()
     private val globalExceptionVar = JsIrBuilder.buildVar(exceptionSymbolGetter.returnType.makeNotNull(), function.owner, "e")
     lateinit var globalCatch: IrCatch
 
@@ -760,7 +761,6 @@ class StateMachineBuilder(
         )
 
     private fun tempVar(type: IrType, name: String = "tmp") =
-        JsIrBuilder.buildVar(type, function.owner, name, origin = IrDeclarationOrigin.IR_TEMPORARY_VARIABLE).also {
-            entryState.entryBlock.statements.add(0, it)
-        }
+        JsIrBuilder.buildVar(type, function.owner, name, origin = IrDeclarationOrigin.IR_TEMPORARY_VARIABLE)
+            .also(allTheIntermediateLocals::add)
 }
