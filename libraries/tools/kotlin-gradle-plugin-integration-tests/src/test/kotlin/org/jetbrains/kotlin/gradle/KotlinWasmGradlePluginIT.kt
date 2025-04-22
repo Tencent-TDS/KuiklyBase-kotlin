@@ -604,11 +604,19 @@ class KotlinWasmGradlePluginIT : KGPBaseTest() {
     @DisplayName("test FAIL_ON_PROJECT_REPOS using custom repository")
     @GradleTest
     fun testFailOnProjectReposUsingCustomRepo(gradleVersion: GradleVersion) {
+      
+        // Gradle versions below 8.1 do not correctly support repository mode
+        val dependencyManagement =
+            if (gradleVersion <= GradleVersion.version("8.1")) {
+                DependencyManagement.DisabledDependencyManagement
+            } else {
+                DependencyManagement.DefaultDependencyManagement()
+            }
+
         project(
             "wasm-project-repos",
             gradleVersion,
-            // we can remove this line, when the min version of Gradle be at least 8.1
-            dependencyManagement = DependencyManagement.DisabledDependencyManagement
+            dependencyManagement = dependencyManagement
         ) {
 
             settingsBuildScriptInjection {
