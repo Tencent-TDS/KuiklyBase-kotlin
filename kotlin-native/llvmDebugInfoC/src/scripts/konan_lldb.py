@@ -254,68 +254,46 @@ _TYPES = [
 ]
 
 
-def kotlin_object_type_summary(lldb_val, internal_dict={}):
+def _read_string(addr, size):
+    error = lldb.SBError()
+    s = lldb.debugger.GetSelectedTarget().GetProcess().ReadCStringFromMemory(
+        int(addr), int(size), error
+    )
+    if not error.Success():
+        raise DebuggerException()
+    return s
+
+
+def _render_object(addr):
+    buff_addr = _evaluate("(void *)Konan_DebugBuffer()").unsigned
+    buff_len = _evaluate(
+        (
+            f"(int)Konan_DebugObjectToUtf8Array("
+            f"{_hex(addr)}, "
+            f"(void *){_hex(buff_addr)}, "
+            f"(int)Konan_DebugBufferSize()"
+            f");"
+        )
+    ).signed
+    return _read_string(buff_addr, buff_len)
+
+
+def kotlin_object_type_summary(lldb_val, _):
     """
     Hook that is run by lldb to display a Kotlin object.
     """
-
-    start = time.monotonic()
-    value_str = f"{_hex(lldb_val.unsigned)}"
-    logging.debug("%s: %s", value_str, lldb_val.type.name)
-    fallback = lldb_val.GetValue()
+    logging.debug(
+        "%s: %s",
+        _hex(lldb_val.unsigned), lldb_val.type.name
+    )
     if lldb_val.GetTypeName() != "ObjHeader *":
         if lldb_val.GetValue() is None:
-            _bench(
-                start,
-                lambda: f"kotlin_object_type_summary:({value_str}) = NULL",
-            )
             return _NULL
-        _bench(
-            start,
-            lambda: (
-                f"kotlin_object_type_summary:({value_str}) = {lldb_val.signed}"
-            ),
-        )
         return lldb_val.value
 
     if lldb_val.unsigned == 0:
-        _bench(
-            start, lambda: (f"kotlin_object_type_summary:({value_str}) = NULL")
-        )
         return _NULL
-    tip = (
-        internal_dict["type_info"]
-        if "type_info" in internal_dict.keys()
-        else _type_info(lldb_val)
-    )
-
-    if not tip:
-        _bench(
-            start,
-            lambda: (
-                f"kotlin_object_type_summary:({value_str}) = "
-                f"falback:{value_str}"
-            ),
-        )
-        return fallback
-
-    value = _select_provider(lldb_val, tip, internal_dict)
-    _bench(
-        start,
-        lambda: (
-            f"kotlin_object_type_summary:({value_str}) = "
-            f"value:{_hex(value._valobj.unsigned)}"
-        ),
-    )
-    start = time.monotonic()
-    str0 = value.to_short_string()
-    _bench(
-        start,
-        lambda: (
-            f'kotlin_object_type_summary:({value_str}) = str:"{str0[:3]}..."'
-        ),
-    )
-    return str0
+    return _render_object(lldb_val.unsigned)
 
 
 def _select_provider(lldb_val, tip, internal_dict):
@@ -482,12 +460,6 @@ class KonanStringSyntheticProvider(KonanHelperProvider):
     def get_child_at_index(self, _):
         return None
 
-    def to_short_string(self):
-        return self._representation
-
-    def to_string(self):
-        return self._representation
-
 
 class KonanObjectSyntheticProvider(KonanHelperProvider):
     def __init__(self, valobj, _, internal_dict):
@@ -552,21 +524,6 @@ class KonanObjectSyntheticProvider(KonanHelperProvider):
         self._log.debug("%s, %s", _hex(self._valobj.unsigned), index)
         return self._read_value(index)
 
-    def to_short_string(self):
-        self._log.debug(_hex(self._valobj.unsigned))
-        return self._render_string(
-            lambda index: f"{self._field_name(index)}: ..."
-        )
-
-    def to_string(self):
-        self._log.debug(_hex(self._valobj.unsigned))
-        return self._render_string(
-            lambda index: (
-                f"{self._field_name(index)}: "
-                f"{self._deref_or_obj_summary(index)}"
-            )
-        )
-
 
 class KonanArraySyntheticProvider(KonanHelperProvider):
     def __init__(self, valobj, internal_dict):
@@ -616,16 +573,6 @@ class KonanArraySyntheticProvider(KonanHelperProvider):
         )
         return str(index)
 
-    def to_short_string(self):
-        self._log.debug(_hex(self._valobj.unsigned))
-        return self._render_string(lambda index: "...")
-
-    def to_string(self):
-        self._log.debug(_hex(self._valobj.unsigned))
-        return self._render_string(
-            lambda index: f"{self._deref_or_obj_summary(index)}"
-        )
-
 
 class KonanZerroSyntheticProvider(lldb.SBSyntheticValueProvider):
     def __init__(self, valobj):
@@ -648,14 +595,6 @@ class KonanZerroSyntheticProvider(lldb.SBSyntheticValueProvider):
     def get_child_at_index(self, index):
         self._log.debug("")
         return None
-
-    def to_string(self):
-        self._log.debug("")
-        return _NULL
-
-    def to_short_string(self):
-        self._log.debug("")
-        return _NULL
 
     def __getattr__(self, item):
         pass
@@ -882,24 +821,21 @@ def __lldb_init_module(debugger, _):
     _FACTORY["object"] = lambda x, y, z: KonanObjectSyntheticProvider(x, y, z)
     _FACTORY["array"] = lambda x, y, z: KonanArraySyntheticProvider(x, z)
     _FACTORY["string"] = lambda x, y, _: KonanStringSyntheticProvider(x)
-    debugger.HandleCommand(
-        '\
-        type summary add \
-        --no-value \
-        --expand \
-        --python-function konan_lldb.kotlin_object_type_summary \
-        "ObjHeader *" \
-        --category Kotlin\
-    '
-    )
-    debugger.HandleCommand(
-        '\
-        type synthetic add \
-        --python-class konan_lldb.KonanProxyTypeProvider \
-        "ObjHeader *" \
-        --category Kotlin\
-    '
-    )
+    debugger.HandleCommand((
+        "type summary add "
+        "--no-value "
+        "--expand "
+        "--python-function konan_lldb.kotlin_object_type_summary "
+        "ObjHeader *"
+        "--category Kotlin"
+
+    ))
+    debugger.HandleCommand((
+        "type synthetic add "
+        "--python-class konan_lldb.KonanProxyTypeProvider "
+        "ObjHeader *"
+        "--category Kotlin"
+    ))
     debugger.HandleCommand("type category enable Kotlin")
     debugger.HandleCommand(
         f"command script add -f {__name__}.field_type_command field_type"
