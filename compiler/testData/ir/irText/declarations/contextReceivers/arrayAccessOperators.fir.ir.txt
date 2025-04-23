@@ -130,7 +130,8 @@ FILE fqName:<root> fileName:/arrayAccessOperators.kt
                         then: CONST String type=kotlin.String value="fail"
                       BRANCH
                         if: CONST Boolean type=kotlin.Boolean value=true
-                        then: GET_VAR 'val tmp_1: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
+                        then: TYPE_OP type=kotlin.String origin=IMPLICIT_CAST typeOperand=kotlin.String
+                          GET_VAR 'val tmp_1: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
   FUN name:get visibility:public modality:FINAL returnType:kotlin.String? [operator]
     VALUE_PARAMETER kind:Context name:$context_receiver_0 index:0 type:kotlin.Int
     VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:1 type:<root>.MyContainer

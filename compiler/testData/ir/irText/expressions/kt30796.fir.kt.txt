@@ -33,7 +33,7 @@ fun <T : Any?> test(value: T, value2: T) {
     }
     when {
       EQEQ(arg0 = tmp_3, arg1 = null) -> 42
-      else -> tmp_3
+      else -> tmp_3 /*as Any */
     }
   }
   val x4: Any = { // BLOCK
@@ -46,14 +46,14 @@ fun <T : Any?> test(value: T, value2: T) {
     }
     when {
       EQEQ(arg0 = tmp_5, arg1 = null) -> 42
-      else -> tmp_5
+      else -> tmp_5 /*as Any */
     }
   }
   val x5: Any = { // BLOCK
     val tmp_7: Any? = magic<Any?>()
     when {
       EQEQ(arg0 = tmp_7, arg1 = null) -> 42
-      else -> tmp_7
+      else -> tmp_7 /*as Any */
     }
   }
   val x6: Any = { // BLOCK
@@ -66,7 +66,7 @@ fun <T : Any?> test(value: T, value2: T) {
     }
     when {
       EQEQ(arg0 = tmp_8, arg1 = null) -> 42
-      else -> tmp_8
+      else -> tmp_8 /*as Any */
     }
   }
   val x7: Any = { // BLOCK
@@ -74,12 +74,13 @@ fun <T : Any?> test(value: T, value2: T) {
       val tmp_11: Any? = magic<Any?>()
       when {
         EQEQ(arg0 = tmp_11, arg1 = null) -> value
-        else -> tmp_11
+        else -> tmp_11 /*as Any */
       }
     }
     when {
       EQEQ(arg0 = tmp_10, arg1 = null) -> 42
-      else -> tmp_10
+      else -> tmp_10 /*as Any */
     }
   }
 }
+

@@ -211,7 +211,8 @@ FILE fqName:<root> fileName:/castsInsideCoroutineInference.kt
                                   then: CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any' type=kotlin.Any origin=null
                                 BRANCH
                                   if: CONST Boolean type=kotlin.Boolean value=true
-                                  then: GET_VAR 'val tmp_0: kotlin.Any? declared in <root>.asChannel.<anonymous>.<anonymous>' type=kotlin.Any? origin=null
+                                  then: TYPE_OP type=kotlin.Any origin=IMPLICIT_CAST typeOperand=kotlin.Any
+                                    GET_VAR 'val tmp_0: kotlin.Any? declared in <root>.asChannel.<anonymous>.<anonymous>' type=kotlin.Any? origin=null
   FUN name:asFairChannel visibility:private modality:FINAL returnType:<root>.ReceiveChannel<kotlin.Any>
     VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:0 type:<root>.CoroutineScope
     VALUE_PARAMETER kind:Regular name:flow index:1 type:<root>.Flow<*>
@@ -249,7 +250,8 @@ FILE fqName:<root> fileName:/castsInsideCoroutineInference.kt
                                   then: CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any' type=kotlin.Any origin=null
                                 BRANCH
                                   if: CONST Boolean type=kotlin.Boolean value=true
-                                  then: GET_VAR 'val tmp_1: kotlin.Any? declared in <root>.asFairChannel.<anonymous>.<anonymous>' type=kotlin.Any? origin=null
+                                  then: TYPE_OP type=kotlin.Any origin=IMPLICIT_CAST typeOperand=kotlin.Any
+                                    GET_VAR 'val tmp_1: kotlin.Any? declared in <root>.asFairChannel.<anonymous>.<anonymous>' type=kotlin.Any? origin=null
   FUN name:collect visibility:public modality:FINAL returnType:kotlin.Unit [inline,suspend]
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?] reified:false
     VALUE_PARAMETER kind:ExtensionReceiver name:<this> index:0 type:<root>.Flow<T of <root>.collect>

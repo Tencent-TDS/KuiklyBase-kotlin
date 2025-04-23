@@ -57,7 +57,8 @@ FILE fqName:<root> fileName:/noSymbolForIntRangeIterator.kt
                         then: CONST Int type=kotlin.Int value=0
                       BRANCH
                         if: CONST Boolean type=kotlin.Boolean value=true
-                        then: GET_VAR 'val tmp_0: kotlin.Int? declared in <root>.takeString.<anonymous>' type=kotlin.Int? origin=null
+                        then: TYPE_OP type=kotlin.Int origin=IMPLICIT_CAST typeOperand=kotlin.Int
+                          GET_VAR 'val tmp_0: kotlin.Int? declared in <root>.takeString.<anonymous>' type=kotlin.Int? origin=null
   FUN name:test visibility:public modality:FINAL returnType:kotlin.Unit
     BLOCK_BODY
       VAR name:x type:kotlin.Int [val]

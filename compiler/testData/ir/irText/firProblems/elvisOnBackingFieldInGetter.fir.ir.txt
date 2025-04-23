@@ -65,7 +65,8 @@ FILE fqName:<root> fileName:/elvisOnBackingFieldInGetter.kt
                   then: CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.ResourceTable' type=<root>.ResourceTable origin=null
                 BRANCH
                   if: CONST Boolean type=kotlin.Boolean value=true
-                  then: GET_VAR 'val tmp_0: <root>.ResourceTable? declared in <root>.Test.<get-resourceTable>' type=<root>.ResourceTable? origin=null
+                  then: TYPE_OP type=<root>.ResourceTable origin=IMPLICIT_CAST typeOperand=<root>.ResourceTable
+                    GET_VAR 'val tmp_0: <root>.ResourceTable? declared in <root>.Test.<get-resourceTable>' type=<root>.ResourceTable? origin=null
       FUN DEFAULT_PROPERTY_ACCESSOR name:<set-resourceTable> visibility:public modality:FINAL returnType:kotlin.Unit
         VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.Test
         VALUE_PARAMETER kind:Regular name:<set-?> index:1 type:<root>.ResourceTable?

@@ -1,7 +1,6 @@
 // WITH_STDLIB
 // ISSUE: KT-76950
 // IGNORE_BACKEND_K1: JVM_IR, WASM, NATIVE
-// IGNORE_BACKEND_K2: JVM_IR, WASM, NATIVE
 
 fun box(): String {
     val nullable: UByte? = 5.toUByte()

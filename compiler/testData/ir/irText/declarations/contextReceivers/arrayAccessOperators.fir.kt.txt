@@ -50,7 +50,7 @@ fun box(): String {
       val tmp_1: String? = get(/* $context_receiver_0 = $this$with, <this> = myContainer, */ index = 0)
       when {
         EQEQ(arg0 = tmp_1, arg1 = null) -> "fail"
-        else -> tmp_1
+        else -> tmp_1 /*as String */
       }
     }
   }

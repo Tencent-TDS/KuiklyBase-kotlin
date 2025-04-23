@@ -381,8 +381,8 @@ class Fir2IrImplicitCastInserter(private val c: Fir2IrComponents) : Fir2IrCompon
 
     companion object {
         internal fun implicitCastOrExpression(original: IrExpression, castType: IrType): IrExpression {
-            val originalNotNull = original.type.makeNotNull()
-            if (originalNotNull == castType.makeNotNull()) return original
+            val originalNotNull = original.type
+            if (originalNotNull == castType) return original
             return generateImplicitCast(original, castType)
         }
 

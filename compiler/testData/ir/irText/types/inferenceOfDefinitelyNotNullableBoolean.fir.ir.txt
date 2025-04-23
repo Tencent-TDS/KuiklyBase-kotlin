@@ -32,7 +32,8 @@ FILE fqName:<root> fileName:/test.kt
                         then: CONST Boolean type=kotlin.Boolean value=false
                       BRANCH
                         if: CONST Boolean type=kotlin.Boolean value=true
-                        then: GET_VAR 'val tmp_0: @[EnhancedNullability] kotlin.Boolean? declared in <root>.x$delegate.<anonymous>' type=@[EnhancedNullability] kotlin.Boolean? origin=null
+                        then: TYPE_OP type=kotlin.Boolean origin=IMPLICIT_CAST typeOperand=kotlin.Boolean
+                          GET_VAR 'val tmp_0: @[EnhancedNullability] kotlin.Boolean? declared in <root>.x$delegate.<anonymous>' type=@[EnhancedNullability] kotlin.Boolean? origin=null
     FUN DELEGATED_PROPERTY_ACCESSOR name:<get-x> visibility:public modality:FINAL returnType:kotlin.Boolean
       correspondingProperty: PROPERTY name:x visibility:public modality:FINAL [delegated,val]
       BLOCK_BODY

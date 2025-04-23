@@ -208,7 +208,8 @@ FILE fqName:<root> fileName:/targetOnPrimaryCtorParameter.kt
                           then: CONST String type=kotlin.String value=""
                         BRANCH
                           if: CONST Boolean type=kotlin.Boolean value=true
-                          then: GET_VAR 'val tmp_0: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
+                          then: TYPE_OP type=kotlin.String origin=IMPLICIT_CAST typeOperand=kotlin.String
+                            GET_VAR 'val tmp_0: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
       VAR name:propertyAnnotations type:kotlin.collections.Set<kotlin.String> [val]
         CALL 'public final fun toSet <T> (<this>: kotlin.collections.Iterable<T of kotlin.collections.toSet>): kotlin.collections.Set<T of kotlin.collections.toSet> declared in kotlin.collections' type=kotlin.collections.Set<kotlin.String> origin=null
           TYPE_ARG T: kotlin.String
@@ -240,7 +241,8 @@ FILE fqName:<root> fileName:/targetOnPrimaryCtorParameter.kt
                           then: CONST String type=kotlin.String value=""
                         BRANCH
                           if: CONST Boolean type=kotlin.Boolean value=true
-                          then: GET_VAR 'val tmp_1: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
+                          then: TYPE_OP type=kotlin.String origin=IMPLICIT_CAST typeOperand=kotlin.String
+                            GET_VAR 'val tmp_1: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
       VAR name:fieldAnnotations type:kotlin.collections.Set<kotlin.String> [val]
         CALL 'public final fun toSet <T> (<this>: kotlin.collections.Iterable<T of kotlin.collections.toSet>): kotlin.collections.Set<T of kotlin.collections.toSet> declared in kotlin.collections' type=kotlin.collections.Set<kotlin.String> origin=null
           TYPE_ARG T: kotlin.String
@@ -273,7 +275,8 @@ FILE fqName:<root> fileName:/targetOnPrimaryCtorParameter.kt
                           then: CONST String type=kotlin.String value=""
                         BRANCH
                           if: CONST Boolean type=kotlin.Boolean value=true
-                          then: GET_VAR 'val tmp_2: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
+                          then: TYPE_OP type=kotlin.String origin=IMPLICIT_CAST typeOperand=kotlin.String
+                            GET_VAR 'val tmp_2: kotlin.String? declared in <root>.box.<anonymous>' type=kotlin.String? origin=null
       WHEN type=kotlin.Unit origin=IF
         BRANCH
           if: CALL 'public final fun not (): kotlin.Boolean declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
