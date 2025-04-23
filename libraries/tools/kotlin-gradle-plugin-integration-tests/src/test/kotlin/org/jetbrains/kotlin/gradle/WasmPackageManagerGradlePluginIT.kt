@@ -155,4 +155,15 @@ abstract class WasmPackageManagerGradlePluginIT : KGPBaseTest() {
             }
         }
     }
+
+    @DisplayName("Check NPM dependencies not installed for empty project")
+    @GradleTest
+    @TestMetadata("kotlin-wasm-package-lock-project")
+    fun testWasmInstallToolingBeforeTests(gradleVersion: GradleVersion) {
+        project("kotlin-wasm-package-lock-project", gradleVersion) {
+            build(":wasmJsBrowserTest") {
+                assertTasksExecuted(":wasmKotlinToolingInstall")
+            }
+        }
+    }
 }

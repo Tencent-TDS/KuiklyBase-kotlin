@@ -15,5 +15,10 @@ kotlin {
         binaries.executable()
         nodejs {
         }
+        browser {
+            testTask {
+                enabled = false
+            }
+        }
     }
 }
