@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.types.ConeTypeProjection
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.coneTypeOrNull
@@ -86,6 +87,7 @@ data class IEData(
     val exposesInvisibleTypes: Boolean? = null,
     val directInheritance: Boolean = false,
     val inheritancePattern: String? = null,
+    val error: String? = null,
 )
 
 
@@ -95,15 +97,19 @@ object FirSuperclassVisibilityChecker : FirClassChecker(MppCheckerKind.Common) {
         val report = IEReporter(declaration.source, context, reporter, FirErrors.MY_ERROR)
         val selfEffVis = selfEffVis(declaration)
         declaration.superTypeRefs.forEach {
-            checkSupertype(it, selfEffVis) {
-                report(
-                    it.copy(
-                        subclass = declaration.classId.asFqNameString(),
-                        subclassMod = declaration.modality.toString(),
-                        subclassKind = declaration.classKind.toString(),
-                        subclassVisibility = declaration.visibility.toString(),
+            try {
+                checkSupertype(it, selfEffVis) {
+                    report(
+                        it.copy(
+                            subclass = declaration.classId.asFqNameString(),
+                            subclassMod = declaration.modality.toString(),
+                            subclassKind = declaration.classKind.toString(),
+                            subclassVisibility = declaration.visibility.toString(),
+                        )
                     )
-                )
+                }
+            } catch (e: Exception) {
+                report(IEData(error = e.message))
             }
         }
     }
@@ -169,7 +175,7 @@ object FirSuperclassVisibilityChecker : FirClassChecker(MppCheckerKind.Common) {
                                     exposes = true
                                 }
                             }
-                            is FirCallableSymbol<*> -> {
+                            is FirPropertySymbol -> {
                                 if (checkSigType(it.resolvedReturnType, selfEffVis)) {
                                     exposes = true
                                 }
