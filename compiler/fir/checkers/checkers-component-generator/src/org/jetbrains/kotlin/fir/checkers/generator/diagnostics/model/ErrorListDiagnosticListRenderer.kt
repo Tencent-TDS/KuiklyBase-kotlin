@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.generators.util.printCopyright
 import org.jetbrains.kotlin.generators.util.printImports
 import org.jetbrains.kotlin.utils.SmartPrinter
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.jetbrains.kotlin.utils.withIndent
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -48,13 +49,14 @@ object ErrorListDiagnosticListRenderer : DiagnosticListRenderer() {
 
     private fun SmartPrinter.printErrorsObject(diagnosticList: DiagnosticList) {
         println("""@Suppress("IncorrectFormatting")""")
-        printBlock("object ${diagnosticList.objectName}") {
+        printBlock("object ${diagnosticList.objectName} : FirDiagnosticsContainer()") {
             for (group in diagnosticList.groups) {
                 printDiagnosticGroup(group.name, group.diagnostics)
                 println()
             }
-            printBlock("init") {
-                println("RootDiagnosticRendererFactory.registerFactory(${diagnosticList.objectName}DefaultMessages)")
+            println("override val rendererFactory: BaseDiagnosticRendererFactory")
+            withIndent {
+                println("get() = ${diagnosticList.objectName}DefaultMessages")
             }
         }
     }
@@ -142,7 +144,9 @@ object ErrorListDiagnosticListRenderer : DiagnosticListRenderer() {
                 }
             }
             add(PositioningStrategy.importToAdd)
+            add("org.jetbrains.kotlin.diagnostics.rendering.BaseDiagnosticRendererFactory")
             add("org.jetbrains.kotlin.diagnostics.rendering.RootDiagnosticRendererFactory")
+            add("org.jetbrains.kotlin.fir.diagnostics.FirDiagnosticsContainer")
         }
 
         printImports(
