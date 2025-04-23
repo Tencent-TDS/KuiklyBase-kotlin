@@ -209,12 +209,14 @@ using RegularRef = kotlin::mm::ObjCBackRef;
 
     auto& regularRef = refHolder.emplace<RegularRef>(kotlin::mm::ExternalRCRefImpl::fromRaw(externalRCRef));
 
-    // TODO: Make it okay to get/replace associated objects w/o runnable state.
-    kotlin::CalledFromNativeGuard guard;
-    // `ref` holds a strong reference to obj, no need to place obj onto a stack.
-    KRef obj = regularRef.ref();
+    id newSelf = ({
+        // TODO: Make it okay to get/replace associated objects w/o runnable state.
+        kotlin::CalledFromNativeGuard guard;
+        // `ref` holds a strong reference to obj, no need to place obj onto a stack.
+        KRef obj = regularRef.ref();
 
-    id newSelf = shouldCache ? AtomicCompareAndSwapAssociatedObject(obj, nullptr, self) : Kotlin_ObjCExport_GetAssociatedObject(obj);
+        shouldCache ? AtomicCompareAndSwapAssociatedObject(obj, nullptr, self) : Kotlin_ObjCExport_GetAssociatedObject(obj);
+    });
 
     RuntimeCheck(shouldSubstitute || !shouldTrapOnSubstitution || newSelf == nullptr, "Newly created Kotlin object for bound bridge type should never have an associated object. Please submit a bug report.");
 
