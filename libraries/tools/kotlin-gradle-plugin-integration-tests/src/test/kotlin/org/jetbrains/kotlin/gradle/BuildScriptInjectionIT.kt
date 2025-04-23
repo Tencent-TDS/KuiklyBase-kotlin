@@ -408,6 +408,24 @@ class BuildScriptInjectionIT : KGPBaseTest() {
         }
     }
 
+    @GradleTest
+    fun pluginApplicationSugar(version: GradleVersion) {
+        project("empty", version) {
+            assertNull(
+                buildScriptReturn {
+                    project.extensions.findByName("kotlin")?.javaClass?.name
+                }.buildAndReturn()
+            )
+            applyPlugin("org.jetbrains.kotlin.multiplatform", buildOptions.kotlinVersion)
+            assertEquals(
+                "org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension_Decorated",
+                buildScriptReturn {
+                    project.extensions.findByName("kotlin")?.javaClass?.name
+                }.buildAndReturn()
+            )
+        }
+    }
+
     @Test
     fun testPrependToOrCreateBuildscriptBlock() {
         assertEquals(

@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.testbase
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.flow.*
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -70,7 +71,7 @@ class OnBuildCompletionSerializingInjection<Return>(
     override fun inject(target: Project) {
         val returnEvaluationProvider = GradleProjectBuildScriptInjectionContext(target).returnValueInjection()
         val serializeOutput = {
-            val returnValue = returnEvaluationProvider.get()
+            val returnValue = returnEvaluationProvider.orNull
             serializedReturnPath.outputStream().use {
                 ObjectOutputStream(it).writeObject(returnValue)
             }
@@ -545,6 +546,22 @@ fun TestProject.addAgpToBuildScriptCompilationClasspath(androidVersion: String) 
         buildscript.configurations.getByName("classpath").dependencies.add(
             buildscript.dependencies.create("com.android.tools.build:gradle:${androidVersion}")
         )
+    }
+}
+
+/**
+ * This helper method works similar to "plugins {}" block in the build script; it resolves the POM pointer to the plugin jar and applies the plugin
+ */
+fun TestProject.applyPlugin(id: String, version: String) {
+    transferPluginRepositoriesIntoBuildScript()
+    buildScriptBuildscriptBlockInjection {
+        val pluginPointer = buildscript.dependencies.create("${id}:${id}.gradle.plugin:${version}@pom") as ModuleDependency
+        // @ext dependencies are created intransitive by default
+        pluginPointer.isTransitive = true
+        buildscript.configurations.getByName("classpath").dependencies.add(pluginPointer)
+    }
+    buildScriptInjection {
+        project.plugins.apply(id)
     }
 }
 
