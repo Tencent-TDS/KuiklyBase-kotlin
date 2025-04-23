@@ -15,18 +15,17 @@ public extension ExportedKotlinPackages.kotlin {
         ) {
             fatalError()
         }
+        package override init(
+            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+            options: KotlinRuntime.KotlinBaseConstructionOptions
+        ) {
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
+        }
         public init(
             size: Swift.Int32,
             `init`: @escaping (Swift.Int32) -> Swift.Int8
         ) {
             fatalError()
-        }
-        package override init(
-            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
-        ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
         }
     }
 }

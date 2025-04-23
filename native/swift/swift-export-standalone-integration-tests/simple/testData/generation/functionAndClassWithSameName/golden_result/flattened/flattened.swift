@@ -14,15 +14,14 @@ public extension ExportedKotlinPackages.flattenedPackage {
         public init() {
             precondition(Self.self == ExportedKotlinPackages.flattenedPackage.FlattenedPackageClass.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.flattenedPackage.FlattenedPackageClass ")
             let __kt = flattenedPackage_FlattenedPackageClass_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             flattenedPackage_FlattenedPackageClass_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public static func flattenedPackageClass(

@@ -56,18 +56,17 @@ public extension ExportedKotlinPackages.kotlin {
         ) {
             fatalError()
         }
+        package override init(
+            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+            options: KotlinRuntime.KotlinBaseConstructionOptions
+        ) {
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
+        }
         public init(
             size: Swift.Int32,
             `init`: @escaping (Swift.Int32) -> Swift.Int8
         ) {
             fatalError()
-        }
-        package override init(
-            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
-        ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
         }
     }
     public final class CharArray: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
@@ -81,18 +80,17 @@ public extension ExportedKotlinPackages.kotlin {
         ) {
             fatalError()
         }
+        package override init(
+            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
+            options: KotlinRuntime.KotlinBaseConstructionOptions
+        ) {
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
+        }
         public init(
             size: Swift.Int32,
             `init`: @escaping (Swift.Int32) -> Swift.Unicode.UTF16.CodeUnit
         ) {
             fatalError()
-        }
-        package override init(
-            __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
-        ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
         }
     }
 }
@@ -119,7 +117,7 @@ public extension ExportedKotlinPackages.kotlin.text {
         public init() {
             precondition(Self.self == ExportedKotlinPackages.kotlin.text.StringBuilder.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlin.text.StringBuilder ")
             let __kt = kotlin_text_StringBuilder_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlin_text_StringBuilder_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
         }
         public init(
@@ -127,7 +125,7 @@ public extension ExportedKotlinPackages.kotlin.text {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlin.text.StringBuilder.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlin.text.StringBuilder ")
             let __kt = kotlin_text_StringBuilder_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlin_text_StringBuilder_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Int32__(__kt, capacity)
         }
         public init(
@@ -135,7 +133,7 @@ public extension ExportedKotlinPackages.kotlin.text {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlin.text.StringBuilder.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlin.text.StringBuilder ")
             let __kt = kotlin_text_StringBuilder_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlin_text_StringBuilder_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_anyU20ExportedKotlinPackages_kotlin_CharSequence__(__kt, content.__externalRCRef())
         }
         public init(
@@ -143,15 +141,14 @@ public extension ExportedKotlinPackages.kotlin.text {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlin.text.StringBuilder.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlin.text.StringBuilder ")
             let __kt = kotlin_text_StringBuilder_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlin_text_StringBuilder_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_String__(__kt, content)
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
         public func append(
             value: Swift.Bool

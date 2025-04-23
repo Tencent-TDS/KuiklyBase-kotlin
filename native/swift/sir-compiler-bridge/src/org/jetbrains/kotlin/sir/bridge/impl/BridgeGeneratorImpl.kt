@@ -153,7 +153,7 @@ internal class BridgeGeneratorImpl(private val typeNamer: SirTypeNamer) : Bridge
                     add("precondition(Self.self == ${it.swiftFqName}.self, \"Inheritance from exported Kotlin classes is not supported yet: \\(String(reflecting: Self.self)) inherits from ${it.swiftFqName} \")")
                 }
                 add("let ${obj.name} = ${request.allocationDescriptor(typeNamer).swiftCall(typeNamer)}")
-                add("super.init(__externalRCRefUnsafe: ${obj.name}, cache: true, substitute: false)")
+                add("super.init(__externalRCRefUnsafe: ${obj.name}, options: .asBoundBridge)")
 
                 if (errorParameter != null) {
                     add("var ${errorParameter.name}: UnsafeMutableRawPointer? = nil")

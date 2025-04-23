@@ -10,44 +10,41 @@ public final class Foo: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBr
         ) {
             precondition(Self.self == main.Foo.Inner.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Foo.Inner ")
             let __kt = Foo_Inner_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             Foo_Inner_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_main_Foo__(__kt, outer__.__externalRCRef())
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public final class Nested: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
         public init() {
             precondition(Self.self == main.Foo.Nested.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Foo.Nested ")
             let __kt = Foo_Nested_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             Foo_Nested_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public init() {
         precondition(Self.self == main.Foo.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.Foo ")
         let __kt = __root___Foo_init_allocate()
-        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+        super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
         __root___Foo_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
 }
 public extension ExportedKotlinPackages.a.b.c {
@@ -74,10 +71,9 @@ public extension ExportedKotlinPackages.a.b.c {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
         public static func valueOf(
             value: Swift.String

@@ -17,10 +17,9 @@ public final class Bar: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBr
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
 }
 public var nullableNothingVariable: Swift.Never? {

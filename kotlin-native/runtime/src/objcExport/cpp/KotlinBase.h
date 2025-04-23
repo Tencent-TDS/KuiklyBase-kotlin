@@ -10,6 +10,11 @@
 
 struct ObjHeader;
 
+typedef NS_ENUM(NSUInteger, KotlinBaseConstructionOptions) {
+    KotlinBaseConstructionOptionsAsBestFittingWrapper = 3,
+    KotlinBaseConstructionOptionsAsBoundBridge = 7,
+};
+
 @interface KotlinBase : NSObject <NSCopying>
 
 + (instancetype)createRetainedWrapper:(struct ObjHeader *)obj;
@@ -28,8 +33,7 @@ struct ObjHeader;
 - (instancetype)init NS_UNAVAILABLE;
 
 - (instancetype)initWithExternalRCRefUnsafe:(void *)ref
-                                      cache:(BOOL)shouldCache
-                                 substitute:(BOOL)shouldSubstitute NS_DESIGNATED_INITIALIZER NS_REFINED_FOR_SWIFT;
+                                    options:(KotlinBaseConstructionOptions)options NS_DESIGNATED_INITIALIZER NS_REFINED_FOR_SWIFT;
 
 // Return kotlin.native.internal.ref.ExternalRCRef stored in this class
 - (void *)externalRCRef NS_REFINED_FOR_SWIFT NS_RETURNS_INNER_POINTER;

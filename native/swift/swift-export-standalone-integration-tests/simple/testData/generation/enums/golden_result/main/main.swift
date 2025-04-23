@@ -29,10 +29,9 @@ public final class Enum: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinB
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
     public func print() -> Swift.String {
         return Enum_print(self.__externalRCRef())

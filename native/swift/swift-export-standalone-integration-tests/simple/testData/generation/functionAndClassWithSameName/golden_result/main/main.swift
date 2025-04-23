@@ -18,15 +18,14 @@ public final class ClassWithFactoryWithoutParameters: KotlinRuntime.KotlinBase, 
     ) {
         precondition(Self.self == main.ClassWithFactoryWithoutParameters.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.ClassWithFactoryWithoutParameters ")
         let __kt = __root___ClassWithFactoryWithoutParameters_init_allocate()
-        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+        super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
         __root___ClassWithFactoryWithoutParameters_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Int32__(__kt, value)
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
 }
 public final class EnumWithFactory: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged, Swift.CaseIterable {
@@ -42,10 +41,9 @@ public final class EnumWithFactory: KotlinRuntime.KotlinBase, KotlinRuntimeSuppo
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
     public static func valueOf(
         value: Swift.String
@@ -64,25 +62,23 @@ public final class ObjectWithFactory: KotlinRuntime.KotlinBase, KotlinRuntimeSup
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
 }
 public final class UtcOffset: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
     public init() {
         precondition(Self.self == main.UtcOffset.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from main.UtcOffset ")
         let __kt = __root___UtcOffset_init_allocate()
-        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+        super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
         __root___UtcOffset_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
 }
 public func FlattenedPackageClass(
@@ -126,15 +122,14 @@ public extension ExportedKotlinPackages.test.factory {
         public init() {
             precondition(Self.self == ExportedKotlinPackages.test.factory.ClassWithFactoryInAPackage.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.test.factory.ClassWithFactoryInAPackage ")
             let __kt = test_factory_ClassWithFactoryInAPackage_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             test_factory_ClassWithFactoryInAPackage_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public final class Outer: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
@@ -142,29 +137,27 @@ public extension ExportedKotlinPackages.test.factory {
             public init() {
                 precondition(Self.self == ExportedKotlinPackages.test.factory.Outer.Nested.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.test.factory.Outer.Nested ")
                 let __kt = test_factory_Outer_Nested_init_allocate()
-                super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+                super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
                 test_factory_Outer_Nested_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
         }
         public init() {
             precondition(Self.self == ExportedKotlinPackages.test.factory.Outer.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.test.factory.Outer ")
             let __kt = test_factory_Outer_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             test_factory_Outer_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
         public func ClassWithFactoryInAPackage(
             arg: KotlinRuntime.KotlinBase

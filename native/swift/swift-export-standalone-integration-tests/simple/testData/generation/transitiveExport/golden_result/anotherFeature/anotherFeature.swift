@@ -12,14 +12,13 @@ public final class FeatureC: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._Kot
     public init() {
         precondition(Self.self == anotherFeature.FeatureC.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from anotherFeature.FeatureC ")
         let __kt = __root___FeatureC_init_allocate()
-        super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+        super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
         __root___FeatureC_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
 }
