@@ -215,28 +215,28 @@ _TYPE_CONVERSION = [
     ),
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(int8_t *){_hex(address)}"
-    ),
+    ).deref,
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(int16_t *){_hex(address)}"
-    ),
+    ).deref,
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(int32_t *){_hex(address)}"
-    ),
+    ).deref,
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(int64_t *){_hex(address)}"
-    ),
+    ).deref,
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(float *){_hex(address)}"
-    ),
+    ).deref,
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(double *){_hex(address)}"
-    ),
+    ).deref,
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(void **){_hex(address)}"
     ),
     lambda obj, value, address, name: value.CreateValueFromExpression(
         name, f"(bool *){_hex(address)}"
-    ),
+    ).deref,
     lambda obj, value, address, name: None,
 ]
 
@@ -366,16 +366,6 @@ class KonanHelperProvider(lldb.SBSyntheticValueProvider):
             obj_type, _hex(self._valobj.unsigned), _hex(child)
         )
         return obj_type
-
-    def _deref_or_obj_summary(self, index):
-        value = self._read_value(index)
-        if not value:
-            self._log.debug(
-                "index:%s, type:%s",
-                index, self._children[index].type()
-            )
-            return None
-        return value.value if _type_info(value) else value.deref.value
 
     def _field_address(self, index):
         return _evaluate(
