@@ -12,13 +12,23 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import javax.inject.Inject
 
+/**
+ * Base interface for Kotlin targets that have a compilation target that produces binaries.
+ *
+ * **Note:** This interface is not intended for implementation by build script or plugin authors.
+ */
 interface HasBinaries<out T : DomainObjectSet<*>> {
+    /**
+     * A container that contains the.
+     *
+     * Users can create or
+     */
     val binaries: T
 }
 
 abstract class KotlinTargetWithBinaries<T : KotlinCompilation<Any>, out R : DomainObjectSet<*>> @Inject constructor(
     project: Project,
-    platformType: KotlinPlatformType
+    platformType: KotlinPlatformType,
 ) : KotlinOnlyTarget<T>(project, platformType), HasBinaries<R> {
     fun binaries(configure: R.() -> Unit) {
         binaries.configure()
