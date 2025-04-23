@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.ir.backend.js.lower.coroutines
 
 import org.jetbrains.kotlin.backend.common.ir.isPure
+import org.jetbrains.kotlin.backend.common.ir.isTemporary
+import org.jetbrains.kotlin.backend.common.ir.isTmpForInline
 import org.jetbrains.kotlin.backend.common.lower.FINALLY_EXPRESSION
 import org.jetbrains.kotlin.backend.common.peek
 import org.jetbrains.kotlin.backend.common.pop
@@ -478,7 +480,12 @@ class StateMachineBuilder(
     }
 
     override fun visitVariable(declaration: IrVariable) {
-        if (declaration !in suspendableNodes) return addStatement(declaration)
+        if (declaration !in suspendableNodes) {
+            return when {
+                declaration.isTemporary && declaration.initializer == null -> registerLocal(declaration)
+                else -> addStatement(declaration)
+            }
+        }
         declaration.acceptChildrenVoid(this)
         transformLastExpression { declaration.apply { initializer = it } }
     }
@@ -762,5 +769,9 @@ class StateMachineBuilder(
 
     private fun tempVar(type: IrType, name: String = "tmp") =
         JsIrBuilder.buildVar(type, function.owner, name, origin = IrDeclarationOrigin.IR_TEMPORARY_VARIABLE)
-            .also(allTheIntermediateLocals::add)
+            .also(::registerLocal)
+
+    private fun registerLocal(variable: IrVariable) {
+        allTheIntermediateLocals.add(variable)
+    }
 }

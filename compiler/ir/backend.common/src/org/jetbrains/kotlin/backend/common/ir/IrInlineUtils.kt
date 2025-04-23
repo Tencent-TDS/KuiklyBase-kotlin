@@ -146,6 +146,9 @@ val IrVariable.isTmpForInline: Boolean
     get() = this.origin == IrDeclarationOrigin.IR_TEMPORARY_VARIABLE_FOR_INLINED_PARAMETER ||
             this.origin == IrDeclarationOrigin.IR_TEMPORARY_VARIABLE_FOR_INLINED_EXTENSION_RECEIVER
 
+val IrVariable.isTemporary
+    get() = this.origin == IrDeclarationOrigin.IR_TEMPORARY_VARIABLE || isTmpForInline
+
 fun IrExpression.isInlineLambdaBlock(): Boolean {
     if (!this.isLambdaBlock()) return false
 
