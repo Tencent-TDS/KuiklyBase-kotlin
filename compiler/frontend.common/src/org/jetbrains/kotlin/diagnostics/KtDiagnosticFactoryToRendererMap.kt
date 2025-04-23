@@ -122,3 +122,12 @@ class KtDiagnosticFactoryToRendererMap(val name: String) {
         return errorMessage.toDeprecationWarningMessage(deprecatingFeature)
     }
 }
+
+fun KtDiagnosticFactoryToRendererMap(
+    name: String,
+    init: (KtDiagnosticFactoryToRendererMap) -> Unit,
+): Lazy<KtDiagnosticFactoryToRendererMap> {
+    return lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        KtDiagnosticFactoryToRendererMap(name).also(init)
+    }
+}
