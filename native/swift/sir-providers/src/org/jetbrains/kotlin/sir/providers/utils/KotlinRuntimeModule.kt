@@ -22,8 +22,17 @@ public object KotlinRuntimeModule : SirModule() {
 
     override val declarations: MutableList<SirDeclaration> by lazy {
         mutableListOf(
+            kotlinBaseConstructionOptions,
             kotlinBase
         )
+    }
+
+    public val kotlinBaseConstructionOptions: SirStruct = buildStruct { // Faux struct representing NS_ENUM(NSUInteger)
+        origin = KotlinRuntimeElement()
+        name = "KotlinBaseConstructionOptions"
+    }.also { struct ->
+        struct.parent = KotlinRuntimeModule
+        struct.declarations.forEach { it.parent = struct }
     }
 
     public val kotlinBaseDesignatedInit: SirInit = buildInit {
@@ -37,12 +46,8 @@ public object KotlinRuntimeModule : SirModule() {
                     type = SirNominalType(SirSwiftModule.unsafeMutableRawPointer).optional()
                 ),
                 SirParameter(
-                    argumentName = "cache",
-                    type = SirNominalType(SirSwiftModule.bool)
-                ),
-                SirParameter(
-                    argumentName = "substitute",
-                    type = SirNominalType(SirSwiftModule.bool)
+                    argumentName = "options",
+                    type = SirNominalType(kotlinBaseConstructionOptions)
                 ),
             )
         )

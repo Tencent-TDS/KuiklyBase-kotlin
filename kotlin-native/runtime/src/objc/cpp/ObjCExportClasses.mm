@@ -188,14 +188,18 @@ using RegularRef = kotlin::mm::ObjCBackRef;
             class_getName(bestFittingClass), class_getName(self));
 
     // Call unsafe initializer with the best-fitting class.
-    return [[bestFittingClass alloc] initWithExternalRCRefUnsafe:ref cache:YES substitute:YES];
+    return [[bestFittingClass alloc] initWithExternalRCRefUnsafe:ref options:KotlinBaseConstructionOptionsAsBestFittingWrapper];
 }
 
-- (instancetype)initWithExternalRCRefUnsafe:(void *)ref cache:(BOOL)shouldCache substitute:(BOOL)shouldSubstitute {
+- (instancetype)initWithExternalRCRefUnsafe:(void *)ref options:(KotlinBaseConstructionOptions)options {
     RuntimeAssert(kotlin::compiler::swiftExport(), "Must be used in Swift Export only");
     kotlin::AssertThreadState(kotlin::ThreadState::kNative);
 
     auto externalRCRef = static_cast<kotlin::mm::RawExternalRCRef *>(ref);
+
+    BOOL shouldCache = options == KotlinBaseConstructionOptionsAsBestFittingWrapper || options == KotlinBaseConstructionOptionsAsBoundBridge;
+    BOOL shouldSubstitute = options == KotlinBaseConstructionOptionsAsBestFittingWrapper;
+    BOOL shouldTrapOnSubstitution = options == KotlinBaseConstructionOptionsAsBoundBridge;
 
     if (auto obj = kotlin::mm::externalRCRefAsPermanentObject(externalRCRef)) {
         refHolder.emplace<PermanentRef>(obj);
@@ -205,13 +209,14 @@ using RegularRef = kotlin::mm::ObjCBackRef;
 
     auto& regularRef = refHolder.emplace<RegularRef>(kotlin::mm::ExternalRCRefImpl::fromRaw(externalRCRef));
 
-
     // TODO: Make it okay to get/replace associated objects w/o runnable state.
     kotlin::CalledFromNativeGuard guard;
     // `ref` holds a strong reference to obj, no need to place obj onto a stack.
     KRef obj = regularRef.ref();
 
     id newSelf = shouldCache ? AtomicCompareAndSwapAssociatedObject(obj, nullptr, self) : Kotlin_ObjCExport_GetAssociatedObject(obj);
+
+    RuntimeCheck(shouldSubstitute || !shouldTrapOnSubstitution || newSelf == nullptr, "Newly created Kotlin object for bound bridge type should never have an associated object. Please submit a bug report.");
 
     if (![[newSelf class] isSubclassOfClass:[self class]] || !shouldSubstitute) {
         // No previous associated object was set or it wasn't fitting for substitution.

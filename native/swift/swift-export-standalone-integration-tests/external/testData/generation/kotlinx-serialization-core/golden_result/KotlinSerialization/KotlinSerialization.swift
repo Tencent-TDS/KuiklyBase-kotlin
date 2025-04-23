@@ -36,10 +36,9 @@ public final class _ExportedKotlinPackages_kotlinx_serialization_encoding_Compos
     }
     package override init(
         __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-        cache: Swift.Bool,
-        substitute: Swift.Bool
+        options: KotlinRuntime.KotlinBaseConstructionOptions
     ) {
-        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+        super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
     }
     private init() {
         fatalError()
@@ -162,7 +161,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.MissingFieldException ")
             let __kt = kotlinx_serialization_MissingFieldException_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_MissingFieldException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Array_Swift_String__Swift_String__(__kt, missingFields, serialName)
         }
         public init(
@@ -171,7 +170,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.MissingFieldException ")
             let __kt = kotlinx_serialization_MissingFieldException_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_MissingFieldException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_String_Swift_String__(__kt, missingField, serialName)
         }
         public init(
@@ -181,15 +180,14 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.MissingFieldException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.MissingFieldException ")
             let __kt = kotlinx_serialization_MissingFieldException_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_MissingFieldException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Array_Swift_String__Swift_Optional_Swift_String__Swift_Optional_ExportedKotlinPackages_kotlin_Throwable___(__kt, missingFields, message ?? nil, cause.map { it in it.__externalRCRef() } ?? nil)
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public final class PolymorphicSerializer: ExportedKotlinPackages.kotlinx.serialization.`internal`.AbstractPolymorphicSerializer {
@@ -200,7 +198,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         public override init() {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(__kt)
         }
         public override init(
@@ -208,7 +206,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Optional_Swift_String___(__kt, message ?? nil)
         }
         public override init(
@@ -217,7 +215,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Optional_Swift_String__Swift_Optional_ExportedKotlinPackages_kotlin_Throwable___(__kt, message ?? nil, cause.map { it in it.__externalRCRef() } ?? nil)
         }
         public override init(
@@ -225,15 +223,14 @@ public extension ExportedKotlinPackages.kotlinx.serialization {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.SerializationException.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.SerializationException ")
             let __kt = kotlinx_serialization_SerializationException_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_SerializationException_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_Swift_Optional_ExportedKotlinPackages_kotlin_Throwable___(__kt, cause.map { it in it.__externalRCRef() } ?? nil)
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public static func serializer(
@@ -366,7 +363,7 @@ public extension ExportedKotlinPackages.kotlinx.serialization.`internal` {
         ) {
             precondition(Self.self == ExportedKotlinPackages.kotlinx.serialization.`internal`.ElementMarker.self, "Inheritance from exported Kotlin classes is not supported yet: \(String(reflecting: Self.self)) inherits from ExportedKotlinPackages.kotlinx.serialization.`internal`.ElementMarker ")
             let __kt = kotlinx_serialization_internal_ElementMarker_init_allocate()
-            super.init(__externalRCRefUnsafe: __kt, cache: true, substitute: false)
+            super.init(__externalRCRefUnsafe: __kt, options: .asBoundBridge)
             kotlinx_serialization_internal_ElementMarker_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer_anyU20ExportedKotlinPackages_kotlinx_serialization_descriptors_SerialDescriptor_U28anyU20ExportedKotlinPackages_kotlinx_serialization_descriptors_SerialDescriptor_U20Swift_Int32U29202D_U20Swift_Bool__(__kt, descriptor.__externalRCRef(), {
                 let originalBlock = readIfAbsent
                 return { arg0, arg1 in return originalBlock(KotlinRuntime.KotlinBase.__create(externalRCRef: arg0) as! any ExportedKotlinPackages.kotlinx.serialization.descriptors.SerialDescriptor, arg1) }
@@ -374,10 +371,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.`internal` {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public final class EnumSerializer: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
@@ -550,10 +546,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.modules {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public final class SerializersModuleBuilder: KotlinRuntime.KotlinBase, ExportedKotlinPackages.kotlinx.serialization.modules.SerializersModuleCollector, KotlinRuntimeSupport._KotlinBridged {
@@ -595,10 +590,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.modules {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     @available(*, deprecated, message: "Deprecated in the favour of 'EmptySerializersModule()'. Replacement: EmptySerializersModule()")
@@ -692,10 +686,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     open class PolymorphicKind: ExportedKotlinPackages.kotlinx.serialization.descriptors.SerialKind {
@@ -707,10 +700,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -724,10 +716,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -738,10 +729,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     open class PrimitiveKind: ExportedKotlinPackages.kotlinx.serialization.descriptors.SerialKind {
@@ -753,10 +743,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -770,10 +759,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -787,10 +775,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -804,10 +791,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -821,10 +807,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -838,10 +823,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -855,10 +839,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -872,10 +855,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -889,10 +871,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -903,10 +884,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     open class SerialKind: KotlinRuntime.KotlinBase, KotlinRuntimeSupport._KotlinBridged {
@@ -918,10 +898,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -935,10 +914,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -955,10 +933,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     open class StructureKind: ExportedKotlinPackages.kotlinx.serialization.descriptors.SerialKind {
@@ -970,10 +947,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -987,10 +963,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -1004,10 +979,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -1021,10 +995,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
             }
             package override init(
                 __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-                cache: Swift.Bool,
-                substitute: Swift.Bool
+                options: KotlinRuntime.KotlinBaseConstructionOptions
             ) {
-                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+                super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
             }
             private override init() {
                 fatalError()
@@ -1035,10 +1008,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.descriptors {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     public static func getCapturedKClass(
@@ -1670,10 +1642,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.encoding {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
     open class AbstractEncoder: KotlinRuntime.KotlinBase, ExportedKotlinPackages.kotlinx.serialization.encoding.Encoder, ExportedKotlinPackages.kotlinx.serialization.encoding.CompositeEncoder, KotlinRuntimeSupport._KotlinBridged {
@@ -1847,10 +1818,9 @@ public extension ExportedKotlinPackages.kotlinx.serialization.encoding {
         }
         package override init(
             __externalRCRefUnsafe: Swift.UnsafeMutableRawPointer?,
-            cache: Swift.Bool,
-            substitute: Swift.Bool
+            options: KotlinRuntime.KotlinBaseConstructionOptions
         ) {
-            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, cache: cache, substitute: substitute)
+            super.init(__externalRCRefUnsafe: __externalRCRefUnsafe, options: options)
         }
     }
 }
