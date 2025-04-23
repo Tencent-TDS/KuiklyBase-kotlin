@@ -824,7 +824,6 @@ def __lldb_init_module(debugger, _):
     debugger.HandleCommand((
         "type summary add "
         "--no-value "
-        "--expand "
         "--python-function konan_lldb.kotlin_object_type_summary "
         "ObjHeader *"
         "--category Kotlin"
