@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.kapt.test.kaptOptionsProvider
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.EnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.TestServices
-import org.jetbrains.kotlin.test.services.getKtFilesForSourceFiles
 import org.jetbrains.kotlin.test.services.sourceFileProvider
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
@@ -32,7 +31,7 @@ class FirKaptIntegrationEnvironmentConfigurator(
             processorOptions,
             process,
             supportedAnnotations,
-            testServices.sourceFileProvider.getKtFilesForSourceFiles(module.files, project, findViaVfs = true).values.toList()
+            module.files.map(testServices.sourceFileProvider::getOrCreateRealFileForSourceFile),
         )
         FirAnalysisHandlerExtension.registerExtension(project, firKaptExtension)
     }
