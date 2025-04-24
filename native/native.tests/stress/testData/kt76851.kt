@@ -4,6 +4,7 @@
 // DISABLE_NATIVE: gcType=NOOP
 // DISABLE_NATIVE: gcScheduler=MANUAL
 // The test checks GC Scheduler MutatorAssits recursive timing issue.
+// FREE_CINTEROP_ARGS: -Xsource-compiler-option -ObjC++
 // FREE_COMPILER_ARGS: -opt-in=kotlin.native.internal.InternalForKotlinNative
 
 // MODULE: cinterop
@@ -14,17 +15,65 @@ headers = kt76851.h
 // FILE: kt76851.h
 #import <Foundation/Foundation.h>
 
-FOUNDATION_EXTERN NSArray<NSString *> *getNameList(NSString *prefix, int count);
+@interface HookDeallocString : NSString
 
-// FILE: kt76851.m
+- (instancetype)initWithValue:(int)value;
+
+@end
+
+FOUNDATION_EXTERN NSArray<HookDeallocString *> *getNameList(NSString *prefix, int count);
+FOUNDATION_EXTERN void spin(void);
+
+// FILE: kt76851.mm
 #import "kt76851.h"
 
-NSArray<NSString *> *getNameList(NSString *prefix, int count) {
-    NSMutableArray<NSString *> *list = [NSMutableArray array];
+#include <atomic>
+
+std::atomic<uint64_t> aliveCount;
+
+@implementation HookDeallocString {
+    NSString *_backingStore;
+}
+
+- (instancetype)initWithValue:(int)value {
+    if (self = [super init]) {
+        _backingStore = [NSString stringWithFormat:@"backingStore_%d", value];
+        ++aliveCount;
+    }
+    return self;
+}
+
+- (unichar)characterAtIndex:(NSUInteger)index {
+    return [_backingStore characterAtIndex:index];
+}
+
+- (NSUInteger)length {
+    return _backingStore.length;
+}
+
+- (void)dealloc {
+    --aliveCount;
+}
+
+@end
+
+NSArray<HookDeallocString *> *getNameList(NSString *prefix, int count) {
+    NSMutableArray<HookDeallocString *> *list = [NSMutableArray array];
     for (int i = 0; i < count; ++i) {
-        [list addObject:[NSString stringWithFormat:@"%@_%d", prefix, i]];
+        [list addObject:[[HookDeallocString alloc] initWithValue:i]];
     }
     return [list copy];
+}
+
+void spin() {
+    if ([NSRunLoop currentRunLoop] != [NSRunLoop mainRunLoop]) {
+        fprintf(stderr, "Must spin main run loop\n");
+        exit(1);
+    }
+    while (true) {
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+        if (aliveCount.load() == 0) return;
+    }
 }
 
 // MODULE: main(cinterop)
@@ -86,14 +135,19 @@ fun clear() {
 }
 
 fun main() {
-    // ~400M, This check is to verify whether the test case can be executed without timing out.
-    val peakRSSChecker = PeakRSSChecker(400_000_000L)
+    // ~10M, This check is to verify whether the test case can be executed without timing out.
+    val peakRSSChecker = PeakRSSChecker(10_000_000L)
 
-    create()
-    // Make MutatorAssists work
-    clear()
-    create()
-    clear()
+    val worker = Worker.start()
+    worker.executeAfter(0L) {
+        create()
+
+        // Make MutatorAssists work
+        clear()
+        create()
+
+        clear()
+    }
 
     peakRSSChecker.check()
 }
