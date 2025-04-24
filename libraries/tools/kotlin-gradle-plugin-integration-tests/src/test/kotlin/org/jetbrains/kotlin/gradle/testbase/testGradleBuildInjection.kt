@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.gradle.testbase
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.flow.*
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -19,6 +18,10 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.Input
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.kotlin.dsl.create
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependencySpec
+import org.gradle.plugin.use.PluginId
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension
@@ -28,6 +31,7 @@ import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.lang.reflect.Field
 import java.nio.file.Path
 import kotlin.io.path.*
 import kotlin.jvm.optionals.getOrNull
@@ -552,17 +556,61 @@ fun TestProject.addAgpToBuildScriptCompilationClasspath(androidVersion: String) 
 /**
  * This helper method works similar to "plugins {}" block in the build script; it resolves the POM pointer to the plugin jar and applies the plugin
  */
-fun TestProject.applyPlugin(id: String, version: String) {
+fun TestProject.plugins(build: PluginDependenciesSpec.() -> Unit) {
+    val spec = TestPluginDependenciesSpec()
+    spec.build()
     transferPluginRepositoriesIntoBuildScript()
+    transferPluginDependencyConstraintsIntoBuildscriptClasspathDependencyConstraints()
     buildScriptBuildscriptBlockInjection {
-        val pluginPointer = buildscript.dependencies.create("${id}:${id}.gradle.plugin:${version}@pom") as ModuleDependency
-        // @ext dependencies are created intransitive by default
-        pluginPointer.isTransitive = true
-        buildscript.configurations.getByName("classpath").dependencies.add(pluginPointer)
+        spec.plugins.forEach {
+            val pluginPointer = buildscript.dependencies.create(
+                group = it.id,
+                name = "${it.id}.gradle.plugin",
+                version = it.version,
+            )
+            buildscript.configurations.getByName("classpath").dependencies.add(pluginPointer)
+        }
     }
     buildScriptInjection {
-        project.plugins.apply(id)
+        spec.plugins.filter { it.shouldBeApplied }.forEach {
+            project.plugins.apply(it.id)
+        }
     }
+}
+
+private class TestPluginDependencySpec(
+    val id: String,
+): PluginDependencySpec, Serializable {
+    var version: String? = null
+    var shouldBeApplied = true
+
+    override fun version(version: String?): PluginDependencySpec {
+        this.version = version
+        return this
+    }
+
+    override fun apply(apply: Boolean): PluginDependencySpec {
+        shouldBeApplied = apply
+        return this
+    }
+}
+
+private class TestPluginDependenciesSpec : PluginDependenciesSpec, Serializable {
+    val plugins = mutableListOf<TestPluginDependencySpec>()
+    override fun id(id: String): PluginDependencySpec = TestPluginDependencySpec(id).also { plugins.add(it) }
+}
+
+private fun Class<*>.getPrivateField(fieldName: String): Field {
+    var clazz: Class<*>? = this
+    while (clazz != null) {
+        try {
+            val field = clazz.getDeclaredField(fieldName)
+            return field
+        } catch (e: NoSuchFieldException) {
+            clazz = clazz.superclass
+        }
+    }
+    throw NoSuchFieldException("Field '$fieldName' not found in class hierarchy")
 }
 
 /**
@@ -615,6 +663,34 @@ fun GradleProject.transferPluginRepositoriesIntoBuildScript() {
             settings.pluginManagement.repositories.all { rep ->
                 settings.gradle.beforeProject { project ->
                     project.buildscript.repositories.add(rep)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Allow [buildscript] classpath configuration to resolve the versions of plugins declared in the settings.pluginManagement.plugins
+ * dependency constraints
+ */
+private const val transferPluginDependencyConstraintsIntoProjectRepositories = "transferPluginDependencyConstraintsIntoProjectBuildscriptClasspathConfiguration"
+fun GradleProject.transferPluginDependencyConstraintsIntoBuildscriptClasspathDependencyConstraints() {
+    markAsUsingInjections()
+    settingsBuildScriptInjection {
+        val pluginVersionsField = settings.pluginManagement.resolutionStrategy.javaClass.getPrivateField("pluginVersions")
+        pluginVersionsField.isAccessible = true
+        val pluginVersions = pluginVersionsField.get(settings.pluginManagement.resolutionStrategy) as Map<PluginId, String>
+        if (!settings.extraProperties.has(transferPluginDependencyConstraintsIntoProjectRepositories)) {
+            settings.extraProperties.set(transferPluginDependencyConstraintsIntoProjectRepositories, true)
+            settings.gradle.beforeProject { project ->
+                pluginVersions.forEach {
+                    val pluginId = it.key.id
+                    val pluginVersion = it.value
+                    project.buildscript.configurations.getByName("classpath").dependencyConstraints.add(
+                        project.buildscript.dependencies.constraints.create(
+                            "${pluginId}:${pluginId}.gradle.plugin:${pluginVersion}",
+                        )
+                    )
                 }
             }
         }

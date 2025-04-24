@@ -7,15 +7,15 @@ package org.jetbrains.kotlin.gradle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.plugins.UnknownPluginException
-import org.gradle.internal.extensions.stdlib.unsafeLazy
+import org.gradle.kotlin.dsl.*
 import org.gradle.testkit.runner.UnexpectedBuildSuccess
 import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
 import org.jetbrains.kotlin.gradle.uklibs.*
@@ -411,17 +411,27 @@ class BuildScriptInjectionIT : KGPBaseTest() {
     @GradleTest
     fun pluginApplicationSugar(version: GradleVersion) {
         project("empty", version) {
-            assertNull(
+            assertTrue(
                 buildScriptReturn {
-                    project.extensions.findByName("kotlin")?.javaClass?.name
-                }.buildAndReturn()
+                    try {
+                        this.javaClass.classLoader.loadClass(KotlinMultiplatformExtension::class.java.name)
+                    } catch (e: NoClassDefFoundError) {
+                        return@buildScriptReturn true
+                    }
+                    return@buildScriptReturn false
+                }.buildAndReturn(),
+                "Build script is not supposed to see KGP classes at this point",
             )
-            applyPlugin("org.jetbrains.kotlin.multiplatform", buildOptions.kotlinVersion)
-            assertEquals(
-                "org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension_Decorated",
+            plugins {
+                kotlin("multiplatform")
+            }
+            assertTrue(
                 buildScriptReturn {
-                    project.extensions.findByName("kotlin")?.javaClass?.name
-                }.buildAndReturn()
+                    this.javaClass.classLoader.loadClass(KotlinMultiplatformExtension::class.java.name).isInstance(
+                        project.extensions.getByName("kotlin")
+                    )
+                }.buildAndReturn(),
+                "At this point the plugin is expected to be applied and the extension must inherit from the relevant class",
             )
         }
     }
