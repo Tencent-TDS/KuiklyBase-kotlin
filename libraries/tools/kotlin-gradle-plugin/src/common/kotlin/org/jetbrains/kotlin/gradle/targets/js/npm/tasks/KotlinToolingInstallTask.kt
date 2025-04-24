@@ -96,7 +96,7 @@ internal constructor() :
     }
 
     companion object {
-        const val NAME = "kotlinToolingInstall"
+        const val NAME = "toolingInstall"
 
         val NPM_TOOLING_DIR_NAME: String by lazy {
             loadPropertyFromResources("project.properties", "kotlin.web.npm.tooling.dir.name")

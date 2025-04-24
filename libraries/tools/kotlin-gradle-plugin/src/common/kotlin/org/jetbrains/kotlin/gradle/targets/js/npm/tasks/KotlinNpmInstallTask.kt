@@ -63,6 +63,6 @@ abstract class KotlinNpmInstallTask :
     }
 
     companion object {
-        const val NAME = "kotlinNpmInstall"
+        const val NAME = "npmInstall"
     }
 }
