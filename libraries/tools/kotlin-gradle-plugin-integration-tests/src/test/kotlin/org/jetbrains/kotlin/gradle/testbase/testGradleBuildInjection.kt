@@ -682,6 +682,7 @@ fun GradleProject.transferPluginDependencyConstraintsIntoBuildscriptClasspathDep
     settingsBuildScriptInjection {
         val pluginVersionsField = settings.pluginManagement.resolutionStrategy.javaClass.getPrivateField("pluginVersions")
         pluginVersionsField.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
         val pluginVersions = pluginVersionsField.get(settings.pluginManagement.resolutionStrategy) as Map<PluginId, String>
         if (!settings.extraProperties.has(transferPluginDependencyConstraintsIntoProjectRepositories)) {
             settings.extraProperties.set(transferPluginDependencyConstraintsIntoProjectRepositories, true)
