@@ -114,7 +114,7 @@ class JsIrLoweringFacade(
             )
             return BinaryArtifacts.Js.JsIrArtifact(
                 outputFile, compiledModule, testServices.jsIrIncrementalDataProvider.getCacheForModule(module)
-            ).dump(module, firstTimeCompilation)
+            ).dump(module, testServices, jsIrPathReplacer, firstTimeCompilation)
         }
 
         configuration.phaseConfig = createJsTestPhaseConfig(testServices, module)
@@ -179,90 +179,11 @@ class JsIrLoweringFacade(
             .filter { isEsModules || it.granularity != JsGenerationGranularity.PER_FILE }
             .toSet()
         val compilationOut = transformer.generateModule(loweredIr.allModules, translationModes, isEsModules)
-        return BinaryArtifacts.Js.JsIrArtifact(outputFile, compilationOut).dump(module)
+        return BinaryArtifacts.Js.JsIrArtifact(outputFile, compilationOut).dump(module, testServices, jsIrPathReplacer)
     }
 
     private fun IrModuleFragment.resolveTestPaths() {
         files.forEach(jsIrPathReplacer::lower)
-    }
-
-    private fun BinaryArtifacts.Js.JsIrArtifact.dump(
-        module: TestModule,
-        firstTimeCompilation: Boolean = true
-    ): BinaryArtifacts.Js.JsIrArtifact {
-        val configuration = testServices.compilerConfigurationProvider.getCompilerConfiguration(module)
-        val moduleId = configuration.getNotNull(CommonConfigurationKeys.MODULE_NAME)
-        val moduleKind = configuration.get(JSConfigurationKeys.MODULE_KIND, ModuleKind.PLAIN)
-
-        val generateDts = JsEnvironmentConfigurationDirectives.GENERATE_DTS in module.directives
-        val dontSkipRegularMode = JsEnvironmentConfigurationDirectives.SKIP_REGULAR_MODE !in module.directives
-
-        if (dontSkipRegularMode) {
-            for ((mode, output) in compilerResult.outputs.entries) {
-                val outputFile = if (firstTimeCompilation) {
-                    File(JsEnvironmentConfigurator.getJsModuleArtifactPath(testServices, module.name, mode).finalizePath(moduleKind))
-                } else {
-                    File(
-                        JsEnvironmentConfigurator.getRecompiledJsModuleArtifactPath(
-                            testServices,
-                            module.name,
-                            mode
-                        ).finalizePath(moduleKind)
-                    )
-                }
-                output.writeTo(outputFile, moduleId, moduleKind)
-            }
-        }
-
-        if (generateDts) {
-            val tsFiles = compilerResult.outputs.entries.associate { it.value.getFullTsDefinition(moduleId, moduleKind) to it.key }
-            val tsDefinitions = tsFiles.entries.singleOrNull()?.key
-                ?: error("[${tsFiles.values.joinToString { it.name }}] make different TypeScript")
-
-            outputFile
-                .withReplacedExtensionOrNull("_v5${moduleKind.extension}", ".d.ts")!!
-                .write(tsDefinitions)
-        }
-
-        return this
-    }
-
-    private fun File.fixJsFile(rootDir: File, newJsTarget: File, moduleId: String, moduleKind: ModuleKind) {
-        val newJsCode = wrapWithModuleEmulationMarkers(readText(), moduleKind, moduleId)
-        val jsCodeWithCorrectImportPath = jsIrPathReplacer.replacePathTokensWithRealPath(newJsCode, newJsTarget, rootDir)
-
-        val oldJsMap = File("$absolutePath.map")
-        val jsCodeMap = (moduleKind == ModuleKind.PLAIN && oldJsMap.exists()).ifTrue { oldJsMap.readText() }
-
-        this.delete()
-        oldJsMap.delete()
-
-        newJsTarget.write(jsCodeWithCorrectImportPath)
-        jsCodeMap?.let { File("${newJsTarget.absolutePath}.map").write(it) }
-    }
-
-    private fun CompilationOutputs.writeTo(outputFile: File, moduleId: String, moduleKind: ModuleKind) {
-        val rootDir = outputFile.parentFile
-        val tmpBuildDir = rootDir.resolve("tmp-build")
-        // CompilationOutputs keeps the `outputDir` clean by removing all outdated JS and other unknown files.
-        // To ensure that useful files around `outputFile`, such as irdump, are not removed, use `tmpBuildDir` instead.
-        val allJsFiles = writeAll(tmpBuildDir, outputFile.nameWithoutExtension, TsCompilationStrategy.NONE, moduleId, moduleKind).filter {
-            it.extension == "js" || it.extension == "mjs"
-        }
-
-        val mainModuleFile = allJsFiles.last()
-        mainModuleFile.fixJsFile(rootDir, outputFile, moduleId, moduleKind)
-
-        dependencies.map { it.first }.zip(allJsFiles.dropLast(1)).forEach { (depModuleId, builtJsFilePath) ->
-            val newFile = outputFile.augmentWithModuleName(depModuleId)
-            builtJsFilePath.fixJsFile(rootDir, newFile, depModuleId, moduleKind)
-        }
-        tmpBuildDir.deleteRecursively()
-    }
-
-    private fun File.write(text: String) {
-        parentFile.mkdirs()
-        writeText(text)
     }
 }
 
@@ -310,3 +231,95 @@ fun String.minifyIfNeed(): String {
 }
 
 fun File.augmentWithModuleName(moduleName: String): File = File(absolutePath.augmentWithModuleName(moduleName))
+
+private fun File.write(text: String) {
+    parentFile.mkdirs()
+    writeText(text)
+}
+
+private fun File.fixJsFile(
+    rootDir: File,
+    newJsTarget: File,
+    moduleId: String,
+    moduleKind: ModuleKind,
+    pathReplacer: JsIrPathReplacer,
+) {
+    val newJsCode = wrapWithModuleEmulationMarkers(readText(), moduleKind, moduleId)
+    val jsCodeWithCorrectImportPath = pathReplacer.replacePathTokensWithRealPath(newJsCode, newJsTarget, rootDir)
+
+    val oldJsMap = File("$absolutePath.map")
+    val jsCodeMap = (moduleKind == ModuleKind.PLAIN && oldJsMap.exists()).ifTrue { oldJsMap.readText() }
+
+    this.delete()
+    oldJsMap.delete()
+
+    newJsTarget.write(jsCodeWithCorrectImportPath)
+    jsCodeMap?.let { File("${newJsTarget.absolutePath}.map").write(it) }
+}
+
+private fun CompilationOutputs.writeTo(
+    outputFile: File,
+    moduleId: String,
+    moduleKind: ModuleKind,
+    pathReplacer: JsIrPathReplacer,
+) {
+    val rootDir = outputFile.parentFile
+    val tmpBuildDir = rootDir.resolve("tmp-build")
+    // CompilationOutputs keeps the `outputDir` clean by removing all outdated JS and other unknown files.
+    // To ensure that useful files around `outputFile`, such as irdump, are not removed, use `tmpBuildDir` instead.
+    val allJsFiles = writeAll(tmpBuildDir, outputFile.nameWithoutExtension, TsCompilationStrategy.NONE, moduleId, moduleKind).filter {
+        it.extension == "js" || it.extension == "mjs"
+    }
+
+    val mainModuleFile = allJsFiles.last()
+    mainModuleFile.fixJsFile(rootDir, outputFile, moduleId, moduleKind, pathReplacer)
+
+    dependencies.map { it.first }.zip(allJsFiles.dropLast(1)).forEach { (depModuleId, builtJsFilePath) ->
+        val newFile = outputFile.augmentWithModuleName(depModuleId)
+        builtJsFilePath.fixJsFile(rootDir, newFile, depModuleId, moduleKind, pathReplacer)
+    }
+    tmpBuildDir.deleteRecursively()
+}
+
+fun BinaryArtifacts.Js.JsIrArtifact.dump(
+    module: TestModule,
+    testServices: TestServices,
+    pathReplacer: JsIrPathReplacer,
+    firstTimeCompilation: Boolean = true,
+): BinaryArtifacts.Js.JsIrArtifact {
+    val configuration = testServices.compilerConfigurationProvider.getCompilerConfiguration(module)
+    val moduleId = configuration.getNotNull(CommonConfigurationKeys.MODULE_NAME)
+    val moduleKind = configuration.get(JSConfigurationKeys.MODULE_KIND, ModuleKind.PLAIN)
+
+    val generateDts = JsEnvironmentConfigurationDirectives.GENERATE_DTS in module.directives
+    val dontSkipRegularMode = JsEnvironmentConfigurationDirectives.SKIP_REGULAR_MODE !in module.directives
+
+    if (dontSkipRegularMode) {
+        for ((mode, output) in compilerResult.outputs.entries) {
+            val outputFile = if (firstTimeCompilation) {
+                File(JsEnvironmentConfigurator.getJsModuleArtifactPath(testServices, module.name, mode).finalizePath(moduleKind))
+            } else {
+                File(
+                    JsEnvironmentConfigurator.getRecompiledJsModuleArtifactPath(
+                        testServices,
+                        module.name,
+                        mode
+                    ).finalizePath(moduleKind)
+                )
+            }
+            output.writeTo(outputFile, moduleId, moduleKind, pathReplacer)
+        }
+    }
+
+    if (generateDts) {
+        val tsFiles = compilerResult.outputs.entries.associate { it.value.getFullTsDefinition(moduleId, moduleKind) to it.key }
+        val tsDefinitions = tsFiles.entries.singleOrNull()?.key
+            ?: error("[${tsFiles.values.joinToString { it.name }}] make different TypeScript")
+
+        outputFile
+            .withReplacedExtensionOrNull("_v5${moduleKind.extension}", ".d.ts")!!
+            .write(tsDefinitions)
+    }
+
+    return this
+}
