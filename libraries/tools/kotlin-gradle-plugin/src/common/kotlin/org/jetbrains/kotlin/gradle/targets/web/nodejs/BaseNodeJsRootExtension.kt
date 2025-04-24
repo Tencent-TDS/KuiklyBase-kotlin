@@ -133,7 +133,12 @@ abstract class BaseNodeJsRootExtension internal constructor(
 
     val rootPackageJsonTaskProvider: TaskProvider<RootPackageJsonTask>
         get() = project.tasks.withType(RootPackageJsonTask::class.java)
-            .named(extensionName(RootPackageJsonTask.NAME))
+            .named(
+                extensionName(
+                    RootPackageJsonTask.NAME,
+                    prefix = null,
+                )
+            )
 
     val packageJsonUmbrellaTaskProvider: TaskProvider<Task>
         get() = project.tasks.named(extensionName(PACKAGE_JSON_UMBRELLA_TASK_NAME))

@@ -117,16 +117,20 @@ internal class NodeJsRootPluginApplier(
                 nodeJsRoot.resolver.close()
             },
             gradleNodeModulesProvider,
-            nodeJsRoot.projectPackagesDirectory,
-            platformDisambiguate::extensionName
-        )
+            nodeJsRoot.projectPackagesDirectory
+        ) {
+            platformDisambiguate.extensionName(it, prefix = null)
+        }
 
         val packageJsonUmbrella = nodeJsRoot
             .packageJsonUmbrellaTaskProvider
 
         val rootPackageJson =
             project.tasks.register(
-                platformDisambiguate.extensionName(RootPackageJsonTask.NAME),
+                platformDisambiguate.extensionName(
+                    RootPackageJsonTask.NAME,
+                    prefix = null,
+                ),
                 RootPackageJsonTask::class.java
             ) { task ->
                 task.group = NodeJsRootPlugin.TASKS_GROUP_NAME
@@ -293,7 +297,10 @@ internal class NodeJsRootPluginApplier(
         ).disallowChanges()
 
         project.tasks.register(
-            platformDisambiguate.extensionName("node" + CleanDataTask.NAME_SUFFIX),
+            platformDisambiguate.extensionName(
+                "node" + CleanDataTask.NAME_SUFFIX,
+                prefix = null,
+            ),
             CleanDataTask::class.java
         ) {
             it.cleanableStoreProvider = nodeJs.env.map { it.cleanableStore }

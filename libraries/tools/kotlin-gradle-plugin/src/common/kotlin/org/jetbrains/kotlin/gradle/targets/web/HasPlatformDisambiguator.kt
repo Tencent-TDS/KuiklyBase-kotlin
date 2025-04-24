@@ -25,7 +25,7 @@ internal interface HasPlatformDisambiguator {
      * @param baseName The base name to be combined with the platform-specific disambiguator.
      * @return A string representing the combined name
      */
-    fun extensionName(baseName: String, prefix: String? = null): String =
+    fun extensionName(baseName: String, prefix: String? = DEFAULT_PREFIX): String =
         lowerCamelCaseName(prefix, platformDisambiguator, baseName)
 
     companion object {

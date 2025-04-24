@@ -78,6 +78,6 @@ abstract class NodeJsSetupTask @Inject constructor(
     }
 
     companion object {
-        const val NAME: String = "kotlinNodeJsSetup"
+        const val NAME: String = "nodeJsSetup"
     }
 }

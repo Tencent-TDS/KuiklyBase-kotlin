@@ -22,6 +22,6 @@ abstract class WasmNodeJsEnvSpec : BaseNodeJsEnvSpec() {
 
     companion object : HasPlatformDisambiguator by WasmPlatformDisambiguator {
         val EXTENSION_NAME: String
-            get() = extensionName("kotlinNodeJsSpec")
+            get() = extensionName("nodeJsSpec")
     }
 }
