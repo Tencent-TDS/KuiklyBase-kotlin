@@ -247,9 +247,6 @@ abstract class FirAbstractSessionFactory<LIBRARY_CONTEXT, SOURCE_CONTEXT> {
 
             val allLibrariesProviders = buildList {
                 addAll(structuredDependencyProvidersWithoutSource.librariesProviders)
-                if (!isForLeafHmppModule) {
-                    moduleData.dependsOnDependencies.flatMapTo(this) { it.session.structuredProviders.librariesProviders }
-                }
                 addIfNotNull(additionalOptionalAnnotationsProvider)
             }
 

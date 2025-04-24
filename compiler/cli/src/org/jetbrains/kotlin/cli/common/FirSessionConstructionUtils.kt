@@ -212,7 +212,7 @@ private fun <F> prepareKlibSessions(
             )
         },
         librarySessionForHmppCommonModuleProducer = { sessionProvider, sharedLibrarySession, librariesList, libraryList ->
-            TODO("Not supported yet")
+            TODO("Not supported yet. KT-77030")
         },
         createSourceSession = { _, moduleData, sessionProvider, sessionConfigurator ->
             sessionFactory.createSourceSession(
@@ -372,18 +372,9 @@ object SessionConstructionUtils {
             )
 
             languageVersionSettings.getFlag(AnalysisFlags.hierarchicalMultiplatformCompilation) -> createSessionsForHierarchicalMppProject(
-                nonScriptFiles,
-                rootModuleName,
-                hmppModuleStructure,
-                libraryList,
-                configuration,
-                sharedLibrarySession,
-                targetPlatform,
-                sessionProvider,
-                librarySessionForHmppCommonModuleProducer,
-                sessionConfigurator,
-                fileBelongsToModule,
-                createSourceSession
+                nonScriptFiles, rootModuleName, hmppModuleStructure, libraryList, configuration,
+                sharedLibrarySession, targetPlatform, sessionProvider, librarySessionForHmppCommonModuleProducer,
+                sessionConfigurator, fileBelongsToModule, createSourceSession
             )
 
             else -> createSessionsForMppProject(
@@ -565,7 +556,7 @@ object SessionConstructionUtils {
             val libraryList = if (isLeaf) {
                 libraryListForLeafModule
             } else {
-                val libPaths = hmppModuleStructure.moduleDependencies[module].orEmpty().toMutableList()
+                val libPaths = hmppModuleStructure.moduleDependencies[module].orEmpty().toMutableSet()
 
                 /*
                  * It's expected that each hmpp module will contain unique dependencies and none of the metadata klibs
