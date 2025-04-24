@@ -562,7 +562,10 @@ fun TestProject.plugins(build: PluginDependenciesSpec.() -> Unit) {
     transferPluginRepositoriesIntoBuildScript()
     transferPluginDependencyConstraintsIntoBuildscriptClasspathDependencyConstraints()
     buildScriptBuildscriptBlockInjection {
-        spec.plugins.forEach {
+        spec.plugins.filter {
+            // filter out Gradle's embedded plugins
+            !it.id.startsWith("org.gradle")
+        }.forEach {
             val pluginPointer = buildscript.dependencies.create(
                 group = it.id,
                 name = "${it.id}.gradle.plugin",
