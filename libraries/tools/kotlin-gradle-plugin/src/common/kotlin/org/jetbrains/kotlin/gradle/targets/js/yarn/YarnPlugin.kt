@@ -42,9 +42,9 @@ open class YarnPlugin : CommonYarnPlugin {
             return rootProject.extensions.getByName(YarnRootExtension.YARN) as YarnRootExtension
         }
 
-        const val STORE_YARN_LOCK_NAME = "kotlinStoreYarnLock"
-        const val RESTORE_YARN_LOCK_NAME = "kotlinRestoreYarnLock"
-        const val UPGRADE_YARN_LOCK = "kotlinUpgradeYarnLock"
+        const val STORE_YARN_LOCK_NAME = "storeYarnLock"
+        const val RESTORE_YARN_LOCK_NAME = "restoreYarnLock"
+        const val UPGRADE_YARN_LOCK = "upgradeYarnLock"
 
         @InternalKotlinGradlePluginApi
         fun yarnLockMismatchMessage(upgradeTaskName: String) =

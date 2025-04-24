@@ -60,9 +60,9 @@ abstract class LockCopyTask : DefaultTask() {
     }
 
     companion object {
-        const val STORE_PACKAGE_LOCK_NAME = "kotlinStorePackageLock"
-        const val RESTORE_PACKAGE_LOCK_NAME = "kotlinRestorePackageLock"
-        const val UPGRADE_PACKAGE_LOCK = "kotlinUpgradePackageLock"
+        const val STORE_PACKAGE_LOCK_NAME = "storePackageLock"
+        const val RESTORE_PACKAGE_LOCK_NAME = "restorePackageLock"
+        const val UPGRADE_PACKAGE_LOCK = "upgradePackageLock"
         const val KOTLIN_JS_STORE = "kotlin-js-store"
         const val PACKAGE_LOCK = "package-lock.json"
         const val YARN_LOCK = "yarn.lock"
