@@ -91,7 +91,11 @@ abstract class D8EnvSpec : EnvSpec<D8Env>() {
 
     val Project.d8SetupTaskProvider: TaskProvider<out D8SetupTask>
         get() = project.tasks.withType(D8SetupTask::class.java)
-            .named(WasmPlatformDisambiguator.extensionName(D8SetupTask.NAME))
+            .named(
+                WasmPlatformDisambiguator.extensionName(
+                    D8SetupTask.NAME,
+                )
+            )
 
     companion object {
         const val EXTENSION_NAME: String = org.jetbrains.kotlin.gradle.targets.wasm.d8.D8EnvSpec.EXTENSION_NAME

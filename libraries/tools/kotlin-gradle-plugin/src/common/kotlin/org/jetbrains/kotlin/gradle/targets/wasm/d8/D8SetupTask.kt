@@ -48,6 +48,6 @@ abstract class D8SetupTask @Inject constructor(
     }
 
     companion object {
-        const val NAME: String = "kotlinD8Setup"
+        const val NAME: String = "D8Setup"
     }
 }

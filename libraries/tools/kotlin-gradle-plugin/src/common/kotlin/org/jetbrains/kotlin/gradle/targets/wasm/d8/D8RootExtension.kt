@@ -15,6 +15,6 @@ open class D8RootExtension(
 ) : org.jetbrains.kotlin.gradle.targets.js.d8.D8RootExtension(project, d8EnvSpec) {
 
     companion object {
-        const val EXTENSION_NAME: String = "kotlinD8"
+        const val EXTENSION_NAME: String = "D8"
     }
 }

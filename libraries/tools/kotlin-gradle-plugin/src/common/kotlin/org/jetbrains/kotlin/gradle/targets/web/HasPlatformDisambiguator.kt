@@ -29,6 +29,6 @@ internal interface HasPlatformDisambiguator {
         lowerCamelCaseName(prefix, platformDisambiguator, baseName)
 
     companion object {
-        const val DEFAULT_PREFIX = "kotlin"
+        internal const val DEFAULT_PREFIX = "kotlin"
     }
 }
