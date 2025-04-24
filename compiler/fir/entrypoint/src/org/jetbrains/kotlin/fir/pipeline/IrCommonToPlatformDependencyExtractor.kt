@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.pipeline
 
-import org.jetbrains.kotlin.backend.common.actualizer.IrExpectActualMapPreFiller
+import org.jetbrains.kotlin.backend.common.actualizer.IrActualizerMapContributor
 import org.jetbrains.kotlin.fir.FirModuleData
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.backend.Fir2IrComponents
@@ -27,20 +27,20 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.shouldNotBeCalled
 
 
-class IrCommonToPlatformDependencyExpectActualMapPreFiller(
+class IrCommonToPlatformDependencyActualizerMapContributor(
     private val deduplicatingProvider: FirMppDeduplicatingSymbolProvider,
     private val componentsPerSession: Map<FirSession, Fir2IrComponents>,
-) : IrExpectActualMapPreFiller() {
+) : IrActualizerMapContributor() {
     companion object {
         fun create(
             platformSession: FirSession,
             componentsPerSession: Map<FirSession, Fir2IrComponents>,
-        ): IrCommonToPlatformDependencyExpectActualMapPreFiller? {
+        ): IrCommonToPlatformDependencyActualizerMapContributor? {
             val deduplicatingProvider = (platformSession.symbolProvider as FirCachingCompositeSymbolProvider)
                 .providers
                 .firstIsInstanceOrNull<FirMppDeduplicatingSymbolProvider>()
             if (deduplicatingProvider == null) return null
-            return IrCommonToPlatformDependencyExpectActualMapPreFiller(deduplicatingProvider, componentsPerSession)
+            return IrCommonToPlatformDependencyActualizerMapContributor(deduplicatingProvider, componentsPerSession)
         }
     }
 
