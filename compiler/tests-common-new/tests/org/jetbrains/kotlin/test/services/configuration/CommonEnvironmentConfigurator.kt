@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.test.services.configuration
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.allowKotlinPackage
 import org.jetbrains.kotlin.cli.common.allowNoSourceFiles
+import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.jvm.config.JvmClasspathRoot
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.config.*
@@ -24,6 +25,7 @@ import org.jetbrains.kotlin.test.directives.model.singleOrZeroValue
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.*
+import org.jetbrains.kotlin.utils.addToStdlib.runIf
 
 class CommonEnvironmentConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
     override val directiveContainers: List<DirectivesContainer>
@@ -95,6 +97,16 @@ class CommonEnvironmentConfigurator(testServices: TestServices) : EnvironmentCon
         configuration.allowKotlinPackage = true
         configuration.dontCreateSeparateSessionForScripts = true
         configuration.dontSortSourceFiles = true
+
+        val isMppCompilation = module.languageVersionSettings.supportsFeature(LanguageFeature.MultiPlatformProjects)
+        for (mppModule in module.transitiveDependsOnDependencies(includeSelf = true, reverseOrder = true)) {
+            for (file in mppModule.kotlinFiles) {
+                configuration.addKotlinSourceRoot(
+                    path = testServices.sourceFileProvider.getOrCreateRealFileForSourceFile(file).canonicalPath,
+                    hmppModuleName = runIf(isMppCompilation) { mppModule.name }
+                )
+            }
+        }
     }
 }
 

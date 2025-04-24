@@ -320,16 +320,6 @@ open class JvmEnvironmentConfigurator(testServices: TestServices) : EnvironmentC
         configuration.outputDirectory = outputDir
         configuration.retainOutputInMemory = true
         configuration.useClassBuilderFactoryForTest = true
-
-        val isMppCompilation = module.languageVersionSettings.supportsFeature(LanguageFeature.MultiPlatformProjects)
-        for (mppModule in module.transitiveDependsOnDependencies(includeSelf = true, reverseOrder = true)) {
-            for (file in mppModule.kotlinFiles) {
-                configuration.addKotlinSourceRoot(
-                    path = testServices.sourceFileProvider.getOrCreateRealFileForSourceFile(file).canonicalPath,
-                    hmppModuleName = runIf(isMppCompilation) { mppModule.name }
-                )
-            }
-        }
     }
 
     private fun CompilerConfiguration.addJavaSourceRootsByJavaModules(
