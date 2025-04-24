@@ -108,6 +108,7 @@ class FirMppDeduplicatingSymbolProvider(
                 _classMapping[classId] = ClassPair(commonSymbol, platformSymbol)
                 when {
                     commonSymbol.isExpect -> platformSymbol
+                    // TODO(KT-77031): investigate if it's ok to return the platformSymbol from here
                     else -> commonSymbol
                 }
             }
