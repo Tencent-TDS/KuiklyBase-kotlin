@@ -5,7 +5,8 @@
 
 package org.jetbrains.kotlin.backend.konan.llvm
 
-import kotlinx.cinterop.*
+import kotlinx.cinterop.cValuesOf
+import kotlinx.cinterop.toKString
 import llvm.*
 import org.jetbrains.kotlin.backend.common.compilationException
 import org.jetbrains.kotlin.backend.common.ir.isUnconditional
@@ -400,7 +401,7 @@ internal class CodeGeneratorVisitor(
     //-------------------------------------------------------------------------//
 
     override fun visitElement(element: IrElement) {
-        TODO(ir2string(element))
+//        TODO(ir2string(element))
     }
 
     //-------------------------------------------------------------------------//
