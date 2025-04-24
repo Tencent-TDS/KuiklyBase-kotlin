@@ -39,6 +39,6 @@ abstract class YarnSetupTask @Inject constructor(
     }
 
     companion object {
-        const val NAME: String = "kotlinYarnSetup"
+        const val NAME: String = "yarnSetup"
     }
 }

@@ -114,7 +114,13 @@ internal class YarnPluginApplier(
             nodeJs.env
         ).disallowChanges()
 
-        project.tasks.register(platformDisambiguate.extensionName("yarn" + CleanDataTask.NAME_SUFFIX), CleanDataTask::class.java) {
+        project.tasks.register(
+            platformDisambiguate.extensionName(
+                "yarn" + CleanDataTask.NAME_SUFFIX,
+                prefix = null
+            ),
+            CleanDataTask::class.java
+        ) {
             it.cleanableStoreProvider = project.provider { yarnRootExtension.requireConfigured().cleanableStore }
             it.description = "Clean unused local yarn version"
         }
