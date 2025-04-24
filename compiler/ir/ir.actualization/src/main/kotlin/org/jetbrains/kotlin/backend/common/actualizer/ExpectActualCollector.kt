@@ -50,13 +50,13 @@ internal class ExpectActualCollector(
     private val expectActualTracker: ExpectActualTracker?,
     private val extraActualDeclarationExtractors: List<IrExtraActualDeclarationExtractor>,
     private val missingActualProvider: IrMissingActualDeclarationProvider?,
-    private val expectActualMapPreFiller: IrExpectActualMapPreFiller?,
+    private val actualizerMapContributor: IrActualizerMapContributor?,
 ) {
     fun collectClassActualizationInfo(): ClassActualizationInfo {
         val expectTopLevelDeclarations = ExpectTopLevelDeclarationCollector.collect(dependentFragments)
         val fragmentsWithActuals = dependentFragments.drop(1) + mainFragment
         return ActualDeclarationsCollector.collectActuals(
-            fragmentsWithActuals, expectTopLevelDeclarations, extraActualDeclarationExtractors, expectActualMapPreFiller
+            fragmentsWithActuals, expectTopLevelDeclarations, extraActualDeclarationExtractors, actualizerMapContributor
         )
     }
 
@@ -86,8 +86,8 @@ internal class ExpectActualCollector(
         }
 
         val expectActualMap = linkCollectorContext.expectActualMap
-        if (expectActualMapPreFiller != null) {
-            expectActualMap.addMappingFromPreFiller(expectActualMapPreFiller, linkCollectorContext)
+        if (actualizerMapContributor != null) {
+            expectActualMap.fillAdditionalMapping(actualizerMapContributor, linkCollectorContext)
         }
         return expectActualMap
     }
@@ -158,16 +158,16 @@ private class ExpectTopLevelDeclarationCollector {
 
 private class ActualDeclarationsCollector(
     private val expectTopLevelDeclarations: ExpectTopLevelDeclarations,
-    expectActualMapPreFiller: IrExpectActualMapPreFiller?
+    actualizerMapContributor: IrActualizerMapContributor?
 ) {
     companion object {
         fun collectActuals(
             fragments: List<IrModuleFragment>,
             expectTopLevelDeclarations: ExpectTopLevelDeclarations,
             extraActualDeclarationExtractors: List<IrExtraActualDeclarationExtractor>,
-            expectActualMapPreFiller: IrExpectActualMapPreFiller?
+            actualizerMapContributor: IrActualizerMapContributor?
         ): ClassActualizationInfo {
-            val collector = ActualDeclarationsCollector(expectTopLevelDeclarations, expectActualMapPreFiller)
+            val collector = ActualDeclarationsCollector(expectTopLevelDeclarations, actualizerMapContributor)
             for (fragment in fragments) {
                 collector.collect(fragment)
             }
@@ -187,8 +187,8 @@ private class ActualDeclarationsCollector(
     private val actualTypeAliasesWithoutExpansion: MutableMap<ClassId, IrTypeAliasSymbol>
 
     init {
-        val knownClassMapping = expectActualMapPreFiller?.collectClassesMap()
-            ?: IrExpectActualMapPreFiller.ActualClassInfo(emptyMap(), emptyMap())
+        val knownClassMapping = actualizerMapContributor?.collectClassesMap()
+            ?: IrActualizerMapContributor.ActualClassInfo(emptyMap(), emptyMap())
         actualClasses = knownClassMapping.classMapping.entries.associateTo(mutableMapOf()) { (expectClassSymbol, actualClassSymbol) ->
             expectClassSymbol.owner.classId!! to actualClassSymbol
         }

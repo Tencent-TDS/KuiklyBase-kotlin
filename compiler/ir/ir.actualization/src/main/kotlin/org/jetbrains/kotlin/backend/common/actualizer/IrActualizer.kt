@@ -35,7 +35,7 @@ class IrActualizer(
     val dependentFragments: List<IrModuleFragment>,
     extraActualClassExtractors: List<IrExtraActualDeclarationExtractor> = emptyList(),
     private val missingActualProvider: IrMissingActualDeclarationProvider?,
-    expectActualMapPreFiller: IrExpectActualMapPreFiller?
+    actualizerMapContributor: IrActualizerMapContributor?
 ) {
     private val collector = ExpectActualCollector(
         mainFragment,
@@ -45,7 +45,7 @@ class IrActualizer(
         expectActualTracker,
         extraActualClassExtractors,
         missingActualProvider,
-        expectActualMapPreFiller
+        actualizerMapContributor
     )
 
     val classActualizationInfo: ClassActualizationInfo = collector.collectClassActualizationInfo()
@@ -78,7 +78,7 @@ class IrActualizer(
         // 3. Actualize expect calls in dependent fragments using info obtained in the previous steps
         val actualizerVisitor = ActualizerVisitor(symbolRemapper)
         dependentFragments.forEach { it.transform(actualizerVisitor, data = null) }
-        mainFragment.transform(actualizerVisitor, data = null)
+        mainFragment.transform(actualizerVisitor, data = null) // TODO(KT-77031): remove this line if deduplicating provider will return platform symbols
 
         // 4. Actualize property accessors actualized by java fields
         if (expectActualMap.propertyAccessorsActualizedByFields.isNotEmpty()) {

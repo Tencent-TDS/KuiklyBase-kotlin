@@ -42,13 +42,15 @@ class IrExpectActualMap() {
         return registeredActual
     }
 
-    internal fun addMappingFromPreFiller(
-        expectActualMapPreFiller: IrExpectActualMapPreFiller,
+    internal fun fillAdditionalMapping(
+        actualizerMapContributor: IrActualizerMapContributor,
         context: MatchingContext
     ) {
-        val classMapping = expectActualMapPreFiller.collectClassesMap().classMapping
+        val classMapping = actualizerMapContributor.collectClassesMap().classMapping
         _expectToActual += classMapping
         for ((expectClass, actualClass) in classMapping) {
+            // Here we call check for two classes only to match the scopes of these classes.
+            // Abstraction of matching leaked into checking in this place :sad:
             AbstractExpectActualChecker.checkSingleExpectTopLevelDeclarationAgainstMatchedActual(
                 expectClass,
                 actualClass,
@@ -56,7 +58,7 @@ class IrExpectActualMap() {
                 context.languageVersionSettings,
             )
         }
-        _expectToActual += expectActualMapPreFiller.collectTopLevelCallablesMap()
+        _expectToActual += actualizerMapContributor.collectTopLevelCallablesMap()
     }
 
 }

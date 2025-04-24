@@ -26,7 +26,11 @@ abstract class IrExtraActualDeclarationExtractor {
     abstract fun extract(expectTopLevelCallables: List<IrDeclarationWithName>, expectCallableId: CallableId): List<IrSymbol>
 }
 
-abstract class IrExpectActualMapPreFiller {
+/**
+ * Allows contributing additional pairs of symbols to [IrExpectActualMap], so they would be remapped during
+ * the symbol updating passes of IR actualizer
+ */
+abstract class IrActualizerMapContributor {
     abstract fun collectClassesMap(): ActualClassInfo
     abstract fun collectTopLevelCallablesMap(): Map<IrSymbol, IrSymbol>
 
