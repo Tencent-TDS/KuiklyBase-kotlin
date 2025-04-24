@@ -352,7 +352,7 @@ private fun compileImpl(
 
     val irInput = convertAnalyzedFirToIr(compilerConfiguration, targetId, analysisResults, compilerEnvironment)
 
-    val codegenOutput = generateCodeFromIr(irInput, compilerEnvironment)
+    val generationState = generateCodeFromIr(irInput, compilerEnvironment)
 
     diagnosticsReporter.reportToMessageCollector(messageCollector, renderDiagnosticName)
 
@@ -361,7 +361,7 @@ private fun compileImpl(
     }
 
     return makeCompiledScript(
-        codegenOutput.generationState,
+        generationState,
         snippet,
         snippetKtFile,
         sourceDependencies,

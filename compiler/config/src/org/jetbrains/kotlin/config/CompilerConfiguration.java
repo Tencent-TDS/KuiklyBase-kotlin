@@ -119,6 +119,12 @@ public class CompilerConfiguration {
         list.addAll(index, values);
     }
 
+    @Nullable
+    public <T> T remove(@NotNull CompilerConfigurationKey<T> key) {
+        checkReadOnly();
+        return (T) map.remove(key.ideaKey);
+    }
+
     public CompilerConfiguration copy() {
         CompilerConfiguration copy = new CompilerConfiguration();
         copy.map.putAll(map);
