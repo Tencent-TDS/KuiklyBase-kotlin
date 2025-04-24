@@ -52,6 +52,6 @@ constructor(
     }
 
     companion object {
-        const val NAME: String = "kotlinBinaryenSetup"
+        const val NAME: String = "binaryenSetup"
     }
 }

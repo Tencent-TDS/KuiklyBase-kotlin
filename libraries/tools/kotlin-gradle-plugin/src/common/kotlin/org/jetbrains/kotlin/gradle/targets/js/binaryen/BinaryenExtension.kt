@@ -53,7 +53,11 @@ open class BinaryenExtension(
 
     val setupTaskProvider: TaskProvider<BinaryenSetupTask>
         get() = rootProject.tasks.withType(BinaryenSetupTask::class.java)
-            .named(WasmPlatformDisambiguator.extensionName(BinaryenSetupTask.NAME))
+            .named(
+                WasmPlatformDisambiguator.extensionName(
+                    BinaryenSetupTask.NAME,
+                )
+            )
 
     internal val platform: org.gradle.api.provider.Property<BinaryenPlatform> = rootProject.objects.property<BinaryenPlatform>()
 

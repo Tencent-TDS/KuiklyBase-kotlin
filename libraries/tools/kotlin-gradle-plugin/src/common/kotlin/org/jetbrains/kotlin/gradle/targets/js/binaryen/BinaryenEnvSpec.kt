@@ -12,8 +12,8 @@ import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.EnvSpec
 import org.jetbrains.kotlin.gradle.targets.wasm.binaryen.BinaryenEnv
-import org.jetbrains.kotlin.gradle.targets.wasm.binaryen.BinaryenPlatform
 import org.jetbrains.kotlin.gradle.targets.wasm.binaryen.BinaryenEnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.binaryen.BinaryenPlatform
 import org.jetbrains.kotlin.gradle.targets.wasm.binaryen.BinaryenSetupTask
 import org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmPlatformDisambiguator
 import org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore
@@ -77,7 +77,11 @@ abstract class BinaryenEnvSpec : EnvSpec<BinaryenEnv>() {
 
     val Project.binaryenSetupTaskProvider: TaskProvider<out BinaryenSetupTask>
         get() = project.tasks.withType(BinaryenSetupTask::class.java)
-            .named(WasmPlatformDisambiguator.extensionName(BinaryenSetupTask.NAME))
+            .named(
+                WasmPlatformDisambiguator.extensionName(
+                    BinaryenSetupTask.NAME,
+                )
+            )
 
     companion object {
         const val EXTENSION_NAME: String = BinaryenEnvSpec.EXTENSION_NAME

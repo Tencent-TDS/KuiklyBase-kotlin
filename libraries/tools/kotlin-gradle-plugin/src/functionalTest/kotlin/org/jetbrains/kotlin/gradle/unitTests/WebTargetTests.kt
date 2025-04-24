@@ -26,13 +26,13 @@ class WebTargetTests {
             .map { it.name }
 
         val expected = setOf(
-            "wasmKotlinNodeJsSetup",
-            "wasmKotlinD8Setup",
-            "wasmKotlinYarnSetup",
-            "wasmKotlinBinaryenSetup",
+            "kotlinWasmNodeJsSetup",
+            "kotlinWasmD8Setup",
+            "kotlinWasmYarnSetup",
+            "kotlinWasmBinaryenSetup",
             "wasmRootPackageJson",
-            "wasmKotlinNpmInstall",
-            "wasmKotlinToolingInstall",
+            "kotlinWasmNpmInstall",
+            "kotlinWasmToolingInstall",
         )
         assertTrue(
             tasksInBuild.toSet().containsAll(

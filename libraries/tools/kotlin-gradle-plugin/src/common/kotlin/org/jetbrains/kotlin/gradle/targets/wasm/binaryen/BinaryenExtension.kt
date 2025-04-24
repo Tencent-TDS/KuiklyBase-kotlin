@@ -18,6 +18,6 @@ open class BinaryenExtension(
     binaryenSpec
 ) {
     companion object {
-        const val EXTENSION_NAME: String = "kotlinBinaryen"
+        const val EXTENSION_NAME: String = "binaryen"
     }
 }
