@@ -39,7 +39,7 @@ def _bench(start, msg):
         print(f"{msg()}: {time.monotonic() - start}")
 
 
-def evaluate(expr):
+def _evaluate(expr):
     target = lldb.debugger.GetSelectedTarget()
     if not target:
         raise DebuggerException("No target selected")
@@ -68,10 +68,14 @@ def evaluate(expr):
 
     # Store original frame information
     original_frame = frame
-    original_pc = frame.GetPC()
-    original_line_entry = frame.GetLineEntry()
-    original_file = original_line_entry.GetFileSpec().GetFilename() if original_line_entry else None
-    original_line = original_line_entry.GetLine() if original_line_entry else 0
+    # original_pc = frame.GetPC()
+    # original_line_entry = frame.GetLineEntry()
+    # if original_line_entry:
+    #     original_file = original_line_entry.GetFileSpec().GetFilename()
+    #     original_line = original_line_entry.GetLine()
+    # else:
+    #     original_file = None
+    #     original_line = 0
     original_frame_id = frame.GetFrameID()
 
     result = frame.EvaluateExpression(expr)
@@ -79,19 +83,24 @@ def evaluate(expr):
     # Try to find and restore the original frame
     current_frame = thread.GetSelectedFrame()
     if current_frame != original_frame:
-        log(lambda: "Warning: Frame changed during evaluation from {} to {}".format(original_frame, current_frame))
+        logging.debug(
+            "Warning: Frame changed during evaluation from %s to %s",
+            original_frame,
+            current_frame,
+        )
         # Try to find and restore the original frame
         for idx in range(thread.GetNumFrames()):
             frame = thread.GetFrameAtIndex(idx)
             if frame.GetFrameID() == original_frame_id:
                 thread.SetSelectedFrame(idx)
-                frame = original_frame
-                log(lambda: "Restored original frame")
+                logging.debug("Restored original frame")
                 break
 
     err = result.GetError()
     if not err.Success():
-        _log(lambda: "Expression evaluation failed: {} - {}".format(expr, err.description))
+        logging.debug(
+            "Expression evaluation failed: %s - %s", expr, err.description
+        )
         raise EvaluateDebuggerException(expr, err)
     logging.debug("%s => %s", expr, result)
     return result
@@ -129,9 +138,7 @@ def _symbol_loaded_address(name, debugger=lldb.debugger):
     # take first
     for candidate in candidates:
         address = candidate.GetStartAddress().GetLoadAddress(target)
-        logging.debug(
-            "%s %s", name, _hex(address)
-        )
+        logging.debug("%s %s", name, _hex(address))
         return address
 
     return 0
@@ -160,9 +167,7 @@ def _is_string_or_array(value):
         f": ((int)Konan_DebugIsArray({value_str})) ? 2 : 0)"
     )
     soa = _evaluate(expr).unsigned
-    logging.debug(
-        "%s: %s", value_str, soa
-    )
+    logging.debug("%s: %s", value_str, soa)
     _bench(start, lambda: f"is_string_or_array({value_str}) = {soa}")
     return soa
 
@@ -176,9 +181,7 @@ def _type_info(value):
     see runtime/src/main/cpp/Memory.h.
     """
     value_str = f"{_hex(value.unsigned)}"
-    logging.debug(
-        "%s: %s", value_str, value.GetTypeName()
-    )
+    logging.debug("%s: %s", value_str, value.GetTypeName())
     if value.GetTypeName() != "ObjHeader *":
         return None
     result = _evaluate(
@@ -256,8 +259,10 @@ _TYPES = [
 
 def _read_string(addr, size):
     error = lldb.SBError()
-    s = lldb.debugger.GetSelectedTarget().GetProcess().ReadCStringFromMemory(
-        int(addr), int(size), error
+    s = (
+        lldb.debugger.GetSelectedTarget()
+        .GetProcess()
+        .ReadCStringFromMemory(int(addr), int(size), error)
     )
     if not error.Success():
         raise DebuggerException()
@@ -282,10 +287,7 @@ def kotlin_object_type_summary(lldb_val, _):
     """
     Hook that is run by lldb to display a Kotlin object.
     """
-    logging.debug(
-        "%s: %s",
-        _hex(lldb_val.unsigned), lldb_val.type.name
-    )
+    logging.debug("%s: %s", _hex(lldb_val.unsigned), lldb_val.type.name)
     if lldb_val.GetTypeName() != "ObjHeader *":
         if lldb_val.GetValue() is None:
             return _NULL
@@ -299,10 +301,7 @@ def kotlin_object_type_summary(lldb_val, _):
 def _select_provider(lldb_val, tip, internal_dict):
     start = time.monotonic()
     value_str = f"{_hex(lldb_val.unsigned)}"
-    logging.debug(
-        "%s name:%s tip:%s",
-        value_str, lldb_val.name, _hex(tip)
-    )
+    logging.debug("%s name:%s tip:%s", value_str, lldb_val.name, _hex(tip))
     soa = _is_string_or_array(lldb_val)
     logging.debug("%s soa: %s", value_str, soa)
     ret = (
@@ -321,13 +320,12 @@ def _select_provider(lldb_val, tip, internal_dict):
 
 # noinspection PyUnresolvedReferences
 class KonanHelperProvider(lldb.SBSyntheticValueProvider):
-    def __init__(self, valobj, am_string, type_name, internal_dict={}):
+    def __init__(self, valobj, am_string, type_name, _):
         super().__init__(valobj)
         self._log = logging.getLogger(self.__class__.__name__)
         self._target = lldb.debugger.GetSelectedTarget()
         self._process = self._target.GetProcess()
         self._valobj = valobj
-        self._internal_dict = internal_dict.copy()
         self._type_name = type_name
         if am_string:
             return
@@ -338,7 +336,9 @@ class KonanHelperProvider(lldb.SBSyntheticValueProvider):
             ).signed
             self._log.debug(
                 "(int)[%s].Konan_DebugGetFieldCount(%s) = %s",
-                self._valobj.name, value_str, children_count
+                self._valobj.name,
+                value_str,
+                children_count,
             )
             self._children_count = children_count
 
@@ -351,8 +351,7 @@ class KonanHelperProvider(lldb.SBSyntheticValueProvider):
         value_type = self._field_type(index)
         address = self._field_address(index)
         self._log.debug(
-            "[%s, type:%s, address:%s]",
-            index, value_type, _hex(address)
+            "[%s, type:%s, address:%s]", index, value_type, _hex(address)
         )
         return _TYPE_CONVERSION[int(value_type)](
             self, self._valobj, address, str(self._field_name(index))
@@ -363,7 +362,9 @@ class KonanHelperProvider(lldb.SBSyntheticValueProvider):
         child = self._valobj.unsigned + self._children[index].offset()
         self._log.debug(
             "type:%s of %s of %s",
-            obj_type, _hex(self._valobj.unsigned), _hex(child)
+            obj_type,
+            _hex(self._valobj.unsigned),
+            _hex(child),
         )
         return obj_type
 
@@ -402,13 +403,10 @@ class KonanHelperProvider(lldb.SBSyntheticValueProvider):
 class KonanStringSyntheticProvider(KonanHelperProvider):
     def __init__(self, valobj):
         self._log = logging.getLogger(self.__class__.__name__)
-        self._log.debug(
-            "%s name:%s",
-            _hex(valobj.unsigned), valobj.name
-        )
+        self._log.debug("%s name:%s", _hex(valobj.unsigned), valobj.name)
         self._children_count = 0
         super(KonanStringSyntheticProvider, self).__init__(
-            valobj, True, "StringProvider"
+            valobj, True, "StringProvider", {}
         )
         fallback = valobj.GetValue()
         buff_addr = _evaluate("(void *)Konan_DebugBuffer()").unsigned
@@ -463,15 +461,11 @@ class KonanObjectSyntheticProvider(KonanHelperProvider):
             self._field_name(i) for i in range(self._children_count)
         ]
         self._log.debug(
-            "%s _children: %s",
-            _hex(self._valobj.unsigned), self._children
+            "%s _children: %s", _hex(self._valobj.unsigned), self._children
         )
 
     def _field_name(self, index):
-        self._log.debug(
-            "%s, %s",
-            _hex(self._valobj.unsigned), index
-        )
+        self._log.debug("%s, %s", _hex(self._valobj.unsigned), index)
         error = lldb.SBError()
         name = self._read_string(
             (
@@ -485,21 +479,23 @@ class KonanObjectSyntheticProvider(KonanHelperProvider):
             raise DebuggerException()
         logging.debug(
             "KonanObjectSyntheticProvider (%s, %s) = %s",
-            _hex(self._valobj.unsigned), index, name
+            _hex(self._valobj.unsigned),
+            index,
+            name,
         )
         return name
 
     def num_children(self):
         self._log.debug(
-            "%s = %s",
-            _hex(self._valobj.unsigned), self._children_count
+            "%s = %s", _hex(self._valobj.unsigned), self._children_count
         )
         return self._children_count
 
     def has_children(self):
         self._log.debug(
             "%s = %s",
-            _hex(self._valobj.unsigned), self._children_count > 0
+            _hex(self._valobj.unsigned),
+            self._children_count > 0,
         )
         return self._children_count > 0
 
@@ -529,38 +525,29 @@ class KonanArraySyntheticProvider(KonanHelperProvider):
 
     def num_children(self):
         self._log.debug(
-            "(%s) = %s",
-            _hex(self._valobj.unsigned), self._children_count
+            "(%s) = %s", _hex(self._valobj.unsigned), self._children_count
         )
         return self._children_count
 
     def has_children(self):
         self._log.debug(
             "(%s) = %s",
-            _hex(self._valobj.unsigned), self._children_count > 0
+            _hex(self._valobj.unsigned),
+            self._children_count > 0,
         )
         return self._children_count > 0
 
     def get_child_index(self, name):
-        self._log.debug(
-            "%s, %s",
-            _hex(self._valobj.unsigned), name
-        )
+        self._log.debug("%s, %s", _hex(self._valobj.unsigned), name)
         index = int(name)
         return index if (0 <= index < self._children_count) else -1
 
     def get_child_at_index(self, index):
-        self._log.debug(
-            "%s, %s",
-            _hex(self._valobj.unsigned), index
-        )
+        self._log.debug("%s, %s", _hex(self._valobj.unsigned), index)
         return self._read_value(index)
 
     def _field_name(self, index):
-        self._log.debug(
-            "%s, %s",
-            _hex(self._valobj.unsigned), index
-        )
+        self._log.debug("%s, %s", _hex(self._valobj.unsigned), index)
         return str(index)
 
 
@@ -612,7 +599,9 @@ class KonanProxyTypeProvider:
         if valobj.unsigned == 0:
             self._log.debug(
                 "%s, name: %s NULL syntectic %s",
-                value_str, value_name, valobj.IsValid()
+                value_str,
+                value_name,
+                valobj.IsValid(),
             )
             _bench(start, lambda: f"KonanProxyTypeProvider({value_str})")
             self._proxy = KonanNullSyntheticProvider(valobj)
@@ -622,20 +611,18 @@ class KonanProxyTypeProvider:
         if not tip:
             self._log.debug(
                 "%s, name: %s NULL syntectic %s",
-                value_str, value_name, valobj.IsValid()
+                value_str,
+                value_name,
+                valobj.IsValid(),
             )
             _bench(start, lambda: f"KonanProxyTypeProvider({value_str})")
             self._proxy = KonanNotInitializedObjectSyntheticProvider(valobj)
             return
-        self._log.debug(
-            "%s tip: %s",
-            value_str, _hex(tip)
-        )
+        self._log.debug("%s tip: %s", value_str, _hex(tip))
         self._proxy = _select_provider(valobj, tip, internal_dict)
         _bench(start, lambda: f"KonanProxyTypeProvider({value_str})")
         self._log.debug(
-            "%s _proxy: %s",
-            value_str, self._proxy.__class__.__name__
+            "%s _proxy: %s", value_str, self._proxy.__class__.__name__
         )
 
     def __getattr__(self, item):
@@ -649,9 +636,7 @@ def _get_runtime_type(variable):
     return "" if type_name is None else type_name.strip('"')
 
 
-def field_type_command(
-    _, field_address, exe_ctx, result, internal_dict
-):
+def field_type_command(_, field_address, exe_ctx, result, internal_dict):
     """
     Returns runtime type of foo.bar.baz field in the form of
     '(foo.bar.baz <TYPE_NAME>)'. If requested field could not be traced,
@@ -697,7 +682,7 @@ _TYPES_KONAN_TO_C = {
 }
 
 
-def type_by_address_command(debugger, command, result, internal_dict):
+def type_by_address_command(debugger, command, result, _):
     result.AppendMessage(f"DEBUG: {command}")
     tokens = command.split()
     target = debugger.GetSelectedTarget()
@@ -709,7 +694,7 @@ def type_by_address_command(debugger, command, result, internal_dict):
         )
 
 
-def symbol_by_name_command(debugger, command, result, internal_dict):
+def symbol_by_name_command(debugger, command, result):
     target = debugger.GetSelectedTarget()
     process = target.GetProcess()
     thread = process.GetSelectedThread()
@@ -730,7 +715,7 @@ def symbol_by_name_command(debugger, command, result, internal_dict):
         )
 
 
-def konan_globals_command(debugger, command, result, internal_dict):
+def konan_globals_command(debugger, _, result, __):
     target = debugger.GetSelectedTarget()
     process = target.GetProcess()
     thread = process.GetSelectedThread()
@@ -738,7 +723,8 @@ def konan_globals_command(debugger, command, result, internal_dict):
 
     konan_variable_symbols = list(
         filter(
-            lambda v: _KONAN_VARIABLE.match(v.name), frame.GetModule().symbols
+            lambda v: _KONAN_VARIABLE.match(v.name),
+            frame.GetModule().symbols,
         )
     )
     visited = list()
@@ -749,8 +735,8 @@ def konan_globals_command(debugger, command, result, internal_dict):
             continue
         visited.append(name)
 
-        def match(value):
-            return re.match(f"^kfun:<get-{name}>\\(\\).*$", value.name)
+        def match(v):
+            return re.match(f"^kfun:<get-{name}>\\(\\).*$", v.name)
 
         getters = list(filter(match, frame.module.symbols))
         if not getters:
@@ -766,15 +752,15 @@ def konan_globals_command(debugger, command, result, internal_dict):
             .function.GetStartAddress()
             .GetLoadAddress(target)
         )
-        type = _KONAN_VARIABLE_TYPE.search(getters[0].name).group(2)
+        t = _KONAN_VARIABLE_TYPE.search(getters[0].name).group(2)
         (c_type, extractor) = (
-            _TYPES_KONAN_TO_C[type]
-            if type in _TYPES_KONAN_TO_C.keys()
-            else ("ObjHeader *", lambda v: kotlin_object_type_summary(v))
+            _TYPES_KONAN_TO_C[t]
+            if t in _TYPES_KONAN_TO_C.keys()
+            else ("ObjHeader *", lambda v: kotlin_object_type_summary(v, {}))
         )
         value = _evaluate(f"(({c_type} (*)()){_hex(address)})()")
         str_value = extractor(value)
-        result.AppendMessage(f"{type} {name}: {str_value}")
+        result.AppendMessage(f"{t} {name}: {str_value}")
 
 
 def _hex(value):
@@ -811,20 +797,23 @@ def __lldb_init_module(debugger, _):
     _FACTORY["object"] = lambda x, y, z: KonanObjectSyntheticProvider(x, y, z)
     _FACTORY["array"] = lambda x, y, z: KonanArraySyntheticProvider(x, z)
     _FACTORY["string"] = lambda x, y, _: KonanStringSyntheticProvider(x)
-    debugger.HandleCommand((
-        "type summary add "
-        "--no-value "
-        "--python-function konan_lldb.kotlin_object_type_summary "
-        "ObjHeader *"
-        "--category Kotlin"
-
-    ))
-    debugger.HandleCommand((
-        "type synthetic add "
-        "--python-class konan_lldb.KonanProxyTypeProvider "
-        "ObjHeader *"
-        "--category Kotlin"
-    ))
+    debugger.HandleCommand(
+        (
+            "type summary add "
+            "--no-value "
+            "--python-function konan_lldb.kotlin_object_type_summary "
+            "ObjHeader *"
+            "--category Kotlin"
+        )
+    )
+    debugger.HandleCommand(
+        (
+            "type synthetic add "
+            "--python-class konan_lldb.KonanProxyTypeProvider "
+            "ObjHeader *"
+            "--category Kotlin"
+        )
+    )
     debugger.HandleCommand("type category enable Kotlin")
     debugger.HandleCommand(
         f"command script add -f {__name__}.field_type_command field_type"
