@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnderlyingTypeKind
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext.isNullableType
+import org.jetbrains.kotlin.types.model.convertVariance
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.representativeUpperBound
 
@@ -33,10 +34,11 @@ fun DeclarationDescriptor.isMultiFieldValueClass(): Boolean =
 
 fun DeclarationDescriptor.isValueClass(): Boolean = isInlineClass() || isMultiFieldValueClass()
 
-fun KotlinType.unsubstitutedUnderlyingType(): KotlinType? = unsubstitutedUnderlyingKind()?.type as? KotlinType
+fun KotlinType.unsubstitutedUnderlyingType(): KotlinType? =
+    (constructor.declarationDescriptor as? ClassDescriptor)?.inlineClassRepresentation?.underlyingType
 
 fun KotlinType.unsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
-    val underlyingType = (constructor.declarationDescriptor as? ClassDescriptor)?.inlineClassRepresentation?.underlyingType ?: return null
+    val underlyingType = unsubstitutedUnderlyingType() ?: return null
 
     val substitutor = this.constructor.parameters.zip(this.arguments).associate { (parameter, argument) ->
         parameter.typeConstructor to when {
@@ -65,7 +67,7 @@ fun KotlinType.unsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
                     val substitutedRepresentative = substitutor.substitute(representative, Variance.INVARIANT)
                     UnderlyingTypeKind.ArrayOfTypeParameter(
                         underlyingType,
-                        argument.projectionKind,
+                        argument.projectionKind.convertVariance(),
                         substitutedRepresentative ?: representative
                     )
                 }

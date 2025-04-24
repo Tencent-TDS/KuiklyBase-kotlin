@@ -21,7 +21,7 @@ sealed interface UnderlyingTypeKind {
 
     class ArrayOfTypeParameter(
         override val type: KotlinTypeMarker,
-        val variance: Variance,
+        val variance: TypeVariance,
         val representativeElementUpperBound: KotlinTypeMarker
     ) : UnderlyingTypeKind
 
@@ -54,8 +54,45 @@ interface TypeSystemCommonBackendContext : TypeSystemContext {
     fun TypeConstructorMarker.getValueClassProperties(): List<Pair<Name, RigidTypeMarker>>?
     fun TypeConstructorMarker.isInnerClass(): Boolean
     fun TypeParameterMarker.getRepresentativeUpperBound(): KotlinTypeMarker
-    fun KotlinTypeMarker.getUnsubstitutedUnderlyingKind(): UnderlyingTypeKind?
-    fun KotlinTypeMarker.getUnsubstitutedUnderlyingType(): KotlinTypeMarker? = getUnsubstitutedUnderlyingKind()?.type
+
+    fun KotlinTypeMarker.getUnsubstitutedUnderlyingType(): KotlinTypeMarker?
+    fun KotlinTypeMarker.getUnsubstitutedUnderlyingKind(): UnderlyingTypeKind? {
+        fun substitute(type: KotlinTypeMarker): KotlinTypeMarker {
+            val typeParameters = this@getUnsubstitutedUnderlyingKind.typeConstructor().getParameters()
+            val typeArguments = this@getUnsubstitutedUnderlyingKind.getArguments().mapIndexed { index, typeArgument ->
+                typeArgument.getType() ?: typeParameters[index].getRepresentativeUpperBound()
+            }
+            val mapping = typeParameters.map { it.getTypeConstructor() }.zip(typeArguments).toMap()
+            return typeSubstitutorByTypeConstructor(mapping).safeSubstitute(type)
+        }
+
+        val underlyingType = getUnsubstitutedUnderlyingType() ?: return null
+        val underlyingTypeParameter = underlyingType.typeConstructor().getTypeParameterClassifier()
+        return when {
+            underlyingTypeParameter != null -> {
+                val typeBound = substitute(underlyingTypeParameter.getRepresentativeUpperBound())
+                return UnderlyingTypeKind.TypeParameter(underlyingType, typeBound)
+            }
+            underlyingType.isArrayOrNullableArray() -> {
+                val argument = underlyingType.getArguments().single()
+                when (val elementTypeParameter = argument.getType()?.typeConstructor()?.getTypeParameterClassifier()) {
+                    null -> UnderlyingTypeKind.Regular(substitute(underlyingType))
+                    else -> {
+                        val elementBound = substitute(elementTypeParameter.getRepresentativeUpperBound())
+                        return UnderlyingTypeKind.ArrayOfTypeParameter(
+                            underlyingType,
+                            argument.getVariance(),
+                            elementBound
+                        )
+                    }
+                }
+            }
+            else -> {
+                UnderlyingTypeKind.Regular(substitute(underlyingType))
+            }
+        }
+    }
+
     fun KotlinTypeMarker.getSubstitutedUnderlyingType(): KotlinTypeMarker?
 
     fun KotlinTypeMarker.makeNullable(): KotlinTypeMarker =

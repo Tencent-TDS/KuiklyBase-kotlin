@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.types
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
+import org.jetbrains.kotlin.types.model.TypeVariance
 
 fun TypeSystemCommonBackendContext.computeExpandedTypeForInlineClass(inlineClassType: KotlinTypeMarker): KotlinTypeMarker? =
     computeExpandedTypeInner(inlineClassType, hashSetOf())
@@ -46,7 +47,7 @@ private fun TypeSystemCommonBackendContext.computeExpandedTypeInner(
                 }
                 is UnderlyingTypeKind.ArrayOfTypeParameter -> {
                     val elementTypeBounded = when (unsubstitutedUnderlyingKind.variance) {
-                        Variance.IN_VARIANCE -> nullableAnyType()
+                        TypeVariance.IN -> nullableAnyType()
                         else -> unsubstitutedUnderlyingKind.representativeElementUpperBound
                     }
                     val arrayType = arrayType(elementTypeBounded)
