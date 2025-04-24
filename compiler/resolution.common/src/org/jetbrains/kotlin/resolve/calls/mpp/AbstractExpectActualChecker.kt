@@ -308,7 +308,8 @@ object AbstractExpectActualChecker {
                             parentSubstitutor
                         )
 
-                        // We need to match scopes
+                        // Here we call check for two classes only to match the scopes of these classes, so the return value is ignored.
+                        // Abstraction of matching leaked into checking in this place :sad:
                         getClassScopesIncompatibility(expectMember, actualClass, substitutor, languageVersionSettings)
                     }
                 }

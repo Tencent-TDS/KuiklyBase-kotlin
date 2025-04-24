@@ -460,6 +460,10 @@ class CombinedSet<E>(val sets: List<Set<E>>) : AbstractSet<E>() {
     }
 }
 
+/**
+ * Note that this iterator don't properly support throwing of [ConcurrentModificationException]
+ * if one of underlying collections was modified
+ */
 class ChainedIterator<T>(delegates: Collection<Iterator<T>>) : Iterator<T> {
     private var metaIterator = delegates.iterator()
     private var currentIterator: Iterator<T>? = null

@@ -30,12 +30,12 @@ class IrExpectActualMap() {
      * This map contains expect-actual and common-platform mapping for declarations from dependencies
      * for HMPP compilation scheme
      */
-    private val symbolMapFromPreFiller: MutableMap<IrSymbol, IrSymbol> = mutableMapOf()
+    private val symbolMapFromContributor: MutableMap<IrSymbol, IrSymbol> = mutableMapOf()
 
     /**
      * This map contains the complete symbols mapping, which should be used for actualization
      */
-    val symbolMap: Map<IrSymbol, IrSymbol> = CombinedMap(expectToActual, symbolMapFromPreFiller)
+    val symbolMap: Map<IrSymbol, IrSymbol> = CombinedMap(expectToActual, symbolMapFromContributor)
 
     /**
      * Direct means "not through typealias".
@@ -53,7 +53,7 @@ class IrExpectActualMap() {
     fun putRegular(expectSymbol: IrSymbol, actualSymbol: IrSymbol): IrSymbol? {
         val destination = when {
             sourceDeclarationMappingMode -> _expectToActual
-            else -> symbolMapFromPreFiller
+            else -> symbolMapFromContributor
         }
         val registeredActual = destination.put(expectSymbol, actualSymbol)
         val expect = expectSymbol.owner
@@ -72,7 +72,7 @@ class IrExpectActualMap() {
     ) {
         sourceDeclarationMappingMode = false
         val classMapping = actualizerMapContributor.collectClassesMap().classMapping
-        symbolMapFromPreFiller += classMapping
+        symbolMapFromContributor += classMapping
         for ((expectClass, actualClass) in classMapping) {
             // Here we call check for two classes only to match the scopes of these classes.
             // Abstraction of matching leaked into checking in this place :sad:
@@ -83,7 +83,7 @@ class IrExpectActualMap() {
                 context.languageVersionSettings,
             )
         }
-        symbolMapFromPreFiller += actualizerMapContributor.collectTopLevelCallablesMap()
+        symbolMapFromContributor += actualizerMapContributor.collectTopLevelCallablesMap()
         sourceDeclarationMappingMode = true
     }
 
