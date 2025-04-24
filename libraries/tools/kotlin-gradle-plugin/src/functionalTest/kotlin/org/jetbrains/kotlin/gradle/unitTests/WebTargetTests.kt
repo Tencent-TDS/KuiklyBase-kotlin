@@ -32,7 +32,7 @@ class WebTargetTests {
             "kotlinWasmBinaryenSetup",
             "wasmRootPackageJson",
             "kotlinWasmNpmInstall",
-            "kotlinWasmToolingInstall",
+            "kotlinWasmToolingSetup",
         )
         assertTrue(
             tasksInBuild.toSet().containsAll(
