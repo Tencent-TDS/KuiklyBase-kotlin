@@ -10,6 +10,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.targets.js.dsl.Distribution
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject
 import org.jetbrains.kotlin.gradle.targets.js.npm.fromSrcPackageJson
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.wasm.binaryen.BinaryenEnvSpec
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.gradle.util.replaceText
@@ -590,6 +591,41 @@ class KotlinWasmGradlePluginIT : KGPBaseTest() {
                 val appNodeFetchVersion = moduleVersion("build/wasm/node_modules/wasm-composite-build", "node-fetch")
                 assertEquals("3.2.8", appNodeFetchVersion)
             }
+        }
+    }
+
+    @DisplayName("Check js target with Firefox browser tests")
+    @GradleTest
+    @OsCondition(supportedOn = [OS.LINUX], enabledOnCI = [OS.LINUX])
+    fun jsTargetWithBrowserTesting(gradleVersion: GradleVersion) {
+        project("wasm-js-firefox-test", gradleVersion) {
+            buildScriptInjection {
+                @OptIn(ExperimentalWasmDsl::class)
+                kotlinMultiplatform.wasmJs {
+                    browser {
+                        testTask {
+                            it.useKarma {
+                                useFirefoxHeadless()
+                            }
+                        }
+                    }
+                }
+
+                project.tasks.withType(KotlinJsTest::class.java).configureEach { task ->
+                    val firefox = project.projectDir.resolve("firefox")
+
+                    task.doFirst {
+                        it as KotlinJsTest
+                        it.environment(
+                            "FIREFOX_BIN",
+                            firefox.absolutePath
+                        )
+                    }
+                }
+            }
+
+            build("downloadFirefox")
+            build("wasmJsBrowserTest")
         }
     }
 }
