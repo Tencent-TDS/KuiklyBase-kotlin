@@ -7,25 +7,26 @@ package org.jetbrains.kotlin.ir.backend.js.export
 
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
-import org.jetbrains.kotlin.ir.backend.js.lower.isEs6PrimaryConstructorReplacement
 import org.jetbrains.kotlin.ir.backend.js.utils.*
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.js.common.isValidES5Identifier
 import org.jetbrains.kotlin.serialization.js.ModuleKind
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
-import org.jetbrains.kotlin.utils.findIsInstanceAnd
+import org.jetbrains.kotlin.utils.addToStdlib.butIf
+import kotlin.String
 
 private const val NonNullable = "NonNullable"
-private const val Nullable = "Nullable"
-private const val objects = "_objects_"
 private const val declare = "declare "
 private const val declareExported = "export $declare"
 
 private const val NonExistent = "__NonExistent"
-private const val syntheticObjectNameSeparator = '$'
+
+private const val Metadata = $$"$metadata$"
+private const val MetadataConstructor = "constructor"
+private const val Nullable = "Nullable"
+private const val ObjectInheritanceIntrinsic = "KtSingleton"
 
 @JvmInline
 value class TypeScriptFragment(val raw: String)
@@ -44,17 +45,18 @@ fun List<TypeScriptFragment>.toTypeScript(name: String, moduleKind: ModuleKind):
 
 // TODO: Support module kinds other than plain
 class ExportModelToTsDeclarations {
-    private val objectsSyntheticProperties = mutableListOf<ExportedProperty>()
-
     private val ModuleKind.indent: String
         get() = if (this == ModuleKind.PLAIN) "    " else ""
 
     fun generateTypeScript(name: String, moduleKind: ModuleKind, declarations: List<TypeScriptFragment>): String {
-        val types = """
-           type $Nullable<T> = T | null | undefined
-        """.trimIndent().prependIndent(moduleKind.indent) + "\n"
+        val indent = moduleKind.indent
+        val intrinsicsPrefix = if (moduleKind == ModuleKind.PLAIN) "" else "declare "
+        val internalNamespace = """
+            type $Nullable<T> = T | null | undefined
+            ${intrinsicsPrefix}function $ObjectInheritanceIntrinsic<T>(): T & (abstract new() => any);
+        """.trimIndent().prependIndent(indent) + "\n"
 
-        val declarationsDts = types + declarations.joinTypeScriptFragments().raw
+        val declarationsDts = internalNamespace + declarations.joinTypeScriptFragments().raw
 
         val namespaceName = sanitizeName(name, withHash = false)
 
@@ -76,17 +78,6 @@ class ExportModelToTsDeclarations {
                 prefix = if (moduleKind == ModuleKind.PLAIN) "" else declareExported,
                 esModules = moduleKind == ModuleKind.ES
             )
-        } + generateObjectsNamespaceIfNeeded(
-            indent = moduleKind.indent,
-            prefix = if (moduleKind == ModuleKind.PLAIN) "" else declare,
-        )
-    }
-
-    private fun generateObjectsNamespaceIfNeeded(indent: String, prefix: String): String {
-        return if (objectsSyntheticProperties.isEmpty()) {
-            ""
-        } else {
-            "\n" + ExportedNamespace(objects, objectsSyntheticProperties).toTypeScript(indent, prefix)
         }
     }
 
@@ -211,69 +202,50 @@ class ExportModelToTsDeclarations {
     }
 
     private fun ExportedObject.generateTypeScriptString(indent: String, prefix: String, esModules: Boolean = false): String {
-        val shouldRenderSeparatedAbstractClass = !couldBeProperty()
-
-        val extraMembers = nestedClasses
-            .takeIf { !shouldRenderSeparatedAbstractClass }
-            ?.map { it as ExportedObject }
-            .orEmpty()
-
-        var t: ExportedType = ExportedType.InlineInterfaceType(members + extraMembers)
-
-        for (superInterface in superClasses + superInterfaces) {
-            t = ExportedType.IntersectionType(t, superInterface)
-        }
-
-        if (shouldRenderSeparatedAbstractClass) {
-            val constructor = ExportedConstructSignature(emptyList(), ExportedType.Primitive.Any)
-            t = ExportedType.IntersectionType(t, ExportedType.InlineInterfaceType(listOf(constructor)))
-        }
-
         val maybeParentClass = (ir.parent as? IrClass)?.takeIf { !it.isInterface }
-
-        val propertyName = ir
-            .takeIf { shouldRenderSeparatedAbstractClass }
-            ?.getFqNameWithJsNameWhenAvailable(true)
-            ?.asString()
-            ?.replace('.', syntheticObjectNameSeparator) ?: name
-
-        val property = ExportedProperty(
-            name = propertyName,
-            type = t,
-            mutable = false,
-            isMember = maybeParentClass != null && !shouldRenderSeparatedAbstractClass,
-            isStatic = !ir.isInner && maybeParentClass?.isObject == false,
-            isProtected = ir.visibility == DescriptorVisibilities.PROTECTED,
-            irGetter = irGetter,
+        val className = NonExistent.takeIf { esModules }.orEmpty() + name
+        val classContainingShape = ExportedRegularClass(
+            name = MetadataConstructor,
+            isInterface = false,
+            isAbstract = true,
+            requireMetadata = false,
+            ir = ir,
+            typeParameters = emptyList(),
+            nestedClasses = emptyList(),
+            superClasses = superClasses,
+            superInterfaces = superInterfaces,
+            members = members + ExportedConstructor(emptyList(), ExportedVisibility.PRIVATE),
+        )
+        val classForRender = ExportedRegularClass(
+            name = className,
+            isInterface = false,
+            isAbstract = true,
+            ir = ir,
+            requireMetadata = false,
+            typeParameters = typeParameters,
+            nestedClasses = nestedClasses,
+            superClasses = listOfNotNull(
+                ExportedType.ObjectsParentType(
+                    ExportedType.ClassType("$className.$Metadata.$MetadataConstructor", emptyList(), ir),
+                )
+            ),
+            members = listOf(ExportedConstructor(emptyList(), ExportedVisibility.PRIVATE))
         )
 
-        return if (!shouldRenderSeparatedAbstractClass) {
-            property.generateTypeScriptString(indent, prefix, esModules)
-        } else {
-            val className = NonExistent.takeIf { esModules }.orEmpty() + name
-            val propertyRef = "$objects.$propertyName"
-            val shouldCreateExtraProperty = members.isNotEmpty() || superInterfaces.isNotEmpty() || superClasses.isNotEmpty()
-            val newSuperClass = ExportedType.ClassType(propertyRef, emptyList(), ir).takeIf { shouldCreateExtraProperty }
-            val classForRender = ExportedRegularClass(
-                name = className,
-                isInterface = false,
-                isAbstract = true,
-                superClasses = listOfNotNull(newSuperClass),
-                superInterfaces = superInterfaces,
-                typeParameters = emptyList(),
-                members = listOf(ExportedConstructor(emptyList(), ExportedVisibility.PRIVATE)),
-                nestedClasses = nestedClasses,
-                ir = ir
-            )
-                .also { if (shouldCreateExtraProperty) objectsSyntheticProperties.add(property) }
+        val esModulesProperty = runIf(esModules && maybeParentClass == null) {
+            ExportedProperty(
+                name = name,
+                type = ExportedType.TypeOf(className),
+                mutable = false,
+                irGetter = irGetter,
+            ).generateTypeScriptString(indent, prefix, esModules) + "\n"
+        }.orEmpty()
 
-            if (esModules && !property.isMember) {
-                property.copy(type = ExportedType.TypeOf(className), name = name)
-                    .generateTypeScriptString(indent, prefix, esModules) + "\n${classForRender.generateTypeScriptString(indent, declare, esModules)}"
-            } else {
-                classForRender.generateTypeScriptString(indent, prefix, esModules)
-            }
-        }
+        val objectClass = classForRender.generateTypeScriptString(indent, prefix, esModules)
+        val objectMetadata = generateMetadataNamespace(className, listOf(classContainingShape))
+            .toTypeScript(indent, prefix, esModules)
+
+        return "$esModulesProperty$objectClass\n$objectMetadata"
     }
 
     private fun ExportedRegularClass.generateTypeScriptString(indent: String, prefix: String, esModules: Boolean): String {
@@ -284,8 +256,6 @@ class ExportModelToTsDeclarations {
         val superClassClause = superClasses.toExtendsClause(indent)
         val superInterfacesClause = superInterfaces.toImplementsClause(superInterfacesKeyword, indent)
 
-        val (memberObjects, nestedDeclarations) = allNestedClasses.partition { it.couldBeProperty() }
-
         val members = members.map {
             if (!ir.isInner || it !is ExportedFunction || !it.isStatic) {
                 it
@@ -293,9 +263,9 @@ class ExportModelToTsDeclarations {
                 // Remove $outer argument from secondary constructors of inner classes
                 it.copy(parameters = it.parameters.drop(1))
             }
-        } + memberObjects
+        }
 
-        val (innerClasses, nonInnerClasses) = nestedDeclarations.partition { it.ir.isInner }
+        val (innerClasses, nonInnerClasses) = allNestedClasses.partition { it.ir.isInner }
         val innerClassesProperties = innerClasses.map { it.toReadonlyProperty() }
         val membersString = (members + innerClassesProperties)
             .joinToString("") { it.toTypeScript("$indent    ") + "\n" }
@@ -318,41 +288,35 @@ class ExportModelToTsDeclarations {
         val bodyString = privateCtorString + membersString + indent
 
         val realNestedClasses = nonInnerClasses + innerClasses.map { it.withProtectedConstructors() }
-        val tsIgnoreForPrivateConstructorInheritance = if (hasSuperClassWithPrivateConstructor()) {
-            tsIgnore("extends class with private primary constructor") + "\n$indent"
-        } else null
-
-        val tsIgnoreForCompanionInheritance = if (hasSuperClassAndCompanion()) {
-            tsIgnore("https://github.com/microsoft/TypeScript/issues/4628") + "\n$indent"
-        } else null
-
-        val tsIgnore = tsIgnoreForPrivateConstructorInheritance ?: tsIgnoreForCompanionInheritance ?: ""
 
         val klassExport =
             "$prefix$modifiers$keyword $name$renderedTypeParameters$superClassClause$superInterfacesClause {\n$bodyString}"
         val staticsExport =
             if (realNestedClasses.isNotEmpty()) "\n" + ExportedNamespace(name, realNestedClasses).toTypeScript(indent, prefix) else ""
 
+        val metadataString = runIf(requireMetadata) {
+            val constructorProperty = ExportedProperty(
+                name = MetadataConstructor,
+                type = ExportedType.ConstructorType(
+                    typeParameters,
+                    ExportedType.ClassType(name, typeParameters.map { it.copy(constraint = null) }, ir)
+                ),
+                mutable = false,
+            )
+            generateMetadataNamespace(name, listOf(constructorProperty))
+                .toTypeScript(indent, prefix, esModules)
+                .let { "\n" + it }
+        }.orEmpty()
+
         val interfaceCompanionsString = if (interfaceCompanions.isNotEmpty()) "\n" + interfaceCompanions.joinToString("\n") {
-            it.toTypeScript(
+            (it as ExportedObject).copy(typeParameters = typeParameters).toTypeScript(
                 indent,
                 prefix,
                 esModules
             )
         } else ""
 
-        return if (name.isValidES5Identifier()) tsIgnore + klassExport + staticsExport + interfaceCompanionsString else ""
-    }
-
-    private fun ExportedRegularClass.hasSuperClassWithPrivateConstructor(): Boolean {
-        val superClass = superClasses.firstIsInstanceOrNull<ExportedType.ClassType>()?.ir?.takeIf { !it.isObject } ?: return false
-        val exportedConstructor = superClass.primaryConstructor ?: superClass.declarations.findIsInstanceAnd<IrFunction> { it.isEs6PrimaryConstructorReplacement }
-        return exportedConstructor?.let { it.visibility == DescriptorVisibilities.PRIVATE || it.hasAnnotation(JsAnnotations.jsExportIgnoreFqn) } ?: true
-    }
-
-    private fun ExportedRegularClass.hasSuperClassAndCompanion(): Boolean {
-        val superClass = superClasses.firstIsInstanceOrNull<ExportedType.ClassType>()?.ir?.takeIf { !it.isObject }
-        return superClass != null && ir.companionObject()?.isJsExportIgnore() == false
+        return if (name.isValidES5Identifier()) klassExport + metadataString + staticsExport + interfaceCompanionsString else ""
     }
 
     private fun List<ExportedType>.toExtendsClause(indent: String): String {
@@ -365,7 +329,11 @@ class ExportModelToTsDeclarations {
             " /* extends $implicitlyExportedClassesString */"
         } else {
             val originallyDefinedSuperClass = implicitlyExportedClassesString.takeIf { it.isNotEmpty() }?.let { "/* $it */ " }.orEmpty()
-            val transitivelyDefinedSuperClass = single { it !is ExportedType.ImplicitlyExportedType }.toTypeScript(indent, false)
+            val transitivelyDefinedSuperClass = when (val parentType = single { it !is ExportedType.ImplicitlyExportedType }) {
+                is ExportedType.ClassType -> parentType.copy(name = "${parentType.name}.$Metadata.$MetadataConstructor")
+                else -> parentType
+            }.toTypeScript(indent, false)
+
             " extends $originallyDefinedSuperClass$transitivelyDefinedSuperClass"
         }
     }
@@ -446,11 +414,23 @@ class ExportModelToTsDeclarations {
     private fun ExportedType.toTypeScript(indent: String, isInCommentContext: Boolean = false): String = when (this) {
         is ExportedType.Primitive -> typescript
         is ExportedType.Array -> "Array<${elementType.toTypeScript(indent, isInCommentContext)}>"
+        is ExportedType.ObjectsParentType -> "$ObjectInheritanceIntrinsic<${constructor.toTypeScript(indent, isInCommentContext)}>()"
+
         is ExportedType.Function -> "(" + parameterTypes
             .withIndex()
             .joinToString(", ") { (index, type) ->
                 "p$index: ${type.toTypeScript(indent, isInCommentContext)}"
             } + ") => " + returnType.toTypeScript(indent, isInCommentContext)
+
+        is ExportedType.ConstructorType ->
+            "abstract new " + (if (typeParameters.isNotEmpty()) "<${
+                typeParameters.joinToString(", ") {
+                    it.toTypeScript(
+                        indent,
+                        isInCommentContext
+                    )
+                }
+            }>" else "") + "() => ${returnType.toTypeScript(indent, isInCommentContext)}"
 
         is ExportedType.ClassType ->
             name + if (arguments.isNotEmpty()) "<${arguments.joinToString(", ") { it.toTypeScript(indent, isInCommentContext) }}>" else ""
@@ -499,15 +479,9 @@ class ExportModelToTsDeclarations {
         }
     }
 
-    private fun ExportedClass.couldBeProperty(): Boolean {
-        return this is ExportedObject && nestedClasses.all {
-            it.couldBeProperty() && it.ir.visibility != DescriptorVisibilities.PROTECTED
-        }
-    }
-
-    private fun tsIgnore(reason: String): String {
-        return "/* @ts-ignore: $reason */"
-    }
+    private fun generateMetadataNamespace(name: String, members: List<ExportedDeclaration>): ExportedNamespace =
+        ExportedNamespace("$name.$Metadata", members)
+            .apply { attributes += ExportedAttribute.DeprecatedAttribute("$Metadata is used for internal purposes, please don't use it in your code, because we can remove it in any moment") }
 
     private fun tsDeprecated(message: String): String {
         return "/** @deprecated $message */"

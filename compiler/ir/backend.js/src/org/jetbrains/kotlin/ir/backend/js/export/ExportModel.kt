@@ -86,6 +86,7 @@ data class ExportedRegularClass(
     override val name: String,
     val isInterface: Boolean = false,
     val isAbstract: Boolean = false,
+    val requireMetadata: Boolean = !isInterface,
     override val superClasses: List<ExportedType> = emptyList(),
     override val superInterfaces: List<ExportedType> = emptyList(),
     val typeParameters: List<ExportedType.TypeParameter>,
@@ -101,7 +102,8 @@ data class ExportedObject(
     override val members: List<ExportedDeclaration>,
     override val nestedClasses: List<ExportedClass>,
     override val ir: IrClass,
-    val irGetter: IrSimpleFunction? = null
+    val irGetter: IrSimpleFunction? = null,
+    val typeParameters: List<ExportedType.TypeParameter> = emptyList(),
 ) : ExportedClass()
 
 class ExportedParameter(
@@ -144,12 +146,18 @@ sealed class ExportedType {
         val returnType: ExportedType
     ) : ExportedType()
 
-    class ClassType(val name: String, val arguments: List<ExportedType>, val ir: IrClass) : ExportedType()
-    class TypeParameter(val name: String, val constraint: ExportedType? = null) : ExportedType()
+    class ConstructorType(
+        val typeParameters: List<TypeParameter>,
+        val returnType: ExportedType
+    ) : ExportedType()
+
+    data class ClassType(val name: String, val arguments: List<ExportedType>, val ir: IrClass) : ExportedType()
+    data class TypeParameter(val name: String, val constraint: ExportedType? = null) : ExportedType()
     class Nullable(val baseType: ExportedType) : ExportedType()
     class NonNullable(val baseType: ExportedType) : ExportedType()
     class ErrorType(val comment: String) : ExportedType()
     class TypeOf(val name: String) : ExportedType()
+    class ObjectsParentType(val constructor: ExportedType) : ExportedType()
 
     class InlineInterfaceType(
         val members: List<ExportedDeclaration>
