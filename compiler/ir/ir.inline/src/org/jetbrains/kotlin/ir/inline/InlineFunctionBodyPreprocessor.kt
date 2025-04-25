@@ -55,9 +55,8 @@ internal class InlineFunctionBodyPreprocessor(
 
         result.patchDeclarationParents(irElement.parent)
 
-        // Make all arguments regular and noinline if needed.
+        // Make all noinline if needed.
         for ((originalParameter, newParameter) in irElement.parameters.zip(result.parameters)) {
-            newParameter.kind = IrParameterKind.Regular
             // It can become inline accidentally because of substitution of type parameter to inline function
             // To revert it we mark it as noinline explicitly
             if (!originalParameter.isInlineParameter() && newParameter.isInlineParameter()) {
