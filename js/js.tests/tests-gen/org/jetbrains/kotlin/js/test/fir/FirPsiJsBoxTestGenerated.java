@@ -8251,12 +8251,6 @@ public class FirPsiJsBoxTestGenerated extends AbstractFirPsiJsBoxTest {
     }
 
     @Test
-    @TestMetadata("clashedDeclLinkage.kt")
-    public void testClashedDeclLinkage() {
-      runTest("js/js.translator/testData/box/multiModule/clashedDeclLinkage.kt");
-    }
-
-    @Test
     @TestMetadata("clashedInternalDeclarations.kt")
     public void testClashedInternalDeclarations() {
       runTest("js/js.translator/testData/box/multiModule/clashedInternalDeclarations.kt");
