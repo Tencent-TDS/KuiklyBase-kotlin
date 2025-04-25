@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.analysis.api.fir.symbols
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.fir.symbols.pointers.KaFirClassLikeSymbolPointer
+import org.jetbrains.kotlin.analysis.api.fir.symbols.pointers.KaFirLocalClassFromCompilerPluginSymbolPointer
 import org.jetbrains.kotlin.analysis.api.fir.symbols.pointers.KaFirNestedInLocalClassFromCompilerPluginSymbolPointer
 import org.jetbrains.kotlin.analysis.api.fir.utils.withSymbolAttachment
 import org.jetbrains.kotlin.analysis.api.impl.base.symbols.pointers.KaCannotCreateSymbolPointerForLocalLibraryDeclarationException
@@ -17,8 +18,15 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolLocation
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
 import org.jetbrains.kotlin.analysis.api.symbols.pointers.KaSymbolPointer
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
+import org.jetbrains.kotlin.fir.extensions.FirExtensionApiInternals
+import org.jetbrains.kotlin.fir.extensions.FirFunctionCallRefinementExtension
+import org.jetbrains.kotlin.fir.extensions.callRefinementExtensions
+import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
+import org.jetbrains.kotlin.psi
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.utils.exceptions.checkWithAttachment
+import org.jetbrains.kotlin.utils.exceptions.errorWithAttachment
 
 /**
  * [KaFirNamedClassSymbolBase] provides shared equality and hash code implementations for FIR-based named class or object symbols so
@@ -42,8 +50,46 @@ internal sealed class KaFirNamedClassSymbolBase<P : PsiElement> : KaNamedClassSy
         }
 
         when (val symbolKind = location) {
-            KaSymbolLocation.LOCAL ->
-                throw KaCannotCreateSymbolPointerForLocalLibraryDeclarationException(classId?.asString() ?: name.asString())
+            KaSymbolLocation.LOCAL -> {
+                if (origin == KaSymbolOrigin.PLUGIN) {
+                    @OptIn(FirExtensionApiInternals::class)
+                    val callRefinementExtensions =
+                        analysisSession.firSession.extensionService.callRefinementExtensions.mapNotNull {
+                            it.takeIf { it.ownsSymbol(firSymbol) }
+                        }
+
+                    @OptIn(FirExtensionApiInternals::class)
+                    when (callRefinementExtensions.size) {
+                        0 -> throw KaCannotCreateSymbolPointerForLocalLibraryDeclarationException(classId?.asString() ?: name.asString())
+                        1 -> {
+                            val callRefinementExtension = callRefinementExtensions[0]
+                            val anchor = callRefinementExtension.anchorElement(firSymbol)
+                            val element = anchor.psi
+                            checkWithAttachment(
+                                element is KtElement,
+                                { "Element should be ${KtElement::class.simpleName} but was `${element?.let { it::class }}`" }
+                            ) {
+                                withSymbolAttachment("symbol", analysisSession, this@KaFirNamedClassSymbolBase)
+                            }
+                            val firOrigin = firSymbol.fir.origin
+                            checkWithAttachment(
+                                firOrigin is FirDeclarationOrigin.Plugin,
+                                { "Expected `FirDeclarationOrigin.Plugin` but was $firOrigin" }
+                            ) {
+                                withSymbolAttachment("symbol", analysisSession, this@KaFirNamedClassSymbolBase)
+                            }
+                            return KaFirLocalClassFromCompilerPluginSymbolPointer(element, name, firOrigin.key, this)
+                        }
+                        else -> {
+                            errorWithAttachment("Generated local class should be owned by one ${FirFunctionCallRefinementExtension.NAME} but was ${callRefinementExtensions.map { it.extensionType }}") {
+                                withSymbolAttachment("symbol", analysisSession, this@KaFirNamedClassSymbolBase)
+                            }
+                        }
+                    }
+                } else {
+                    throw KaCannotCreateSymbolPointerForLocalLibraryDeclarationException(classId?.asString() ?: name.asString())
+                }
+            }
 
             KaSymbolLocation.CLASS -> {
                 val classId = classId
