@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.library.impl.IrStringWriter
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.applyIf
-import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.kotlin.utils.filterIsInstanceAnd
 import java.io.File
 import org.jetbrains.kotlin.backend.common.serialization.proto.FieldAccessCommon as ProtoFieldAccessCommon
@@ -174,7 +173,7 @@ open class IrFileSerializer(
     protected val protoDebugInfoMap = hashMapOf<String, Int>()
     protected val protoDebugInfoArray = arrayListOf<String>()
 
-    private val preprocessedToOriginalInlineFunctions = mutableMapOf<IrSimpleFunction, IrSimpleFunction>()
+    private val preprocessedInlineFunctions = mutableSetOf<IrSimpleFunction>()
 
     private var isInsideInline: Boolean = false
 
@@ -1139,7 +1138,7 @@ open class IrFileSerializer(
         return with(ProtoDeclarationBase.newBuilder()) {
             symbol = serializeIrSymbol(
                 (declaration as IrSymbolOwner).symbol,
-                isDeclared = declaration !in preprocessedToOriginalInlineFunctions
+                isDeclared = declaration !in preprocessedInlineFunctions
             )
             coordinates = serializeCoordinates(declaration.startOffset, declaration.endOffset)
             addAllAnnotation(serializeAnnotations(declaration.annotations))
@@ -1225,7 +1224,7 @@ open class IrFileSerializer(
             .build()
 
     private fun serializeIrFunction(declaration: IrSimpleFunction): ProtoFunction {
-        declaration.erasedTopLevelCopy?.let { preprocessedToOriginalInlineFunctions[it] = declaration }
+        declaration.erasedTopLevelCopy?.let { preprocessedInlineFunctions.add(it) }
 
         val proto = ProtoFunction.newBuilder()
             .setBase(serializeIrFunctionBase(declaration, FunctionFlags.encode(declaration)))
@@ -1522,18 +1521,9 @@ open class IrFileSerializer(
         }
 
         val preprocessedInlineFunctions =
-            preprocessedToOriginalInlineFunctions.map { (preprocessedInlineFunction, originalInlineFunction) ->
-                val originalIdSignature = declarationTable.signatureByDeclaration(
-                    originalInlineFunction,
-                    compatibleMode = false,
-                    recordInSignatureClashDetector = false
-                )
-                val originalSigIndex = protoIdSignatureMap[originalIdSignature]
-                    ?: error("Not found ID for $originalIdSignature (${originalInlineFunction.render()})")
-                proto.addOriginalToPreprocessedInlineFunctions(originalSigIndex)
-
+            preprocessedInlineFunctions.map { preprocessedInlineFunction ->
                 val serializedPreprocessedInlineFunction = serializeTopLevelDeclaration(preprocessedInlineFunction)
-                proto.addOriginalToPreprocessedInlineFunctions(serializedPreprocessedInlineFunction.id)
+                proto.addPreprocessedInlineFunctions(serializedPreprocessedInlineFunction.id)
                 serializedPreprocessedInlineFunction
             }
 
