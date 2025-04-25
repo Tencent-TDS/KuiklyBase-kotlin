@@ -99,7 +99,7 @@ fun contentEquals(file1: File, file2: File): Boolean {
                 }
             }
 
-            return true
+            return false
         }
     }
 }
