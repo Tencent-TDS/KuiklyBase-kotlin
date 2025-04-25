@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.KotlinMangler.IrMangler
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 
-abstract class GlobalDeclarationTable(val mangler: IrMangler, private val reuseExistingSignaturesForSymbols: Boolean) {
+abstract class GlobalDeclarationTable(val mangler: IrMangler, private val reuseExistingSignaturesForSymbols: Boolean = true) {
     val publicIdSignatureComputer = PublicIdSignatureComputer(mangler)
     internal val clashDetector = IdSignatureClashDetector()
 
