@@ -52,5 +52,5 @@ internal val FinalizeCachePhase = createSimpleNamedCompilerPhase<PhaseContext, O
         name = "FinalizeCache",
 ) { context, outputFiles ->
     //  TODO: Explicit parameter
-    CacheStorage.renameOutput(outputFiles, overwrite = context.config.producePerFileCache)
+    CacheStorage.renameOutput(outputFiles, forceOverwrite = context.config.producePerFileCache)
 }

@@ -38,10 +38,16 @@ internal class CacheStorage(private val generationState: NativeGenerationState) 
     private val outputFiles = generationState.outputFiles
 
     companion object {
-        fun renameOutput(outputFiles: OutputFiles, overwrite: Boolean) {
+        private fun cacheFits(existingCache: File, candidateCache: File): Boolean {
+            val existingMetadata = existingCache.cacheMetadataFile ?: return false
+            val candidateMetadata = candidateCache.cacheMetadataFile!!
+            return existingMetadata.checkMetadataFits(candidateMetadata).ok
+        }
+
+        fun renameOutput(outputFiles: OutputFiles, forceOverwrite: Boolean) {
             if (outputFiles.mainFile.exists) {
-                if (!overwrite) {
-                    outputFiles.tempCacheDirectory!!.deleteRecursively()
+                if (!forceOverwrite && cacheFits(outputFiles.mainFile, outputFiles.tempCacheDirectory!!)) {
+                    outputFiles.tempCacheDirectory.deleteRecursively()
                     return
                 }
                 // For caches the output file is a directory. It might be already created,

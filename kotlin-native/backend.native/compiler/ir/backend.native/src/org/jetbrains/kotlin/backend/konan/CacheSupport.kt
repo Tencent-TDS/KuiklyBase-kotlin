@@ -58,7 +58,9 @@ class CacheSupport(
         autoCacheDirectory: File,
         incrementalCacheDirectory: File?,
         target: KonanTarget,
-        val produce: CompilerOutputKind
+        val produce: CompilerOutputKind,
+        compilerFingerprint: String,
+        targetFingerprint: String,
 ) {
     private val allLibraries = resolvedLibraries.getFullList()
 
@@ -123,7 +125,9 @@ class CacheSupport(
                 explicitCaches = if (ignoreCachedLibraries) emptyMap() else explicitCaches,
                 implicitCacheDirectories = if (ignoreCachedLibraries) emptyList() else implicitCacheDirectories,
                 autoCacheDirectory = autoCacheDirectory,
-                autoCacheableFrom = if (ignoreCachedLibraries) emptyList() else autoCacheableFrom
+                autoCacheableFrom = if (ignoreCachedLibraries) emptyList() else autoCacheableFrom,
+                compilerFingerprint = compilerFingerprint,
+                targetFingerprint = targetFingerprint,
         )
     }
 
