@@ -90,6 +90,11 @@ public class IrCheckLocalVariablesTableTestGenerated extends AbstractIrCheckLoca
     runTest("compiler/testData/checkLocalVariablesTable/underscoreNames.kt");
   }
 
+  @TestMetadata("valueClassFieldName.kt")
+  public void testValueClassFieldName() {
+    runTest("compiler/testData/checkLocalVariablesTable/valueClassFieldName.kt");
+  }
+
   @TestMetadata("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda")
   @TestDataPath("$PROJECT_ROOT")
   @RunWith(JUnit3RunnerWithInners.class)
