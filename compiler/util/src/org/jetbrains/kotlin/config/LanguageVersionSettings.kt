@@ -391,7 +391,6 @@ enum class LanguageFeature(
     ForbidFieldAnnotationsOnAnnotationParameters(KOTLIN_2_2, enabledInProgressiveMode = true, "KT-70233"),
     ProhibitConstructorAndSupertypeOnTypealiasWithTypeProjection(KOTLIN_2_2, enabledInProgressiveMode = true, "KT-60305"),
     CallableReferenceOverloadResolutionInLambda(KOTLIN_2_2, "KT-73011"),
-    ForbidInferOfInvisibleTypeAsReifiedOrVararg(KOTLIN_2_2, enabledInProgressiveMode = true, "KT-25513"),
     ProhibitGenericQualifiersOnConstructorCalls(KOTLIN_2_2, enabledInProgressiveMode = true, "KT-73527"),
     AvoidWrongOptimizationOfTypeOperatorsOnValueClasses(KOTLIN_2_2, "KT-67517"), // KT-67517, KT-67518, KT-67520
     ForbidSyntheticPropertiesWithoutBaseJavaGetter(KOTLIN_2_2, enabledInProgressiveMode = true, "KT-72305"), // KT-72305, KT-64358
@@ -423,6 +422,7 @@ enum class LanguageFeature(
     UnstableSmartcastOnDelegatedProperties(KOTLIN_2_3, enabledInProgressiveMode = true, "KTLC-273"),
     ForbidAnnotationsWithUseSiteTargetOnExpressions(KOTLIN_2_3, enabledInProgressiveMode = true, "KT-75242"),
     ProhibitNullableTypeThroughTypealias(KOTLIN_2_3, enabledInProgressiveMode = true, "KTLC-279"),
+    ForbidInferOfInvisibleTypeAsReifiedVarargOrReturnType(KOTLIN_2_3, enabledInProgressiveMode = true, issue = "KT-25513"),
 
     // 2.4 TODO set sinceVersion to 2.4 when it becomes available
 
