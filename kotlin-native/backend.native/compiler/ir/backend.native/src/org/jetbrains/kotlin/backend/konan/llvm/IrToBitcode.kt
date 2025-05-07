@@ -901,7 +901,17 @@ internal class CodeGeneratorVisitor(
     }
 
     private fun IrFunction.location(start: Boolean): LocationInfo? {
-        if (!context.shouldContainLocationDebugInfo() || startOffset == UNDEFINED_OFFSET) return null
+        // region @Tencent
+        if (!context.shouldContainLocationDebugInfo()) {
+            return null
+        }
+
+        // When use debug info from native libs, always create a LocationInfo to make llvm happy.
+        // Check how we build the 'stackLocalsInitBb' with the debug location in CodeGenerator.
+        if (startOffset == UNDEFINED_OFFSET) {
+            return if (context.shouldUseDebugInfoFromNativeLibs()) LocationInfo(scope()!!, 1, 1) else null
+        }
+        // endregion
 
         val (line, column) = if (start) startLineAndColumn() else endLineAndColumn()
         return LocationInfo(scope = scope()!!, line = line, column = column)
@@ -2297,7 +2307,8 @@ internal class CodeGeneratorVisitor(
     // Saved calculated IrFunction scope which is used several time for getting locations and generating debug info.
     private var irFunctionSavedScope: Pair<IrFunction, DIScopeOpaqueRef?>? = null
 
-    private fun IrFunction.scope(): DIScopeOpaqueRef? = if (startOffset != UNDEFINED_OFFSET) (
+    // @Tencent: Return a scope for the function regardless of the startOffset when use debug info from native libs. 
+    private fun IrFunction.scope(): DIScopeOpaqueRef? = if (startOffset != UNDEFINED_OFFSET || context.shouldUseDebugInfoFromNativeLibs()) (
             if (irFunctionSavedScope != null && this == irFunctionSavedScope!!.first)
                 irFunctionSavedScope!!.second
             else

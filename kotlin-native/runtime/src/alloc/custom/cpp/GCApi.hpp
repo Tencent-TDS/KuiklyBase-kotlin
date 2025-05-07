@@ -32,6 +32,12 @@ void Free(void* ptr, size_t size) noexcept;
 
 size_t GetAllocatedBytes() noexcept;
 
+// region Tencent Code
+void StartCollectGarbagePages() noexcept;
+
+void FinishCollectGarbagePages() noexcept;
+// endregion
+
 } // namespace kotlin::alloc
 
 #endif

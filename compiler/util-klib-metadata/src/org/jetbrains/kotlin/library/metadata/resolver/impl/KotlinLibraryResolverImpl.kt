@@ -116,7 +116,27 @@ class KotlinLibraryResolverImpl<L : KotlinLibrary> internal constructor(
                 library.library.unresolvedDependencies(resolveManifestDependenciesLenient).asSequence()
 
                     .filterNot { searchPathResolver.isProvidedByDefault(it) }
-                    .mapNotNull { searchPathResolver.resolve(it)?.let(::KotlinResolvedLibraryImpl) }
+                    .mapNotNull {
+                        // region @Tencent: Print details about the dependent of the unresolved library.
+                        try {
+                            searchPathResolver.resolve(it)?.let(::KotlinResolvedLibraryImpl)
+                        } catch (t: Throwable) {
+                            val targetedLibrary = library.library
+                            val formattedLibraryInfo = """
+                            |
+                            |    ---------------------------------------------------------------
+                            |    name: ${targetedLibrary.uniqueName}
+                            |    file: ${targetedLibrary.libraryFile.path}
+                            |    versions: ${targetedLibrary.versions}
+                            |    dependsOn: [${targetedLibrary.unresolvedDependencies.joinToString { it.path }}]
+                            |    ---------------------------------------------------------------
+                            |
+                            """.trimMargin()
+                            @Suppress("DEPRECATION")
+                            logger.fatal("""KLIB resolver: "${it.path}" is required by $formattedLibraryInfo""")
+                        }
+                        // endregion
+                    }
                     .map { resolved ->
                         val fileKey = resolved.library.libraryFile.fileKey
                         if (fileKey in cache) {

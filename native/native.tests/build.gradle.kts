@@ -58,6 +58,10 @@ val klibTest = nativeTest("klibTest", "klib")
 val standaloneTest = nativeTest("standaloneTest", "standalone")
 val gcTest = nativeTest("gcTest", "gc")
 
+// region @Tencent: StringProxy tests are designed for macOS only. 
+val stringProxyTest = if ("Mac OS X" in System.getProperty("os.name")) nativeTest("stringProxyTest", "StringProxy") else null
+// endregion
+
 val testTags = findProperty("kotlin.native.tests.tags")?.toString()
 // Note: arbitrary JUnit tag expressions can be used in this property.
 // See https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions

@@ -234,6 +234,10 @@ tasks.register("distCompiler", Copy) {
     from(project(':kotlin-native:Interop').file('Indexer/build/nativelibs')) {
         into('konan/nativelib')
     }
+    
+    from(project(':kotlin-native:Interop').file('Indexer12/build/nativelibs')) {
+        into('konan/nativelib')
+    }
 
     from(project(':kotlin-native:Interop').file('Runtime/build/nativelibs')) {
         into('konan/nativelib')
@@ -489,6 +493,11 @@ void configurePackingLicensesToBundle(AbstractArchiveTask task, boolean contains
     task.from(project.rootProject.file("license")) {
         into "${task.archiveBaseName.get()}-${task.archiveVersion.get()}/licenses"
     }
+    // region @Tencent
+    task.from(project.rootProject.file("License_KuiklyBase-kotlin.txt")) {
+        into "${task.archiveBaseName.get()}-${task.archiveVersion.get()}/licenses"
+    }
+    // endregion
 }
 
 tasks.named("bundleRegular").configure {

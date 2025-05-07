@@ -61,13 +61,13 @@ private abstract class CompileToExecutableJob : WorkAction<CompileToExecutableJo
             // errors at the link stage. So we have to run llvm-link twice: the first one links all modules
             // except the one containing the entry point to a single *.bc without internalization. The second
             // run internalizes this big module and links it with a module containing the entry point.
-            execOperations.execLlvmUtility(platformManager.get(), "llvm-link") {
+            execOperations.execLlvmUtility(platformManager.get(), "llvm-link", target) {
                 args = listOf("-o", llvmLinkFirstStageOutputFile.asFile.get().absolutePath) + inputFiles.map { it.absolutePath }
             }
 
             llvmLinkOutputFile.asFile.get().parentFile.mkdirs()
 
-            execOperations.execLlvmUtility(platformManager.get(), "llvm-link") {
+            execOperations.execLlvmUtility(platformManager.get(), "llvm-link", target) {
                 args = listOf("-o", llvmLinkOutputFile.asFile.get().absolutePath, mainFile.asFile.get().absolutePath, llvmLinkFirstStageOutputFile.asFile.get().absolutePath, "-internalize")
             }
         }

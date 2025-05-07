@@ -26,6 +26,11 @@ open class HostManager() {
         experimental: Boolean = false
     ) : this()
 
+    /**
+     * Tencent: build minial targets if possible. See [minimalTargets] and [enabled].
+     */
+    var preferMinimalTargets = false
+    
     val targetValues: List<KonanTarget> by lazy { KonanTarget.predefinedTargets.values.toList() }
 
     val targets = targetValues.associateBy { it.visibleName }
@@ -57,6 +62,7 @@ open class HostManager() {
         ANDROID_X64,
         ANDROID_ARM32,
         ANDROID_ARM64,
+        OHOS_ARM64
     )
 
     private val appleTargets = setOf(
@@ -82,8 +88,32 @@ open class HostManager() {
         MACOS_ARM64 to commonTargets + appleTargets
     )
 
+    /**
+     * Tencent: The necessary targets only for most of our cases.
+     */
+    private val minimalTargets = setOf(
+        OHOS_ARM64,
+        MACOS_X64,
+        MACOS_ARM64,
+        IOS_ARM64,
+        IOS_X64,
+        IOS_SIMULATOR_ARM64
+    )
+
+    val enabledMinimalByHost: Map<KonanTarget, Set<KonanTarget>> = mapOf(
+        MACOS_X64 to minimalTargets,
+        MACOS_ARM64 to minimalTargets
+    )
+
     val enabled: List<KonanTarget>
-        get() = enabledByHost[host]?.toList() ?: throw TargetSupportException("Unknown host platform: $host")
+        get() {
+            val targets = if (preferMinimalTargets) {
+                enabledMinimalByHost[host] ?: enabledByHost[host]
+            } else {
+                enabledByHost[host]
+            }
+            return targets?.toList() ?: throw TargetSupportException("Unknown host platform: $host")
+        }
 
     fun isEnabled(target: KonanTarget) = enabled.contains(target)
 

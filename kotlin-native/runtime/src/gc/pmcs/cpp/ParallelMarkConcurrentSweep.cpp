@@ -171,7 +171,9 @@ void gc::ParallelMarkConcurrentSweep::PerformFullGC(int64_t epoch) noexcept {
         stopTheWorld(gcHandle, "GC stop the world #2: prepare heap for sweep");
         gc::DisableWeakRefBarriers();
     }
-
+    // region Tencent Code
+    allocator_.onStartGC();
+    // endregion
     // TODO outline as mark_.isolateMarkedHeapAndFinishMark()
     // By this point all the alive heap must be marked.
     // All the mutations (incl. allocations) after this method will be subject for the next GC.
@@ -179,6 +181,27 @@ void gc::ParallelMarkConcurrentSweep::PerformFullGC(int64_t epoch) noexcept {
     for (auto& thread : kotlin::mm::ThreadRegistry::Instance().LockForIter()) {
         thread.allocator().prepareForGC();
     }
+
+    // region Tencent Code
+    TencentAllocLambdaInfo([]() -> std::string {
+        int threadCount = 0;
+        logging::TencentLogger logger(300);
+
+        logger.append("ThreadInfo[");
+        for (auto& thread : kotlin::mm::ThreadRegistry::Instance().LockForIter()) {
+            logger.append("%d(%s)", thread.threadId(), thread.getThreadName().c_str());
+
+            if (++threadCount % 10 == 0) {
+                logger.print().clear();
+            }
+        }
+
+        logger.append("]").print().clear();
+
+        logger.append("PerformFullGC (prepared %d threads)\n", threadCount).print();
+        return "";
+    });
+    // endregion
     allocator_.prepareForGC();
 
 #ifndef CUSTOM_ALLOCATOR
@@ -210,6 +233,9 @@ void gc::ParallelMarkConcurrentSweep::PerformFullGC(int64_t epoch) noexcept {
     state_.finish(epoch);
     gcHandle.finalizersScheduled(finalizerQueue.size());
     gcHandle.finished();
+    // region Tencent Code
+    allocator_.onFinishGC();
+    // endregion
 
     if (!mainThreadFinalizerProcessor_.available()) {
         finalizerQueue.mergeIntoRegular();

@@ -47,7 +47,6 @@ internal fun produceObjCExportInterface(
     //   and can't do this per-module, e.g. due to global name conflict resolution.
 
     val unitSuspendFunctionExport = config.unitSuspendFunctionObjCExport
-    val mapper = ObjCExportMapper(frontendServices.deprecationResolver, unitSuspendFunctionExport = unitSuspendFunctionExport)
     val moduleDescriptors = listOf(moduleDescriptor) + moduleDescriptor.getExportedDependencies(config)
     val objcGenerics = config.configuration.getBoolean(KonanConfigKeys.OBJC_GENERICS)
     val disableSwiftMemberNameMangling = config.configuration.getBoolean(BinaryOptions.objcExportDisableSwiftMemberNameMangling)
@@ -56,6 +55,16 @@ internal fun produceObjCExportInterface(
     val errorOnNameCollisions = config.configuration.getBoolean(BinaryOptions.objcExportErrorOnNameCollisions)
 
     val problemCollector = ObjCExportCompilerProblemCollector(context)
+    // region Tencent Code Modify
+    /* val mapper = ObjCExportMapper(frontendServices.deprecationResolver, unitSuspendFunctionExport = unitSuspendFunctionExport) */
+    val exportConfigurationFilePath = config.configuration.get(KonanConfigKeys.OBJC_EXPORT_CONFIG_FILE_PATH)
+    val enableDefaultObjCExport = config.configuration.getBoolean(KonanConfigKeys.ENABLE_OBJC_EXPORT_CONFIGURATION)
+    val mapper = ObjCExportMapper(
+            frontendServices.deprecationResolver,
+            unitSuspendFunctionExport = unitSuspendFunctionExport,
+            objCExportCustomConfig = ObjCExportCustomConfig(exportConfigurationFilePath, problemCollector, enableDefaultObjCExport)
+    )
+    // endregion
 
     val namer = ObjCExportNamerImpl(
             moduleDescriptors.toSet(),

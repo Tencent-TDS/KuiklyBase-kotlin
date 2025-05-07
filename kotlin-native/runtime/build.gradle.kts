@@ -102,7 +102,7 @@ bitcode {
                 else -> 32 // TODO(KT-66500): remove after the bootstrap
             }
             val useMachO = target.family.isAppleFamily
-            val useElf = target.family in listOf(Family.LINUX, Family.ANDROID)
+            val useElf = target.family in listOf(Family.LINUX, Family.ANDROID, Family.OHOS)
 
             sourceSets {
                 main {

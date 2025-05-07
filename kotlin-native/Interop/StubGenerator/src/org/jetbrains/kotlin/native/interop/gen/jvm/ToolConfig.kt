@@ -16,6 +16,7 @@
 
 package  org.jetbrains.kotlin.native.interop.tool
 
+import clang.ClangConfig
 import org.jetbrains.kotlin.konan.target.*
 import org.jetbrains.kotlin.utils.KotlinNativePaths
 import org.jetbrains.kotlin.konan.target.AbstractToolConfig
@@ -41,5 +42,10 @@ class ToolConfig(userProvidedTargetName: String?, flavor: KotlinPlatform, proper
                 clang.hostCompilerArgsForJni.toList()
             else emptyList()
 
-    override fun loadLibclang() { System.load(libclang) }
+    override fun loadLibclang() {
+        // libclangstubs is not loaded at the moment, and it should match libclang loaded below.
+        // libclang is loaded from llvmHome which is the path of llvm12 for ohos, or llvm11 otherwise. 
+        ClangConfig.useClang12 = HostManager.host.family.isAppleFamily && target == KonanTarget.OHOS_ARM64
+        System.load(libclang)
+    }
 }

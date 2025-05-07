@@ -52,6 +52,7 @@ object FirNativeErrors {
     val INVALID_OBJC_HIDES_TARGETS: KtDiagnosticFactory0 = KtDiagnosticFactory0("INVALID_OBJC_HIDES_TARGETS", ERROR, SourceElementPositioningStrategies.DEFAULT, KtElement::class)
     val INVALID_REFINES_IN_SWIFT_TARGETS: KtDiagnosticFactory0 = KtDiagnosticFactory0("INVALID_REFINES_IN_SWIFT_TARGETS", ERROR, SourceElementPositioningStrategies.DEFAULT, KtElement::class)
     val SUBTYPE_OF_HIDDEN_FROM_OBJC: KtDiagnosticFactory0 = KtDiagnosticFactory0("SUBTYPE_OF_HIDDEN_FROM_OBJC", ERROR, SourceElementPositioningStrategies.DEFAULT, KtElement::class)
+    val SUBTYPE_OF_HIDDEN_FROM_C: KtDiagnosticFactory0 = KtDiagnosticFactory0("SUBTYPE_OF_HIDDEN_FROM_C", ERROR, SourceElementPositioningStrategies.DEFAULT, KtElement::class)
     val CANNOT_CHECK_FOR_FORWARD_DECLARATION: KtDiagnosticFactory1<ConeKotlinType> = KtDiagnosticFactory1("CANNOT_CHECK_FOR_FORWARD_DECLARATION", ERROR, SourceElementPositioningStrategies.DEFAULT, KtElement::class)
     val UNCHECKED_CAST_TO_FORWARD_DECLARATION: KtDiagnosticFactory2<ConeKotlinType, ConeKotlinType> = KtDiagnosticFactory2("UNCHECKED_CAST_TO_FORWARD_DECLARATION", WARNING, SourceElementPositioningStrategies.DEFAULT, KtElement::class)
     val FORWARD_DECLARATION_AS_REIFIED_TYPE_ARGUMENT: KtDiagnosticFactory1<ConeKotlinType> = KtDiagnosticFactory1("FORWARD_DECLARATION_AS_REIFIED_TYPE_ARGUMENT", ERROR, SourceElementPositioningStrategies.DEFAULT, KtElement::class)

@@ -45,6 +45,13 @@ uint64_t getTimeMillis();
 uint64_t getTimeMicros();
 uint64_t getTimeNanos();
 
+// Endianness
+bool isLittleEndian();
+
+// region Tencent Code
+void startTrace(const char* utf8);
+void finishTrace();
+// endregion
 }  // namespace konan
 
 #endif  // RUNTIME_PORTING_H

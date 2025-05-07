@@ -155,5 +155,9 @@ class KonanConfigKeys {
         val SAVE_LLVM_IR_DIRECTORY: CompilerConfigurationKey<String?> = CompilerConfigurationKey.create("directory to store LLVM IR from phases")
         val KONAN_DATA_DIR: CompilerConfigurationKey<String?> = CompilerConfigurationKey.create("directory for storing konan dependencies, cache and prebuilds")
         val MANIFEST_NATIVE_TARGETS: CompilerConfigurationKey<Collection<KonanTarget>?> = CompilerConfigurationKey.create("value of native_targets property to write in manifest")
+        // region Tencent Code
+        val OBJC_EXPORT_CONFIG_FILE_PATH: CompilerConfigurationKey<String?> = CompilerConfigurationKey.create("objC export configuration file path.")
+        val ENABLE_OBJC_EXPORT_CONFIGURATION: CompilerConfigurationKey<Boolean> = CompilerConfigurationKey.create(" objc use default export")
+        // endregion
     }
 }

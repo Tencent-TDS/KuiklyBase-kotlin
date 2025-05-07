@@ -85,6 +85,9 @@ fun copyCommonCompilerArguments(from: CommonCompilerArguments, to: CommonCompile
     to.verifyIrVisibility = from.verifyIrVisibility
     to.verifyIrVisibilityAfterInlining = from.verifyIrVisibilityAfterInlining
     to.whenGuards = from.whenGuards
-
+    // region Tencent Code
+    to.objCExportConfigurationPath = from.objCExportConfigurationPath
+    to.enableDefaultObjCExport = from.enableDefaultObjCExport
+    // endregion
     return to
 }

@@ -62,6 +62,12 @@ public:
 
     ThreadSuspensionData& suspensionData() { return suspensionData_; }
 
+    // region Tencent Code
+    void setThreadName(std::string_view name) noexcept { threadName_ = name; }
+
+    std::string getThreadName() { return threadName_; }
+    // endregion
+
     void Publish() noexcept {
         // TODO: These use separate locks, which is inefficient.
         globalsThreadQueue_.Publish();
@@ -75,6 +81,9 @@ public:
     }
 
 private:
+    // region Tencent Code
+    std::string threadName_;
+    // endregion
     const int threadId_;
     GlobalsRegistry::ThreadQueue globalsThreadQueue_;
     ThreadLocalStorage tls_;

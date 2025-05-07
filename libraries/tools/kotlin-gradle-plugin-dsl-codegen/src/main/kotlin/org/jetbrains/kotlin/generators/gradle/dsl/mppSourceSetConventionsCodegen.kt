@@ -74,7 +74,7 @@ internal data class CommonSourceSetConvention(
     val baseName: String,
     val allTargetsDescription: String,
     val sampleTarget1: String,
-    val sampleTarget2: String,
+    val sampleTarget2: String? = null,
 )
 
 private val commonSourceSetConventions = listOf(
@@ -88,6 +88,7 @@ private val commonSourceSetConventions = listOf(
     CommonSourceSetConvention("linux", "all declared Linux targets", "linuxX64", "linuxArm64"),
     CommonSourceSetConvention("mingw", "all declared Mingw targets", "mingwX64", "mingwX86"),
     CommonSourceSetConvention("androidNative", "all declared Android Native targets", "androidNativeX64", "androidNativeArm64"),
+    CommonSourceSetConvention("ohos", "all declared harmonyOS targets", "ohosArm64"),
 )
 
 private val nonNativeSourceSetConventions = listOf(
@@ -167,7 +168,7 @@ private fun leafSourceSetAccessorKdoc(sourceSetName: String, targetName: String,
      */
 """.trimIndent()
 
-private fun commonSourceSetAccessorKdoc(sourceSetName: String, description: String, sampleTarget1: String, sampleTarget2: String) = """
+private fun commonSourceSetAccessorKdoc(sourceSetName: String, description: String, sampleTarget1: String, sampleTarget2: String?) = """
     /**
      * Static accessor for shared kotlin Source Set between $description.
      * Declare at least one of the targets mentioned above to access this source set.
@@ -178,7 +179,7 @@ private fun commonSourceSetAccessorKdoc(sourceSetName: String, description: Stri
      * ```kotlin
      * kotlin {
      *    $sampleTarget1()
-     *    $sampleTarget2()
+     *    ${sampleTarget2?.let { "$sampleTarget2()" }}
      *
      *    sourceSets {
      *      $sourceSetName.dependencies {

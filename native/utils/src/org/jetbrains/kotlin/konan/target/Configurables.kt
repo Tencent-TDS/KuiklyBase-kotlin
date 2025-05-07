@@ -57,8 +57,9 @@ interface Configurables : TargetableExternalStorage, RelocationModeFlags {
                 ?.let(TargetTriple.Companion::fromString)
                 ?: error("quadruple for $target is not set.")
 
-    val llvmHome get() = hostString("llvmHome")
-    val llvmVersion get() = hostString("llvmVersion")
+    // Try to read hostTargetString like 'llvmVersion.macos_x64-ohos_arm64'. Use a different llvm version for ohos.
+    val llvmHome get() = hostTargetString("llvmHome") ?: hostString("llvmHome")
+    val llvmVersion get() = hostTargetString("llvmVersion") ?: hostString("llvmVersion")
     val libffiDir get() = hostString("libffiDir")
 
     val cacheableTargets get() = hostList("cacheableTargets")
@@ -69,7 +70,7 @@ interface Configurables : TargetableExternalStorage, RelocationModeFlags {
     val linkerKonanFlags get() = targetList("linkerKonanFlags")
     val linkerNoDebugFlags get() = targetList("linkerNoDebugFlags")
     val linkerDynamicFlags get() = targetList("linkerDynamicFlags")
-    val targetSysRoot get() = targetString("targetSysRoot")
+    val targetSysRoot get() = hostTargetString("targetSysRoot") ?: targetString("targetSysRoot")
 
     // Notice: these ones are host-target.
     val targetToolchain get() = hostTargetString("targetToolchain")
@@ -83,6 +84,8 @@ interface Configurables : TargetableExternalStorage, RelocationModeFlags {
     val llvmInlineThreshold get() = targetString("llvmInlineThreshold")
 
     val runtimeDefinitions get() = targetList("runtimeDefinitions")
+
+    fun absoluteLlvmHome(target: KonanTarget?): String = absoluteLlvmHome
 }
 
 interface ConfigurablesWithEmulator : Configurables {
@@ -131,6 +134,19 @@ interface GccConfigurables : Configurables, ClangFlags {
 }
 
 interface AndroidConfigurables : Configurables, ClangFlags
+
+interface OhosConfigurables : Configurables, ClangFlags {
+    val gccToolchain get() = targetString("gccToolchain")
+    val absoluteGccToolchain get() = absolute(gccToolchain)
+
+    val dynamicLinker get() = targetString("dynamicLinker")!!
+    val abiSpecificLibraries get() = targetList("abiSpecificLibraries")
+    val crtFilesLocation get() = targetString("crtFilesLocation")!!
+
+    val linker get() = hostTargetString("linker")
+    val linkerHostSpecificFlags get() = hostTargetList("linkerHostSpecificFlags")
+    val absoluteLinker get() = absolute(linker)
+}
 
 interface WasmConfigurables : Configurables, ClangFlags, LldFlags
 

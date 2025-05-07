@@ -24,7 +24,7 @@ size_t kotlin::GetPeakResidentSetSizeBytes() noexcept {
     return memoryCounters.PeakWorkingSetSize;
 }
 
-#elif KONAN_LINUX || KONAN_MACOSX || KONAN_IOS || KONAN_WATCHOS
+#elif KONAN_LINUX || KONAN_MACOSX || KONAN_IOS || KONAN_WATCHOS || KONAN_OHOS
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -32,7 +32,7 @@ size_t kotlin::GetPeakResidentSetSizeBytes() noexcept {
 size_t kotlin::GetPeakResidentSetSizeBytes() noexcept {
     ::rusage usage;
     auto failed = ::getrusage(RUSAGE_SELF, &usage);
-#if KONAN_LINUX
+#if KONAN_LINUX || KONAN_OHOS
     // On Linux it's in kilobytes.
     size_t maxrss = static_cast<size_t>(usage.ru_maxrss * 1024);
 #elif KONAN_MACOSX || KONAN_IOS || KONAN_WATCHOS

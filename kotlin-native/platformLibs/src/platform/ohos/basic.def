@@ -1,0 +1,30 @@
+depends = posix
+package = platform.basic
+headers = ConnectivityKit/wifi/oh_wifi.h \
+          window_manager/oh_display_info.h \
+          window_manager/oh_window_event_filter.h \
+          network/netstack/net_ssl/net_ssl_c.h \
+          network/netstack/net_websocket.h \
+          inputmethod/inputmethod_private_command_capi.h \
+          inputmethod/inputmethod_text_avoid_info_capi.h \
+          inputmethod/inputmethod_text_editor_proxy_capi.h \
+          inputmethod/inputmethod_attach_options_capi.h \
+          inputmethod/inputmethod_cursor_info_capi.h \
+          inputmethod/inputmethod_text_config_capi.h \
+          inputmethod/inputmethod_inputmethod_proxy_capi.h \
+          inputmethod/inputmethod_controller_capi.h \
+          arkui/native_dialog.h \
+          arkui/drag_and_drop.h \
+          arkui/ui_input_event.h \
+          arkui/native_node.h \
+          arkui/native_animate.h \
+          arkui/native_interface_accessibility.h \
+          arkui/native_type.h \
+          arkui/native_key_event.h \
+          arkui/native_interface_focus.h \
+          arkui/native_node_napi.h \
+          arkui/native_interface.h \
+          arkui/drawable_descriptor.h
+headerFilter = arkui/** inputmethod/** network/** window_manager/** ConnectivityKit/wifi/oh_wifi.h
+language = C++
+compilerOpts = -std=c++17

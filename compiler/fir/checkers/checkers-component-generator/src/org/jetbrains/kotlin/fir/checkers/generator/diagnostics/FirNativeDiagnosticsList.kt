@@ -65,6 +65,9 @@ object NATIVE_DIAGNOSTICS_LIST : DiagnosticList("FirNativeErrors") {
         val INVALID_OBJC_HIDES_TARGETS by error<KtElement>()
         val INVALID_REFINES_IN_SWIFT_TARGETS by error<KtElement>()
         val SUBTYPE_OF_HIDDEN_FROM_OBJC by error<KtElement>()
+        // region @Tencent
+        val SUBTYPE_OF_HIDDEN_FROM_C by error<KtElement>()
+        // endregion
 
         val CANNOT_CHECK_FOR_FORWARD_DECLARATION by error<KtElement>() {
             parameter<ConeKotlinType>("type")

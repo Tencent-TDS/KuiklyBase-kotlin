@@ -13,6 +13,10 @@
 #import "Memory.h"
 #import "ObjCInteropUtils.h"
 #import "ObjCInteropUtilsPrivate.h"
+#import "TmmConfig.h"
+#import "KStringProxy.h"
+#import "KStringProxyWeakRef.h"
+#import "NSStringFromKString.h"
 
 namespace {
   Class nsStringClass = nullptr;
@@ -58,7 +62,28 @@ OBJ_GETTER(Kotlin_Interop_CreateKStringFromNSString, NSString* str) {
     RETURN_OBJ(nullptr);
   }
 
+  // region @Tencent
+  // See [Kotlin_ObjCExport_CreateRetainedNSStringFromKString].
+  if ([str isKindOfClass:[NSStringFromKString class]]) {
+    auto *stringFromKString = (NSStringFromKString *)str;
+    RETURN_OBJ(stringFromKString.kstring);
+  }
+
+  ObjHeader *associated = tmm::GetAssociatedKStringProxy(str);
+  if (associated) {
+    RETURN_OBJ(associated);
+  }
+  // endregion
+
   CFStringRef immutableCopyOrSameStr = CFStringCreateCopy(nullptr, (CFStringRef)str);
+
+  // region @Tencent: Create StringProxy for NSString instead of copy into a new KString.
+  if (Kotlin_TmmConfig_isStringProxyEnabledCreatingKStringFromNSString()) {
+    auto result = tmm::Kotlin_Interop_CreateKStringProxyFromImmutableCFString(immutableCopyOrSameStr, OBJ_RESULT);
+    tmm::AssociateNSStringWithKStringProxy(str, result);
+    return result;
+  }
+  // endregion
 
   auto length = CFStringGetLength(immutableCopyOrSameStr);
   CFRange range = {0, length};
@@ -66,7 +91,6 @@ OBJ_GETTER(Kotlin_Interop_CreateKStringFromNSString, NSString* str) {
   KChar* rawResult = CharArrayAddressOfElementAt(result, 0);
 
   CFStringGetCharacters(immutableCopyOrSameStr, range, rawResult);
-
   result->obj()->SetAssociatedObject((void*)immutableCopyOrSameStr);
 
   RETURN_OBJ(result->obj());

@@ -69,6 +69,12 @@ private val DIAGNOSTIC_FACTORY_TO_RENDERER by lazy {
             ErrorsNative.SUBTYPE_OF_HIDDEN_FROM_OBJC,
             "Only @HiddenFromObjC declaration can be a subtype of @HiddenFromObjC declaration"
         )
+        // region @Tencent
+        put(
+            ErrorsNative.SUBTYPE_OF_HIDDEN_FROM_C,
+            "Only @HiddenFromC declaration can be a subtype of @HiddenFromC declaration"
+        )
+        // endregion
 
         put(
             ErrorsNative.CANNOT_CHECK_FOR_FORWARD_DECLARATION,

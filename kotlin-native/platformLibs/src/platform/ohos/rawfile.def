@@ -1,0 +1,6 @@
+depends = posix
+package = platform.rawfile
+headers = rawfile/raw_dir.h rawfile/raw_file_manager.h rawfile/raw_file.h
+headerFilter = rawfile/**
+language = C++
+compilerOpts = -std=c++17

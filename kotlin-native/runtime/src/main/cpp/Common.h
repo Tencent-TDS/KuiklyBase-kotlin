@@ -32,6 +32,8 @@
 #define RUNTIME_WEAK __attribute__((weak))
 #define RUNTIME_NODEBUG __attribute__((nodebug))
 
+#define PERFORMANCE_INLINE __attribute__((annotate("performance_inline")))
+
 #if KONAN_NEED_SMALL_BINARY
   // On the one hand, ALWAYS_INLINE forces many performance-critical function to be, well,
   // inlined. Which is good for performance, of course.
@@ -39,7 +41,8 @@
   // As a compromise, we let the compiler decide what should be inlined or not.
   #define ALWAYS_INLINE
 #else
-  #define ALWAYS_INLINE __attribute__((always_inline))
+  // @Tencent replace ALWAYS_INLINE with PERFORMANCE_INLINE for debug compile speed
+  #define ALWAYS_INLINE PERFORMANCE_INLINE
 #endif
 #define NO_INLINE __attribute__((noinline))
 

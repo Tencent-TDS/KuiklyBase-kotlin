@@ -161,6 +161,13 @@ extern "C" void Kotlin_Internal_GC_GCInfoBuilder_Fill(KRef builder, int id) {
 }
 
 namespace kotlin::gc {
+
+std::atomic<size_t> totalThreadsSuspendTimes = 0;
+
+size_t getTotalThreadsSuspendTimes() noexcept {
+    return totalThreadsSuspendTimes.load();
+}
+
 GCHandle GCHandle::create(uint64_t epoch) {
     std::lock_guard guard(lock);
     RuntimeAssert(statByEpoch(epoch) == nullptr, "Starting epoch, which already existed");
@@ -322,6 +329,7 @@ void GCHandle::threadsAreResumed() {
         if (startTime) {
             auto time = (endTime - *startTime) / 1000;
             GCLogDebug(epoch_, "Resume all threads. Total pause time is %" PRId64 " microseconds.", time);
+            totalThreadsSuspendTimes += time;
         }
     }
 }

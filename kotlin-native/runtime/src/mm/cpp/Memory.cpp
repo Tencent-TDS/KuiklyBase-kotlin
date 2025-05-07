@@ -26,6 +26,8 @@
 #include "ThreadRegistry.hpp"
 #include "ThreadState.hpp"
 #include "Utils.hpp"
+#include "MemoryDump.hpp"
+#include "GCStatistics.hpp"
 
 using namespace kotlin;
 
@@ -292,6 +294,29 @@ extern "C" void Kotlin_native_internal_GC_schedule(ObjHeader*) {
     mm::GlobalData::Instance().gcScheduler().schedule();
 }
 
+extern "C" RUNTIME_NOTHROW bool Kotlin_native_runtime_Debugging_dumpMemory(ObjHeader*, int fd) {
+    auto* threadData = mm::ThreadRegistry::Instance().CurrentThreadData();
+    threadData->suspensionData().requestThreadsSuspension("Heap Dump");
+    mm::WaitForThreadsSuspension();
+    bool success = mm::DumpMemory(fd);
+    mm::ResumeThreads();
+    return success;
+}
+
+// region Tencent Code
+extern "C" RUNTIME_NOTHROW bool Kotlin_native_runtime_Debugging_dumpMemoryAsync(ObjHeader*, int fd, ObjHeader* asyncCacheDir) {
+    if (mm::isAsyncDumping()) {
+        return false;
+    }
+    auto* threadData = mm::ThreadRegistry::Instance().CurrentThreadData();
+    threadData->suspensionData().requestThreadsSuspension("Heap Dump");
+    mm::WaitForThreadsSuspension();
+    bool success = mm::DumpMemoryAsync(fd, asyncCacheDir);
+    mm::ResumeThreads();
+    return success;
+}
+// endregion
+
 extern "C" void Kotlin_native_internal_GC_collectCyclic(ObjHeader*) {
     // TODO: Remove when legacy MM is gone.
     // Nothing to do
@@ -300,13 +325,23 @@ extern "C" void Kotlin_native_internal_GC_collectCyclic(ObjHeader*) {
 // TODO: Maybe a pair of suspend/resume or start/stop may be useful in the future?
 //       The other pair is likely to be removed.
 
+// region Tencent Code
 extern "C" void Kotlin_native_internal_GC_suspend(ObjHeader*) {
-    // Nothing to do
+    mm::GlobalData::Instance().gc().suspend();
 }
 
 extern "C" void Kotlin_native_internal_GC_resume(ObjHeader*) {
-    // Nothing to do
+    mm::GlobalData::Instance().gc().resume();
 }
+
+extern "C" bool Kotlin_native_internal_GC_getSuspendGCToggle(ObjHeader*) {
+    return mm::GlobalData::Instance().gcScheduler().config().enableGCSuspend.load();
+}
+
+extern "C" void Kotlin_native_internal_GC_setSuspendGCToggle(ObjHeader*, KBoolean value) {
+    mm::GlobalData::Instance().gcScheduler().config().enableGCSuspend = value;
+}
+// endregion
 
 extern "C" void Kotlin_native_internal_GC_stop(ObjHeader*) {
     // Nothing to do
@@ -418,6 +453,24 @@ extern "C" KBoolean Kotlin_native_internal_GC_getPauseOnTargetHeapOverflow(ObjHe
 extern "C" void Kotlin_native_internal_GC_setPauseOnTargetHeapOverflow(ObjHeader*, KBoolean value) {
     mm::GlobalData::Instance().gcScheduler().config().setMutatorAssists(value);
 }
+
+extern "C" KLong Kotlin_native_internal_GC_getTotalThreadsSuspendTimes(ObjHeader*) {
+    return gc::getTotalThreadsSuspendTimes();
+}
+
+// region Tencent Code
+extern "C" KLong Kotlin_native_internal_GC_getAllocatedBytes(ObjHeader*) {
+    return alloc::allocatedBytes();
+}
+
+extern "C" void Kotlin_native_internal_GC_setDelayFreePageAfterSTW(ObjHeader*, KBoolean value) {
+    mm::GlobalData::Instance().gcScheduler().config().delayFreePageAfterSTW = value;
+}
+
+extern "C" KBoolean Kotlin_native_internal_GC_getDelayFreePageAfterSTW(ObjHeader*) {
+    return mm::GlobalData::Instance().gcScheduler().config().delayFreePageAfterSTW.load();
+}
+// endregion
 
 extern "C" OBJ_GETTER(Kotlin_native_internal_GC_detectCycles, ObjHeader*) {
     // TODO: Remove when legacy MM is gone.
@@ -571,11 +624,11 @@ extern "C" RUNTIME_NOTHROW NO_INLINE void Kotlin_mm_safePointFunctionPrologue() 
     mm::safePoint();
 }
 
-extern "C" RUNTIME_NOTHROW CODEGEN_INLINE_POLICY void Kotlin_mm_safePointWhileLoopBody() {
+extern "C" RUNTIME_NOTHROW ALWAYS_INLINE void Kotlin_mm_safePointWhileLoopBody() {
     mm::safePoint();
 }
 
-extern "C" CODEGEN_INLINE_POLICY RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateNative() {
+extern "C" ALWAYS_INLINE RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateNative() {
     SwitchThreadState(mm::ThreadRegistry::Instance().CurrentThreadData(), ThreadState::kNative);
 }
 
@@ -583,7 +636,7 @@ extern "C" NO_INLINE RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateNative_debu
     SwitchThreadState(mm::ThreadRegistry::Instance().CurrentThreadData(), ThreadState::kNative);
 }
 
-extern "C" CODEGEN_INLINE_POLICY RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateRunnable() {
+extern "C" ALWAYS_INLINE RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateRunnable() {
     SwitchThreadState(mm::ThreadRegistry::Instance().CurrentThreadData(), ThreadState::kRunnable);
 }
 

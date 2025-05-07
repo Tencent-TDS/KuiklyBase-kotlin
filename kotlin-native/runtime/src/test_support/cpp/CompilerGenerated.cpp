@@ -54,7 +54,11 @@ kotlin::test_support::TypeInfoHolder theRegularWeakReferenceImplTypeInfoHolder{
         kotlin::test_support::TypeInfoHolder::ObjectBuilder<kotlin::test_support::RegularWeakReferenceImplPayload>().addFlag(
                 TF_HAS_FINALIZER)};
 
+#ifdef KONAN_OBJC_INTEROP
+ArrayHeader theEmptyStringImpl = {theStringTypeInfoHolder.typeInfo(), /* element count */ 0, 0};
+#else
 ArrayHeader theEmptyStringImpl = {theStringTypeInfoHolder.typeInfo(), /* element count */ 0};
+#endif
 
 template <class T>
 struct KBox {
@@ -107,7 +111,11 @@ extern const TypeInfo* theWorkerBoundReferenceTypeInfo = theWorkerBoundReference
 extern const TypeInfo* theCleanerImplTypeInfo = theCleanerImplTypeInfoHolder.typeInfo();
 extern const TypeInfo* theRegularWeakReferenceImplTypeInfo = theRegularWeakReferenceImplTypeInfoHolder.typeInfo();
 
+#ifdef KONAN_OBJC_INTEROP
+extern const ArrayHeader theEmptyArray = {theArrayTypeInfoHolder.typeInfo(), /* element count */ 0, 0};
+#else
 extern const ArrayHeader theEmptyArray = {theArrayTypeInfoHolder.typeInfo(), /* element count */ 0};
+#endif
 
 OBJ_GETTER0(TheEmptyString) {
     RETURN_OBJ(theEmptyStringImpl.obj());

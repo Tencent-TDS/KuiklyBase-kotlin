@@ -5,8 +5,6 @@
 
 package org.jetbrains.kotlin.backend.konan
 
-import org.jetbrains.kotlin.konan.target.needSmallBinary
-
 /**
  * Convenient methods to check compilation parameters.
  */
@@ -32,9 +30,9 @@ interface ConfigChecks {
 
     fun shouldOptimize() = config.optimizationsEnabled
 
-    fun shouldInlineSafepoints() = !config.target.needSmallBinary()
+    fun shouldInlineSafepoints() = !config.smallBinary
 
-    fun shouldInlineBoxing() = !config.target.needSmallBinary()
+    fun shouldInlineBoxing() = !config.smallBinary
 
     fun useLazyFileInitializers() = config.propertyLazyInitialization
 

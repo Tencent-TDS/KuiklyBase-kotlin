@@ -10,6 +10,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <cstring>
 
 #include "CallsChecker.hpp"
 #include "Format.h"
@@ -133,4 +134,50 @@ void logging::VLog(Level level, std::initializer_list<logging::Tag> tags, const 
     auto threadId = konan::currentThreadId();
     auto timestamp = kotlin::steady_clock::now();
     internal::Log(ctx.logger, level, tagsSpan, threadId, timestamp - ctx.initialTimestamp, format, args);
+}
+
+logging::TencentLogger::TencentLogger(size_t bufferSize, Level level) : bufferSize(bufferSize), level(level) {
+    buffer = new char[bufferSize];
+    buffer[0] = '\0';
+}
+
+logging::TencentLogger::~TencentLogger() {
+    delete[] buffer;
+}
+
+logging::TencentLogger& logging::TencentLogger::append(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    size_t currentLength = strlen(buffer);
+    if (currentLength >= bufferSize) {
+        Log(level, {Tag::kTencentAlloc}, "logger over flow");
+        return *this;
+    }
+
+    int written = vsnprintf(buffer + currentLength, bufferSize - currentLength, format, args);
+
+    if (written < 0) {
+        Log(level, {Tag::kTencentAlloc}, "Error in formatting the string");
+    }
+
+    if (static_cast<size_t>(written) >= bufferSize - currentLength) {
+        Log(level, {Tag::kTencentAlloc}, "%s", buffer);
+    }
+
+    va_end(args);
+    return *this;
+}
+
+logging::TencentLogger& logging::TencentLogger::print() {
+    size_t currentLength = strlen(buffer);
+    if (currentLength > 0) {
+        ::kotlin::logging::Log(level, {Tag::kTencentAlloc}, "%s", buffer);
+    }
+    return *this;
+}
+
+logging::TencentLogger& logging::TencentLogger::clear() {
+    buffer[0] = '\0';
+    return *this;
 }

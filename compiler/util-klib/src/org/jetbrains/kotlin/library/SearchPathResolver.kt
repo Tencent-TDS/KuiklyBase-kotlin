@@ -267,8 +267,13 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
                 //    the library is resolved or the side effect takes place. The latter (side effect) affects the execution
                 //    flow of the program and should not be a responsibility of SearchPathResolver.
                 // 3. Finally, we are going to drop SearchPathResolver which is a part of KLIB resolver.
-                @Suppress("DEPRECATION")
-                logger.fatal("KLIB resolver: Could not find \"${unresolved.path}\" in ${searchRoots.map { it.searchRootPath.absolutePath }}")
+
+                // region @Tencent: Dummy logger will exit the process right away in its fatal function during cinterop. 
+                //                  But wait, we need more information about the error. 
+                // @Suppress("DEPRECATION")
+                logger.error("KLIB resolver: Could not find \"${unresolved.path}\" in ${searchRoots.map { it.searchRootPath.absolutePath }}")
+                throw RuntimeException()
+                // endregion
             }
     }
 

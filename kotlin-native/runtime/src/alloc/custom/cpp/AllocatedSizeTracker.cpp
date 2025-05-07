@@ -34,3 +34,9 @@ void alloc::AllocatedSizeTracker::Heap::recordDifference(std::ptrdiff_t diffByte
         OnMemoryAllocation(prevRecord + diffBytes);
     }
 }
+
+// region Tencent Code
+std::size_t alloc::AllocatedSizeTracker::Page::getAllocatedSize() const {
+    return allocatedBytesLastRecorded_;
+}
+// endregion

@@ -604,6 +604,12 @@ kotlin {
                 dependsOn(nativeWasmTest)
                 kotlin {
                     srcDir("$rootDir/kotlin-native/runtime/test")
+
+                    // region @Tencent: Tests for macOS only.
+                    if ("Mac OS X" in System.getProperty("os.name")) {
+                        srcDir("$rootDir/kotlin-native/runtime/test-macos")
+                    }
+                    // endregion
                 }
                 languageSettings {
                     optIn("kotlin.experimental.ExperimentalNativeApi")

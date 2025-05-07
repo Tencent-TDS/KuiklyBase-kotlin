@@ -930,6 +930,7 @@ if (buildProperties.isKotlinNativeEnabled) {
     project(':kotlin-native:backend.native').projectDir = "$rootDir/kotlin-native/backend.native/compiler/ir/backend.native" as File
     include ':kotlin-native:Interop:Runtime'
     include ':kotlin-native:Interop:Indexer'
+    include ':kotlin-native:Interop:Indexer12'
     include ':kotlin-native:Interop:JsRuntime'
     include ':kotlin-native:Interop:Skia'
     include ':kotlin-native:utilities:cli-runner'
@@ -941,6 +942,7 @@ if (buildProperties.isKotlinNativeEnabled) {
     include ':kotlin-native:utilities'
     include ':kotlin-native:platformLibs'
     include ':kotlin-native:libclangext'
+    include ':kotlin-native:libclangext12'
     include ':kotlin-native:llvmInterop'
     include ':kotlin-native:backend.native:tests'
     project(':kotlin-native:backend.native:tests').projectDir = "$rootDir/kotlin-native/backend.native/tests" as File
@@ -948,4 +950,5 @@ if (buildProperties.isKotlinNativeEnabled) {
     include ':native:kotlin-test-native-xctest'
     include ':native:cli-native'
     include ':native:native.tests:cli-tests'
+    include ':kotlin-native:tools:kdumputil'
 }

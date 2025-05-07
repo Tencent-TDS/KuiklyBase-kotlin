@@ -29,6 +29,9 @@
 #endif
 
 #include "utf8.h"
+#ifdef KONAN_OBJC_INTEROP
+#include "KStringProxyCompat.h"
+#endif
 
 using namespace kotlin;
 
@@ -53,6 +56,14 @@ extern "C" {
 
 // io/Console.kt
 void Kotlin_io_Console_print(KString message) {
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+    if (tmm::IsKStringProxy(message)) {
+        tmm::Kotlin_io_Console_printStringProxy(message);
+        return;
+    }
+#endif
+// endregion
     // TODO: system stdout must be aware about UTF-8.
     auto utf8 = kStringToUtf8(message);
     kotlin::ThreadStateGuard guard(kotlin::ThreadState::kNative);
@@ -60,6 +71,14 @@ void Kotlin_io_Console_print(KString message) {
 }
 
 void Kotlin_io_Console_printToStdErr(KString message) {
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+    if (tmm::IsKStringProxy(message)) {
+        tmm::Kotlin_io_Console_printStringProxyToStdErr(message);
+        return;
+    }
+#endif
+// endregion
     // TODO: system stderr must be aware about UTF-8.
     auto utf8 = kStringToUtf8(message);
     kotlin::ThreadStateGuard guard(kotlin::ThreadState::kNative);

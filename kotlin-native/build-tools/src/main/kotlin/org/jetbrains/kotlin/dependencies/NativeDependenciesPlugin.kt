@@ -72,13 +72,23 @@ abstract class NativeDependenciesExtension @Inject constructor(private val proje
      */
     val llvmDependency: Buildable by ::llvmFileCollection
 
+    val llvm11Path: String by lazy {
+        findDependencyByKey("llvm11").singleFile.canonicalPath
+    }
+
+    val llvm12Path: String by lazy {
+        findDependencyByKey("llvm12").singleFile.canonicalPath
+    }
+
     /**
      * Absolute path to host LLVM. Can be used during configuration.
      * Note: this will not force LLVM to be downloaded. Make sure to depend
      * on [llvmDependency] in tasks that need it.
+     *
+     * Tencent: We force this to the path of llvm-12.0.1.
      */
     val llvmPath: String
-        get() = llvmFileCollection.singleFile.canonicalPath
+        get() = llvm12Path
 
     /**
      * Dependency on host libffi.
@@ -124,6 +134,12 @@ abstract class NativeDependenciesExtension @Inject constructor(private val proje
      */
     // TODO: Remove when all build.gradle are gone.
     fun targetDependency(target: KonanTarget): Buildable = targetDependency(target.withSanitizer())
+    
+    private fun findDependencyByKey(key: String): FileCollection {
+        return nativeDependencies.incoming.artifacts.artifactFiles.filter {
+            it.matchesDependency(platformManager.hostPlatform.hostString(key)!!)
+        }
+    }
 }
 
 /**

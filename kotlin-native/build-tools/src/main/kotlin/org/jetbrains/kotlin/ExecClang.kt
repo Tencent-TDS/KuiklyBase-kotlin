@@ -45,11 +45,17 @@ abstract class ExecClang @Inject constructor(
         return clangArgsForCppRuntime(target)
     }
 
-    fun resolveExecutable(executableOrNull: String?): String {
+    fun resolveExecutable(targetName: String, executableOrNull: String?): String {
+        val target = platformManager.targetManager(targetName).target
+        return resolveExecutable(target, executableOrNull)
+    }
+
+    fun resolveExecutable(target: KonanTarget, executableOrNull: String?): String {
         val executable = executableOrNull ?: "clang"
 
+        val platform = platformManager.platform(target)
         if (listOf("clang", "clang++").contains(executable)) {
-            return "${platformManager.hostPlatform.absoluteLlvmHome}/bin/$executable"
+            return "${platform.absoluteLlvmHome(target)}/bin/$executable"
         } else {
             throw GradleException("unsupported clang executable: $executable")
         }
@@ -70,7 +76,7 @@ abstract class ExecClang @Inject constructor(
     // The bare ones invoke clang with system default sysroot.
 
     fun execBareClang(action: Action<in ExecSpec>): ExecResult {
-        return this.execClang(emptyList(), action)
+        return this.execClang(platformManager.targetByName("host"), emptyList(), action)
     }
 
     // The konan ones invoke clang with konan provided sysroots.
@@ -105,8 +111,12 @@ abstract class ExecClang @Inject constructor(
         }.map { "-D${it.key}=${it.value}" }
     }
 
-    fun execKonanClang(target: String, action: Action<in ExecSpec>): ExecResult {
-        return this.execClang(clangArgsForCppRuntime(target) + fixBrokenMacroExpansionInXcode15_3(target), action)
+    fun execKonanClang(target: String?, action: Action<in ExecSpec>): ExecResult {
+        return this.execClang(platformManager.targetManager(target).target, clangArgsForCppRuntime(target) + fixBrokenMacroExpansionInXcode15_3(target), action)
+    }
+
+    fun execKonanClang(target: KonanTarget, action: Action<in ExecSpec>): ExecResult {
+        return this.execClang(target, clangArgsForCppRuntime(target) + fixBrokenMacroExpansionInXcode15_3(target), action)
     }
 
     // The toolchain ones execute clang from the toolchain.
@@ -115,19 +125,24 @@ abstract class ExecClang @Inject constructor(
         val extendedAction = Action<ExecSpec> {
             action.execute(this)
             executable = resolveToolchainExecutable(target, executable)
+            println("${executable} ${args.joinToString(separator = " ")})")
         }
         return execOperations.exec(extendedAction)
     }
 
-    private fun execClang(defaultArgs: List<String>, action: Action<in ExecSpec>): ExecResult {
+    private fun execClang(target: KonanTarget, defaultArgs: List<String>, action: Action<in ExecSpec>): ExecResult {
         val extendedAction = Action<ExecSpec> {
             action.execute(this)
-            executable = resolveExecutable(executable)
+            executable = resolveExecutable(target, executable)
 
             val hostPlatform = platformManager.hostPlatform
             environment["PATH"] = fileOperations.configurableFiles(hostPlatform.clang.clangPaths).asPath +
                     File.pathSeparator + environment["PATH"]
             args = args + defaultArgs
+            if (target == KonanTarget.OHOS_ARM64) {
+                args = args.filter { it != "-Werror" }
+            }
+            println("${executable} ${args.joinToString(separator = " ")})")
         }
         return execOperations.exec(extendedAction)
     }

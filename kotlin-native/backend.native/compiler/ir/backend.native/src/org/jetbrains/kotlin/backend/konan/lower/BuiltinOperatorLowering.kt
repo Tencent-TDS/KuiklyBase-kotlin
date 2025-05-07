@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.backend.common.lower.IrBuildingTransformer
 import org.jetbrains.kotlin.backend.common.lower.at
 import org.jetbrains.kotlin.backend.common.lower.irNot
 import org.jetbrains.kotlin.backend.konan.*
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
@@ -112,6 +113,16 @@ internal class BuiltinOperatorLowering(val context: Context) : FileLoweringPass,
             }
 
             if (expression.symbol == irBuiltins.eqeqSymbol) {
+                // region @Tencent: Lower EQEQ of enum class to EQEQEQ which is faster a lot.
+                //                  And, the body of equals of enum class is actually just 'this === other'. 
+                if (lhs.type.classOrNull?.owner?.kind == ClassKind.ENUM_CLASS) {
+                    return irCall(context.irBuiltIns.eqeqeqSymbol, expression.type).also {
+                        it.putValueArgument(0, lhs)
+                        it.putValueArgument(1, rhs)
+                    }
+                }
+                // endregion
+
                 lhs.type.getInlinedClassNative()?.let {
                     if (it == rhs.type.getInlinedClassNative() && inlinedClassHasDefaultEquals(it)) {
                         return genInlineClassEquals(expression.symbol, rhs, lhs)

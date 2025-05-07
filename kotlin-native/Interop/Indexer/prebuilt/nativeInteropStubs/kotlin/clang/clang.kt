@@ -4929,4 +4929,7 @@ private external fun kniBridge338(p0: NativePtr, p1: Int, p2: NativePtr): Unit
 private external fun kniBridge339(p0: NativePtr): Int
 private external fun kniBridge340(p0: NativePtr): Int
 private external fun kniBridge341(p0: NativePtr): Int
-private val loadLibrary = loadKonanLibrary("clangstubs")
+// Hack this for both apple and ohos targets. Load clang12 for ohos and clang11 otherwise.
+// BTW, Kotlin Native compiler will always invoke interop in a separate JVM process, 
+// so no need to worry runtime conflicts.
+private val loadLibrary = loadKonanLibrary(if (ClangConfig.useClang12) "clangstubs12" else "clangstubs")

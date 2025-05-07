@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "Allocator.hpp"
 #include "GCSchedulerConfig.hpp"
 #include "Logging.hpp"
 
@@ -34,10 +35,13 @@ public:
 
     // Can be called by any thread.
     MemoryBoundary boundaryForHeapSize(size_t totalAllocatedBytes) noexcept {
-        RuntimeLogDebug({logging::Tag::kGCScheduler}, "Total allocated %zu bytes", totalAllocatedBytes);
-        if (totalAllocatedBytes >= targetHeapBytes_) {
+        // @Tencent Tries to optimize gc
+        size_t currentAllocatedBytes = alloc::allocatedBytes();
+
+        RuntimeLogDebug({logging::Tag::kGCScheduler}, "Total allocated %zu bytes, alloc::allocatedBytes %zu bytes.", totalAllocatedBytes, currentAllocatedBytes);
+        if (currentAllocatedBytes >= targetHeapBytes_) {
             return config_.mutatorAssists() ? MemoryBoundary::kTarget : MemoryBoundary::kTrigger;
-        } else if (totalAllocatedBytes >= triggerHeapBytes_) {
+        } else if (currentAllocatedBytes >= triggerHeapBytes_) {
             return MemoryBoundary::kTrigger;
         } else {
             return MemoryBoundary::kNone;
@@ -46,14 +50,18 @@ public:
 
     // Called by the GC thread.
     void updateBoundaries(size_t aliveBytes) noexcept {
+        // @Tencent Tries to optimize gc
+        size_t baseValue = alloc::allocatedBytes();
         if (config_.autoTune.load()) {
-            double targetHeapBytes = static_cast<double>(aliveBytes) / config_.targetHeapUtilization;
+
+            double targetHeapBytes = static_cast<double>(baseValue) / config_.targetHeapUtilization;
             if (!std::isfinite(targetHeapBytes)) {
                 // This shouldn't happen in practice: targetHeapUtilization is in (0, 1]. But in case it does, don't touch anything.
                 return;
             }
             double minHeapBytes = static_cast<double>(config_.minHeapBytes.load(std::memory_order_relaxed));
             double maxHeapBytes = static_cast<double>(config_.maxHeapBytes.load(std::memory_order_relaxed));
+            
             targetHeapBytes = std::min(std::max(targetHeapBytes, minHeapBytes), maxHeapBytes);
             triggerHeapBytes_ = static_cast<size_t>(targetHeapBytes * config_.heapTriggerCoefficient.load(std::memory_order_relaxed));
             config_.targetHeapBytes.store(static_cast<int64_t>(targetHeapBytes), std::memory_order_relaxed);
@@ -62,7 +70,7 @@ public:
             targetHeapBytes_ = config_.targetHeapBytes.load(std::memory_order_relaxed);
         }
         RuntimeLogInfo({logging::Tag::kGCScheduler},
-                       "Updated heap boundaries: alive %zu, target %zu, trigger %zu", aliveBytes, targetHeapBytes_, triggerHeapBytes_);
+                       "Updated heap boundaries: base %zu, alive %zu, target %zu, trigger %zu", baseValue, aliveBytes, targetHeapBytes_, triggerHeapBytes_);
     }
 
     size_t targetHeapBytes() const noexcept { return targetHeapBytes_; }

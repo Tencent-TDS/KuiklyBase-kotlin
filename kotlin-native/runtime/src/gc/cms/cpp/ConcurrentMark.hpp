@@ -111,7 +111,10 @@ public:
     void endMarkingEpoch();
 
     /** To be run by a single "main" GC thread during STW. */
-    void runMainInSTW();
+    // region Tencent Code
+    void runMainInSTWOPT(const std::function<void()>& onPrepareToSweep);
+    void runMainInSTWOrigin();
+    // endregion
 
     /**
      * To be run by mutator threads that would like to participate in mark.
@@ -140,6 +143,11 @@ private:
     void flushMutatorQueues() noexcept;
 
     void resetMutatorFlags();
+
+    // region Tencent Code
+    void lockMutatorsList();
+    void unlockMutatorsList();
+    // endregion
 
     GCHandle gcHandle_ = GCHandle::invalid();
     std::optional<mm::ThreadRegistry::Iterable> lockedMutatorsList_;

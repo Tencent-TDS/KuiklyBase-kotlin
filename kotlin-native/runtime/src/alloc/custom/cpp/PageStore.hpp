@@ -8,11 +8,12 @@
 
 #include <atomic>
 #include <cstdint>
+#include <CustomLogging.hpp>
 #include <vector>
-
 #include "AtomicStack.hpp"
 #include "ExtraObjectPage.hpp"
 #include "GCStatistics.hpp"
+#include "concurrent/ScopedThread.hpp"
 
 namespace kotlin::alloc {
 
@@ -75,6 +76,15 @@ public:
     T* NewPage(uint64_t cellCount) noexcept {
         T* page = T::Create(cellCount);
         used_.Push(page);
+
+        // region Tencent Code
+        TencentAllocLambdaDebug([&page]() -> std::string {
+            page->threadName_ = kotlin::internal::getCurrentThreadName();
+            TencentAllocDebug("thread [%s] create new page", page->threadName_.c_str());
+            return "";
+        });
+        // endregion
+
         return page;
     }
 
@@ -124,6 +134,14 @@ private:
         while (T* page = ready_.Pop()) page->Destroy();
         while (T* page = used_.Pop()) page->Destroy();
         while (T* page = unswept_.Pop()) page->Destroy();
+    }
+
+    template <typename F>
+    void TraversePages(F process) noexcept(noexcept(process(std::declval<T*>()))) {
+        empty_.TraverseElements(process);
+        ready_.TraverseElements(process);
+        used_.TraverseElements(process);
+        unswept_.TraverseElements(process);
     }
 
     AtomicStack<T> empty_;

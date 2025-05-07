@@ -41,8 +41,16 @@ struct GCSchedulerConfig {
     // See `mutatorAssists()`.
     std::atomic<std::underlying_type_t<MutatorAssists>> mutatorAssistsImpl =
             static_cast<std::underlying_type_t<MutatorAssists>>(MutatorAssists::kDefault);
+    // region Tencent Code
+    // 控制 GC 挂起开关
+    std::atomic<bool> enableGCSuspend = true;
+    // endregion
 
     std::chrono::microseconds regularGcInterval() const { return std::chrono::microseconds(regularGcIntervalMicroseconds.load()); }
+
+    // region Tencent Code
+    std::atomic<bool> delayFreePageAfterSTW = false;
+    // end region
 
     // Whether mutators should stop and wait for GC to complete when
     // current object heap size is bigger than `targetHeapBytes`.

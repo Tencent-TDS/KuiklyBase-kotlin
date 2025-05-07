@@ -16,6 +16,9 @@
 #include "RuntimePrivate.hpp"
 #include "Worker.h"
 #include "KString.h"
+// region Tencent Code
+#include "StackTrace.hpp"
+// endregion
 #include <atomic>
 #include <cstdlib>
 #include <thread>
@@ -82,6 +85,30 @@ enum GlobalRuntimeStatus {
 
 std::atomic<GlobalRuntimeStatus> globalRuntimeStatus = kGlobalRuntimeUninitialized;
 
+// region Tencent Code
+std::atomic<std::string*> firstRuntimesStackTrace;
+
+void InitFirstRuntimesStackTrace() {
+    constexpr int kSkipFrames = 0;
+    StackTrace trace = StackTrace<>::current(kSkipFrames);
+    auto stackTraceStrings = GetStackTraceStrings(trace.data());
+    auto stackTrace = new std::string();
+    for (const auto& stack : stackTraceStrings) {
+        stackTrace->append(stack);
+        stackTrace->append("\n");
+    }
+    firstRuntimesStackTrace.store(stackTrace, std::memory_order_seq_cst);
+}
+
+extern "C" OBJ_GETTER0(Kotlin_getFirstRuntimeStackTraceString) {
+    auto stackTrace = firstRuntimesStackTrace.load(std::memory_order_seq_cst);
+    if (stackTrace == nullptr) {
+        RETURN_OBJ(nullptr);
+    }
+    RETURN_RESULT_OF(CreateStringFromCString, stackTrace->c_str())
+}
+// endregion
+
 RuntimeState* initRuntime() {
   SetKonanTerminateHandler();
   initObjectPool();
@@ -108,6 +135,9 @@ RuntimeState* initRuntime() {
   // Keep global variables in state as well.
   if (firstRuntime) {
     InitOrDeinitGlobalVariables(INIT_GLOBALS, result->memoryState);
+    // region Tencent Code
+    InitFirstRuntimesStackTrace();
+    // endregion
   }
   InitOrDeinitGlobalVariables(INIT_THREAD_LOCAL_GLOBALS, result->memoryState);
   RuntimeAssert(result->status == RuntimeStatus::kUninitialized, "Runtime must still be in the uninitialized state");
@@ -302,6 +332,8 @@ KInt Konan_Platform_getOsFamily() {
   return 7;
 #elif KONAN_WATCHOS
   return 8;
+#elif KONAN_OHOS
+  return 9;
 #else
 #warning "Unknown platform"
   return 0;

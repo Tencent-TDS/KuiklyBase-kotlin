@@ -16,7 +16,8 @@
 
 #include "KDebug.h"
 
-#include <string.h>
+#include <string>
+#include <cstring>
 
 #include "KAssert.h"
 #include "KString.h"
@@ -24,6 +25,10 @@
 #include "Natives.h"
 #include "Porting.h"
 #include "Types.h"
+#include <cstdlib>
+#include <string>
+#include <stdio.h>
+#include <stdint.h>
 
 #ifndef KONAN_NO_DEBUG_API
 
@@ -75,20 +80,30 @@ enum Konan_DebugOperation {
   DO_DebugGetFieldAddress = 10,
   DO_DebugGetFieldName = 11,
   DO_DebugGetTypeName = 12,
+  DO_DebugGetFieldsNameList = 13,
 };
 
 template <typename F>
 F getImpl(KRef obj, Konan_DebugOperation operation) {
-  if (obj == nullptr)
+  if (obj == nullptr) {
     return nullptr;
+  }
+
   auto* typeInfo = obj->type_info();
+
   auto* extendedTypeInfo = typeInfo->extendedInfo_;
 
-  if (extendedTypeInfo == nullptr)
+  if (extendedTypeInfo == nullptr) {
     return nullptr;
-  if (static_cast<int32_t>(operation) >= extendedTypeInfo->debugOperationsCount_)
+  }
+
+  if (static_cast<int32_t>(operation) >= extendedTypeInfo->debugOperationsCount_) {
     return nullptr;
-  return reinterpret_cast<F>(extendedTypeInfo->debugOperations_[operation]);
+  }
+
+  F returnF = reinterpret_cast<F>(extendedTypeInfo->debugOperations_[operation]);
+
+  return returnF;
 }
 
 // Buffer that can be used by debugger for inspections.
@@ -118,8 +133,12 @@ int32_t Konan_DebugObjectToUtf8ArrayImpl(KRef obj, char* buffer, int32_t bufferS
   ObjHolder stringHolder;
   // Kotlin call.
   ArrayHeader* data = KonanObjectToUtf8Array(obj, stringHolder.slot())->array();
-  if (data == nullptr) return 0;
-  if (bufferSize < 1) return 0;
+  if (data == nullptr) {
+      return 0;
+  }
+  if (bufferSize < 1) {
+      return 0;
+  }
   KInt toCopy = data->count_ > static_cast<uint32_t>(bufferSize - 1) ? bufferSize - 1 : data->count_;
   ::memcpy(buffer, ByteArrayAddressOfElementAt(data, 0), toCopy);
   buffer[toCopy] = '\0';
@@ -128,8 +147,9 @@ int32_t Konan_DebugObjectToUtf8ArrayImpl(KRef obj, char* buffer, int32_t bufferS
 
 int32_t Konan_DebugPrintImpl(KRef obj) {
   int32_t size = Konan_DebugObjectToUtf8Array(obj, Konan_DebugBuffer(), Konan_DebugBufferSize());
-  if (size > 1)
+  if (size > 1) {
     konan::consoleWriteUtf8(Konan_DebugBuffer(), size - 1);
+  }
   return 0;
 }
 
@@ -138,174 +158,331 @@ int32_t Konan_DebugIsArrayImpl(KRef obj) {
 }
 
 int32_t Konan_DebugGetFieldCountImpl(KRef obj) {
-  if (obj == nullptr)
+  if (obj == nullptr) {
     return 0;
-
+  }
   auto* typeInfo = obj->type_info();
   auto* extendedTypeInfo = typeInfo->extendedInfo_;
 
-  if (extendedTypeInfo == nullptr)
+  if (extendedTypeInfo == nullptr) {
     return 0;
+  }
 
-  if (IsArray(obj))
+  if (IsArray(obj)) {
     return obj->array()->count_;
+  }
 
   return extendedTypeInfo->fieldsCount_;
 }
 
 int32_t Konan_DebugGetFieldTypeImpl(KRef obj, int32_t index) {
-  if (obj == nullptr || index < 0)
+  if (obj == nullptr || index < 0) {
     return Konan_RuntimeType::RT_INVALID;
+  }
 
   auto typeInfo = obj->type_info();
   auto extendedTypeInfo = typeInfo->extendedInfo_;
 
-  if (extendedTypeInfo == nullptr)
+  if (extendedTypeInfo == nullptr) {
     return Konan_RuntimeType::RT_INVALID;
+  }
 
-  if (extendedTypeInfo->fieldsCount_ < 0)
+  if (extendedTypeInfo->fieldsCount_ < 0) {
     return -extendedTypeInfo->fieldsCount_;
+  }
 
-  if (index >= extendedTypeInfo->fieldsCount_)
+  if (index >= extendedTypeInfo->fieldsCount_) {
     return Konan_RuntimeType::RT_INVALID;
+  }
 
   return extendedTypeInfo->fieldTypes_[index];
 }
 
 void* Konan_DebugGetFieldAddressImpl(KRef obj, int32_t index) {
-  if (obj == nullptr || index < 0)
+  if (obj == nullptr || index < 0) {
     return nullptr;
+  }
 
   auto typeInfo = obj->type_info();
   auto extendedTypeInfo = typeInfo->extendedInfo_;
 
-  if (extendedTypeInfo == nullptr)
+  if (extendedTypeInfo == nullptr) {
     return nullptr;
+  }
 
    if (extendedTypeInfo->fieldsCount_ < 0) {
-     if (static_cast<uint32_t>(index) > obj->array()->count_)
+     if (static_cast<uint32_t>(index) > obj->array()->count_) {
         return nullptr;
-
+     }
       int32_t typeIndex = -extendedTypeInfo->fieldsCount_;
       return reinterpret_cast<uint8_t*>(obj->array())
           + alignUp(sizeof(struct ArrayHeader), runtimeTypeAlignment[typeIndex])
           + index * runtimeTypeSize[typeIndex];
    }
 
-   if (index >= extendedTypeInfo->fieldsCount_)
+   if (index >= extendedTypeInfo->fieldsCount_) {
      return nullptr;
+   }
 
    return reinterpret_cast<uint8_t*>(obj) + extendedTypeInfo->fieldOffsets_[index];
 }
 
 // Compute address of field or an array element at the index, or null, if incorrect.
 const char* Konan_DebugGetFieldNameImpl(KRef obj, int32_t index) {
-  if (obj == nullptr || index < 0)
+  if (obj == nullptr || index < 0) {
     return nullptr;
+  }
 
   auto typeInfo = obj->type_info();
   auto extendedTypeInfo = typeInfo->extendedInfo_;
 
-  if (extendedTypeInfo == nullptr)
+  if (extendedTypeInfo == nullptr) {
     return nullptr;
+  }
 
   // For arrays, field name makes not much sense.
-  if (extendedTypeInfo->fieldsCount_ < 0)
+  if (extendedTypeInfo->fieldsCount_ < 0) {
     return "";
+  }
 
-  if (index >= extendedTypeInfo->fieldsCount_)
+  if (index >= extendedTypeInfo->fieldsCount_) {
     return nullptr;
+  }
 
   return extendedTypeInfo->fieldNames_[index];
 }
 
+const std::string Konan_DebugGetFieldsTypeListString(KRef obj, int32_t count) {
+    std::string result;
+    for (int32_t i = 0; i < count; ++i) {
+        int32_t fieldType = Konan_DebugGetFieldTypeImpl(obj, i);
+        result += std::to_string(fieldType);
+        if (i < count - 1) {
+            result += ",";
+        }
+    }
+    return result;
+}
+
+const std::string Konan_DebugGetFieldsAddressListString(KRef obj, int32_t count) {
+    std::string result;
+    for (int32_t i = 0; i < count; ++i) {
+        void* addr = Konan_DebugGetFieldAddressImpl(obj, i);
+        if (addr == nullptr) {
+            result += "null";
+        } else {
+           result += std::to_string(reinterpret_cast<uintptr_t>(addr));
+        }
+        if (i < count - 1) {
+            result += ",";
+        }
+    }
+    return result;
+}
+
+const char* Konan_DebugGetFieldsNameListImpl(KRef obj, int32_t count) {
+    const char** tmpFieldNames = new const char*[count];
+    for (int32_t i = 0; i < count; ++i) {
+        tmpFieldNames[i] = Konan_DebugGetFieldNameImpl(obj, i);
+    }
+
+    size_t totalLength = 0;
+    for (int32_t i = 0; i < count; ++i) {
+        totalLength += strlen(tmpFieldNames[i]);
+    }
+
+    totalLength += count - 1 + 1; // count - 1 个 | 和 1 个空终止符
+
+    char* result = new char[totalLength];
+
+    for (int32_t i = 0; i < count; ++i) {
+        strcat(result, tmpFieldNames[i]);
+        if (i < count - 1) {
+            strcat(result, ",");
+        }
+    }
+
+    delete[] tmpFieldNames;
+    return result;
+}
+
 const char* Konan_DebugGetTypeNameImpl(KRef obj) {
-  if (obj == nullptr)
+  if (obj == nullptr) {
     return nullptr;
+  }
 
   auto type_info = obj->type_info();
-  if (type_info == nullptr)
+  if (type_info == nullptr) {
     return "<unknown>";
+  }
 
   return CreateCStringFromString(type_info->relativeName_);
 }
+
+const char* Konan_DebugCompleteTypeInitFlowImpl(KRef obj, const TypeInfo* typeInfo) {
+    int32_t isInstance = IsInstanceInternal(obj, typeInfo);
+    if (isInstance == 1) {
+        // 是对应typeInfo类型的实例
+        char* buff_addr =  Konan_DebugBufferImpl();
+        int bufferSize = Konan_DebugBufferSizeImpl();
+        int32_t buff_len = Konan_DebugObjectToUtf8ArrayImpl(obj, buff_addr, bufferSize);
+        std::string result_string = "1|" + std::to_string(reinterpret_cast<uintptr_t>(buff_addr)) + "|" + std::to_string(buff_len);
+        char* result = new char[result_string.length() + 1];
+        strcpy(result, result_string.c_str());
+
+        return result;
+    }
+    int32_t children_count = Konan_DebugGetFieldCountImpl(obj);;
+    int32_t isArray = Konan_DebugIsArrayImpl(obj);
+    if (isArray == 1) {
+        std::string result_string = "2|" + std::to_string(children_count);
+        char* result = new char[result_string.length() + 1];
+        strcpy(result, result_string.c_str());
+        return result;
+    }
+    const char* name_list = Konan_DebugGetFieldsNameListImpl(obj, children_count);
+    const std::string fields_type_list_string = Konan_DebugGetFieldsTypeListString(obj, children_count);
+    const std::string fields_address_list_string = Konan_DebugGetFieldsAddressListString(obj, children_count);
+
+    std::string result_string = "3|" + std::to_string(children_count) + "|" + std::string(name_list) + "|" + fields_type_list_string
+            + "|" + fields_address_list_string ;
+    delete[] name_list;
+    char* result = new char[result_string.length() + 1];
+    strcpy(result, result_string.c_str());
+
+    return result;
+}
+
+const char* Konan_DebugGetFieldsTypeAndAddressImpl(KRef obj, int32_t count) {
+    const std::string fields_type_list_string = Konan_DebugGetFieldsTypeListString(obj, count);
+    const std::string fields_address_list_string = Konan_DebugGetFieldsAddressListString(obj, count);
+
+    std::string result_string = fields_type_list_string + "|" + fields_address_list_string;
+    char* result = new char[result_string.length() + 1];
+    strcpy(result, result_string.c_str());
+
+    return result;
+}
+
 
 }  // namespace
 
 extern "C" {
 
-RUNTIME_WEAK char* Konan_DebugBuffer() {
+RUNTIME_EXPORT RUNTIME_WEAK char* Konan_DebugBuffer() {
   return Konan_DebugBufferImpl();
 }
 
-RUNTIME_WEAK int32_t Konan_DebugBufferSize() {
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugBufferSize() {
   return Konan_DebugBufferSizeImpl();
 }
 
-RUNTIME_WEAK char* Konan_DebugBufferWithObject(KRef obj) {
+RUNTIME_EXPORT RUNTIME_WEAK char* Konan_DebugBufferWithObject(KRef obj) {
   auto* impl = getImpl<char* (*)(KRef)>(obj, DO_DebugBufferWithObject);
-  if (impl == nullptr) return nullptr;
+  if (impl == nullptr) {
+      return nullptr;
+  }
   return impl(obj);
 }
 
-RUNTIME_WEAK int32_t Konan_DebugBufferSizeWithObject(KRef obj) {
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugBufferSizeWithObject(KRef obj) {
   auto* impl = getImpl<int32_t (*)(KRef)>(obj, DO_DebugBufferSizeWithObject);
-  if (impl == nullptr) return 0;
+  if (impl == nullptr) {
+      return 0;
+  }
   return impl(obj);
 }
 
 // Auxilary function which can be called by developer/debugger to inspect an object.
-RUNTIME_WEAK int32_t Konan_DebugObjectToUtf8Array(KRef obj, char* buffer, int32_t bufferSize) {
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugObjectToUtf8Array(KRef obj, char* buffer, int32_t bufferSize) {
   auto* impl = getImpl<int32_t (*)(KRef, char*, int32_t)>(obj, DO_DebugObjectToUtf8Array);
-  if (impl == nullptr) return 0;
+  if (impl == nullptr) {
+      return 0;
+  }
   return impl(obj, buffer, bufferSize);
 }
 
-RUNTIME_WEAK int32_t Konan_DebugPrint(KRef obj) {
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugPrint(KRef obj) {
   auto* impl = getImpl<int32_t (*)(KRef)>(obj, DO_DebugPrint);
-  if (impl == nullptr) return 0;
+  if (impl == nullptr) {
+      return 0;
+  }
   return impl(obj);
 }
 
-RUNTIME_WEAK int32_t Konan_DebugIsArray(KRef obj) {
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugIsArray(KRef obj) {
   auto* impl = getImpl<int32_t (*)(KRef)>(obj, DO_DebugIsArray);
-  if (impl == nullptr) return 0;
+  if (impl == nullptr) {
+      return 0;
+  }
   return impl(obj);
 }
 
-RUNTIME_WEAK int32_t Konan_DebugIsInstance(KRef obj, const TypeInfo* typeInfo) {
-  return IsInstanceInternal(obj, typeInfo);
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugIsInstance(KRef obj, const TypeInfo* typeInfo) {
+  int32_t debugIsInstance = IsInstanceInternal(obj, typeInfo);
+  return debugIsInstance;
 }
 
-RUNTIME_WEAK int32_t Konan_DebugGetFieldCount(KRef obj) {
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugGetFieldCount(KRef obj) {
   auto* impl = getImpl<int32_t (*)(KRef)>(obj, DO_DebugGetFieldCount);
-  if (impl == nullptr) return 0;
+  if (impl == nullptr) {
+      return 0;
+  }
   return impl(obj);
 }
 
-RUNTIME_WEAK int32_t Konan_DebugGetFieldType(KRef obj, int32_t index) {
+RUNTIME_EXPORT RUNTIME_WEAK int32_t Konan_DebugGetFieldType(KRef obj, int32_t index) {
   auto* impl = getImpl<int32_t (*)(KRef, int32_t)>(obj, DO_DebugGetFieldType);
-  if (impl == nullptr) return 0;
+  if (impl == nullptr) {
+      return 0;
+  }
   return impl(obj, index);
 }
 
-RUNTIME_WEAK void* Konan_DebugGetFieldAddress(KRef obj, int32_t index) {
+RUNTIME_EXPORT RUNTIME_WEAK void* Konan_DebugGetFieldAddress(KRef obj, int32_t index) {
   auto* impl = getImpl<void* (*)(KRef, int32_t)>(obj, DO_DebugGetFieldAddress);
-  if (impl == nullptr) return nullptr;
+  if (impl == nullptr) {
+      return nullptr;
+  }
   return impl(obj, index);
 }
 
 // Compute address of field or an array element at the index, or null, if incorrect.
-RUNTIME_WEAK const char* Konan_DebugGetFieldName(KRef obj, int32_t index) {
+RUNTIME_EXPORT RUNTIME_WEAK const char* Konan_DebugGetFieldName(KRef obj, int32_t index) {
   auto* impl = getImpl<const char* (*)(KRef, int32_t)>(obj, DO_DebugGetFieldName);
-  if (impl == nullptr) return nullptr;
-  return impl(obj, index);
+  if (impl == nullptr) {
+      return nullptr;
+  }
+  const char* returnImpl = impl(obj, index);
+  return returnImpl;
 }
 
-RUNTIME_WEAK const char* Konan_DebugGetTypeName(KRef obj) {
+// Handle Konan_DebugGetFieldName in range count and concatenate results with ','
+RUNTIME_EXPORT RUNTIME_WEAK const char* Konan_DebugGetFieldsNameList(KRef obj, int32_t count) {
+    auto* impl = getImpl<const char* (*)(KRef, int32_t)>(obj, DO_DebugGetFieldsNameList);
+    if (impl == nullptr) {
+        return nullptr;
+    }
+    const char* returnImpl = impl(obj, count);
+    return returnImpl;
+}
+
+RUNTIME_EXPORT RUNTIME_WEAK const char* Konan_DebugGetTypeName(KRef obj) {
   auto* impl = getImpl<const char* (*)(KRef)>(obj, DO_DebugGetTypeName);
-  if (impl == nullptr) return nullptr;
+  if (impl == nullptr) {
+      return nullptr;
+  }
   return impl(obj);
+}
+
+RUNTIME_EXPORT RUNTIME_WEAK const char* Konan_DebugCompleteTypeInitFlow(KRef obj, const TypeInfo* typeInfo) {
+    const char* result = Konan_DebugCompleteTypeInitFlowImpl(obj, typeInfo);
+    return result;
+}
+
+RUNTIME_EXPORT RUNTIME_WEAK const char* Konan_DebugGetFieldsTypeAndAddress(KRef obj, int32_t count) {
+    const char* result = Konan_DebugGetFieldsTypeAndAddressImpl(obj, count);
+    return result;
 }
 
 // The following works around an issue in ld.gold (KT-69206), where the retain
@@ -342,7 +519,8 @@ const void* Konan_debugOperationsList[] = {
   reinterpret_cast<const void*>(&Konan_DebugGetFieldTypeImpl),
   reinterpret_cast<const void*>(&Konan_DebugGetFieldAddressImpl),
   reinterpret_cast<const void*>(&Konan_DebugGetFieldNameImpl),
-  reinterpret_cast<const void*>(&Konan_DebugGetTypeNameImpl)
+  reinterpret_cast<const void*>(&Konan_DebugGetTypeNameImpl),
+  reinterpret_cast<const void*>(&Konan_DebugGetFieldsNameListImpl)
 };
 
 }  // extern "C"

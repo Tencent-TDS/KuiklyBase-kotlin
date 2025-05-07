@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <PageSizeInfo.h>
 #include <vector>
 
 #include "AnyPage.hpp"
@@ -33,6 +34,25 @@ public:
 
     bool Sweep(GCSweepScope& sweepHandle, FinalizerQueue& finalizerQueue) noexcept;
 
+    template <typename F>
+    void TraverseAllocatedBlocks(F process) noexcept(noexcept(process(std::declval<uint8_t*>()))) {
+        if (isAllocated_) {
+            process(data_);
+        }
+    }
+
+    // region Tencent Code
+    template <typename F>
+    void TraverseAllocatedBlocksForFile(F process) noexcept(noexcept(process(std::declval<uint8_t*>(),std::declval<uintptr_t>()))) {
+        if (isAllocated_) {
+            process(data_, dataAddress);
+        }
+    }
+
+    PageSizeInfo getPageSize();
+    size_t getSize();
+    // endregion
+
 private:
     friend class Heap;
 
@@ -43,6 +63,9 @@ private:
 
     bool isAllocated_ = false;
     size_t size_;
+    // region Tencent Code
+    uintptr_t dataAddress;
+    // endregion
     struct alignas(8) {
         uint8_t data_[];
     };

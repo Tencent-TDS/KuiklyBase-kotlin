@@ -81,6 +81,7 @@ open class Command(
 
     open fun execute() {
         log()
+        println("${command.joinToString(separator = " ")}")
         val code = runProcess()
         handleExitCode(code, stdError)
     }
@@ -127,7 +128,7 @@ open class Command(
 
     private fun handleExitCode(code: Int, output: List<String> = emptyList()) {
         if (code != 0) throw KonanExternalToolFailure("""
-            The ${command[0]} command returned non-zero exit code: $code.
+            The (${command.joinToString(" ")}) command returned non-zero exit code: $code.
             output:
             """.trimIndent() + "\n${output.joinToString("\n")}", command[0])
         // Show warnings in case of success linkage.

@@ -32,7 +32,10 @@ enum class LoggingTag(val ord: Int) {
     Barriers(8),
     GCMark(9),
     GCScheduler(10),
-    ;
+    // region Tencent Code
+    TencentAlloc(11),
+    // endregion
+;
 
     companion object {
         fun parse(str: String) = entries.firstOrNull {

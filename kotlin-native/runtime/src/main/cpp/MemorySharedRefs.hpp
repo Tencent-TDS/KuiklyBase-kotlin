@@ -44,6 +44,20 @@ class KRefSharedHolder {
 
 static_assert(std::is_trivially_destructible_v<KRefSharedHolder>, "KRefSharedHolder destructor is not guaranteed to be called.");
 
+// region @Tencent
+class KWeakRefSharedHolder {
+ public:
+  void init(ObjHeader* obj);
+
+  ObjHeader* tryRef() const;
+
+  void dispose();
+
+ private:
+  kotlin::mm::RawSpecialRef* ref_; // New MM.
+};
+// endregion
+
 class BackRefFromAssociatedObject {
  public:
   void initForPermanentObject(ObjHeader* obj);

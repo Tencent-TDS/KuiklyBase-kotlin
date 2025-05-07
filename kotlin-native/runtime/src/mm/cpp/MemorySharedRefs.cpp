@@ -10,6 +10,7 @@
 #include "ExternalRCRef.hpp"
 #include "ObjCBackRef.hpp"
 #include "StableRef.hpp"
+#include "WeakRef.hpp"
 
 using namespace kotlin;
 
@@ -44,6 +45,32 @@ void KRefSharedHolder::dispose() {
     std::move(mm::StableRef::reinterpret(ref_)).dispose();
     // obj_ is dangling now.
 }
+
+// region @Tencent
+void KWeakRefSharedHolder::init(ObjHeader* obj) {
+  RuntimeAssert(obj != nullptr, "must not be null");
+  ref_ = static_cast<mm::RawSpecialRef*>(mm::WeakRef::create(obj));
+}
+
+ObjHeader* KWeakRefSharedHolder::tryRef() const {
+  AssertThreadState(ThreadState::kRunnable);
+  // ref_ may be null if created with initLocal.
+  if (ref_) {
+    ObjHeader *result;
+    mm::WeakRef::reinterpret(ref_).tryRef(&result);
+    return result;
+  }
+  return nullptr;
+}
+
+void KWeakRefSharedHolder::dispose() {
+  // Handles the case when it is not initialized.
+  if (!ref_) {
+    return;
+  }
+  std::move(mm::WeakRef::reinterpret(ref_)).dispose();
+}
+// endregion
 
 void BackRefFromAssociatedObject::initForPermanentObject(ObjHeader* obj) {
     RuntimeAssert(obj != nullptr, "must not be null");

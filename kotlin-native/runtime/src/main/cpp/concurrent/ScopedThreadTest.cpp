@@ -21,17 +21,11 @@ using namespace kotlin;
 
 namespace {
 
-template <size_t NAME_SIZE = 100>
+// region @Tencent: parameter 'thread' is always 'pthread_self()' so it is safe to be ignored.
 std::string threadName(pthread_t thread) {
-    static_assert(
-            std::is_invocable_r_v<int, decltype(pthread_getname_np), pthread_t, char*, size_t>, "Invalid pthread_getname_np signature");
-    std::array<char, NAME_SIZE> name;
-    int result = pthread_getname_np(thread, name.data(), name.size());
-    RuntimeAssert(result == 0, "failed to get thread name: %s\n", std::strerror(result));
-    // Make sure name is null-terminated.
-    name[name.size() - 1] = '\0';
-    return std::string(name.data());
+  return kotlin::internal::getCurrentThreadName();
 }
+// endregion
 
 __attribute__((format(printf, 1, 2))) std::string format(const char* format, ...) {
     std::array<char, 20> buffer;

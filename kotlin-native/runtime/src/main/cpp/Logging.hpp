@@ -40,8 +40,11 @@ enum class Tag : int32_t {
     kBarriers = 8,
     kGCMark = 9,
     kGCScheduler = 10,
+    // region Tencent Code
+    kTencentAlloc = 11,
+    // endregion
 
-    kEnumSize = 11
+    kEnumSize = 12,
 };
 
 namespace internal {
@@ -69,6 +72,9 @@ inline const char* name(Tag tag) {
         case Tag::kBarriers: return "barriers";
         case Tag::kGCMark: return "gcMark";
         case Tag::kGCScheduler: return "gcScheduler";
+        // region Tencent Code
+        case Tag::kTencentAlloc: return "tencentAlloc";
+        // endregion
 
         case Tag::kEnumSize: break;
     }
@@ -92,6 +98,12 @@ ALWAYS_INLINE inline bool enabled(logging::Level level, std::initializer_list<co
     std_support::span<const logging::Tag> tagsSpan(std::data(tags), std::size(tags));
     return enabled(level, tagsSpan, compiler::runtimeLogs());
 }
+
+// region Tencent Code
+ALWAYS_INLINE inline bool tencentEnabled(logging::Level level, const logging::Tag tag) noexcept {
+    return enabled(level, {tag}, compiler::runtimeLogs());
+}
+// endregion
 
 class Logger {
 public:
@@ -128,6 +140,23 @@ __attribute__((format(printf, 3, 4)))
 void Log(Level level, std::initializer_list<Tag> tags, const char* format, ...) noexcept;
 void VLog(Level level, std::initializer_list<Tag> tags, const char* format, std::va_list args) noexcept;
 
+// region Tencent Code
+class TencentLogger {
+public:
+    explicit TencentLogger(size_t bufferSize, Level level = Level::kDebug);
+    ~TencentLogger();
+
+    TencentLogger& append(const char* format, ...);
+    TencentLogger& print();
+    TencentLogger& clear();
+
+private:
+    char* buffer;
+    size_t bufferSize;
+    Level level;
+};
+// endregion
+
 } // namespace logging
 
 // Well known tags.
@@ -155,3 +184,26 @@ inline constexpr auto kTagBalancing = logging::Tag::kBalancing;
 #define RuntimeLogInfo(...) RuntimeLog(::kotlin::logging::Level::kInfo, ##__VA_ARGS__)
 #define RuntimeLogWarning(...) RuntimeLog(::kotlin::logging::Level::kWarning, ##__VA_ARGS__)
 #define RuntimeLogError(...) RuntimeLog(::kotlin::logging::Level::kError, ##__VA_ARGS__)
+
+// region Tencent Code
+#define TencentAllocDebug(format, ...) RuntimeLogDebug({kotlin::logging::Tag::kTencentAlloc}, format, ##__VA_ARGS__)
+#define TencentAllocInfo(format, ...) RuntimeLogInfo({kotlin::logging::Tag::kTencentAlloc}, format, ##__VA_ARGS__)
+#define TencentAllocWarning(format, ...) RuntimeLogWarning({kotlin::logging::Tag::kTencentAlloc}, format, ##__VA_ARGS__)
+#define TencentAllocError(format, ...) RuntimeLogError({kotlin::logging::Tag::kTencentAlloc}, format, ##__VA_ARGS__)
+
+#define TencentLogLambda(level, tag, lambda) \
+    do { \
+        if (::kotlin::logging::internal::tencentEnabled(level, tag)) { \
+            std::string content = (lambda)(); \
+            if (!content.empty()) { \
+                ::kotlin::logging::Log(level, {tag}, "%s", content.c_str()); \
+            } \
+        } \
+    } while (false)
+
+#define TencentAllocLambdaDebug(lambda) \
+    TencentLogLambda(::kotlin::logging::Level::kDebug, kotlin::logging::Tag::kTencentAlloc, lambda)
+#define TencentAllocLambdaInfo(lambda) \
+    TencentLogLambda(::kotlin::logging::Level::kInfo, kotlin::logging::Tag::kTencentAlloc, lambda)
+
+// endregion

@@ -1,0 +1,10 @@
+depends = posix
+package = platform.drm
+headers = drm/drm.h drm/amdgpu_drm.h drm/armada_drm.h drm/drm_fourcc.h \
+          drm/drm_mode.h drm/drm_sarea.h drm/etnaviv_drm.h drm/exynos_drm.h \
+          drm/i810_drm.h drm/i915_drm.h drm/lima_drm.h drm/mga_drm.h \
+          drm/msm_drm.h drm/nouveau_drm.h drm/omap_drm.h drm/panfrost_drm.h \
+          drm/qxl_drm.h drm/radeon_drm.h drm/savage_drm.h drm/sis_drm.h \
+          drm/tegra_drm.h drm/v3d_drm.h drm/vc4_drm.h drm/vgem_drm.h \
+          drm/via_drm.h drm/virtgpu_drm.h drm/vmwgfx_drm.h
+headerFilter = drm/**

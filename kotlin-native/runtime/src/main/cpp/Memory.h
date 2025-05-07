@@ -27,14 +27,6 @@
 #include "PointerBits.h"
 #include "Utils.hpp"
 
-#if KONAN_NEED_SMALL_BINARY
-  // Currently, codegen places a lot of unnecessary calls to MM functions.
-  // By forcing NO_INLINE on these functions we keep binaries from growing too big.
-  #define CODEGEN_INLINE_POLICY NO_INLINE
-#else
-  #define CODEGEN_INLINE_POLICY ALWAYS_INLINE
-#endif
-
 typedef enum {
   // Must match to permTag() in Kotlin.
   OBJECT_TAG_PERMANENT_CONTAINER = 1 << 0,
@@ -140,6 +132,12 @@ struct ArrayHeader {
 
   // Elements count. Element size is stored in instanceSize_ field of TypeInfo, negated.
   uint32_t count_;
+
+#ifdef KONAN_OBJC_INTEROP
+  // Thanks to the memory alignment, this will not change the memory layout of ArrayHeader.
+  // We can use objc_flags to do some optimization.
+  uint32_t objcFlags_;
+#endif
 };
 static_assert(alignof(ArrayHeader) <= kotlin::kObjectAlignment);
 
@@ -324,6 +322,10 @@ OBJ_GETTER(Kotlin_native_internal_GC_detectCycles, ObjHeader*);
 OBJ_GETTER(Kotlin_native_internal_GC_findCycle, ObjHeader*, ObjHeader* root);
 bool Kotlin_native_internal_GC_getCyclicCollector(ObjHeader* gc);
 void Kotlin_native_internal_GC_setCyclicCollector(ObjHeader* gc, bool value);
+RUNTIME_NOTHROW bool Kotlin_native_runtime_Debugging_dumpMemory(ObjHeader*, int fd);
+// region Tencent Code
+RUNTIME_NOTHROW bool Kotlin_native_runtime_Debugging_dumpMemoryAsync(ObjHeader*, int fd, ObjHeader* asyncCacheDir);
+// endregion
 
 bool Kotlin_Any_isShareable(ObjHeader* thiz);
 void Kotlin_Any_share(ObjHeader* thiz);
@@ -332,17 +334,17 @@ void PerformFullGC(MemoryState* memory) RUNTIME_NOTHROW;
 void CheckGlobalsAccessible();
 
 // Sets state of the current thread to NATIVE (used by the new MM).
-CODEGEN_INLINE_POLICY RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateNative();
+RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateNative();
 // Sets state of the current thread to RUNNABLE (used by the new MM).
-CODEGEN_INLINE_POLICY RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateRunnable();
+RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateRunnable();
 // No-inline versions of the functions above are used in debug mode to workaround KT-67567 
 // by outlining certain CAS instructions from user code:
 NO_INLINE RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateNative_debug();
 NO_INLINE RUNTIME_NOTHROW void Kotlin_mm_switchThreadStateRunnable_debug();
 
 // Safe point callbacks from Kotlin code generator.
-CODEGEN_INLINE_POLICY void Kotlin_mm_safePointFunctionPrologue() RUNTIME_NOTHROW;
-CODEGEN_INLINE_POLICY void Kotlin_mm_safePointWhileLoopBody() RUNTIME_NOTHROW;
+void Kotlin_mm_safePointFunctionPrologue() RUNTIME_NOTHROW;
+void Kotlin_mm_safePointWhileLoopBody() RUNTIME_NOTHROW;
 
 RUNTIME_NOTHROW void DisposeRegularWeakReferenceImpl(ObjHeader* counter);
 

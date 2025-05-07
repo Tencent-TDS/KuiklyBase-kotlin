@@ -1,0 +1,4 @@
+depends = posix
+package = platform.sound
+headers = sound/asound.h sound/asound_fm.h
+headerFilter = sound/**

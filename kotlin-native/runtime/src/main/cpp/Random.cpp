@@ -8,7 +8,7 @@
 
 #if KONAN_MACOSX || KONAN_IOS || KONAN_TVOS || KONAN_WATCHOS || KONAN_ANDROID
 #include <stdlib.h>
-#elif KONAN_LINUX
+#elif KONAN_LINUX || KONAN_OHOS
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <errno.h>
@@ -26,7 +26,7 @@
 
 namespace {
 
-#if KONAN_LINUX || KONAN_WINDOWS
+#if KONAN_LINUX || KONAN_WINDOWS || KONAN_OHOS
 void throwReadingRandomBytesFailed(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -54,7 +54,7 @@ void Kotlin_Uuid_getRandomBytes(KRef byteArray, KInt size) {
 
 #if KONAN_MACOSX || KONAN_IOS || KONAN_TVOS || KONAN_WATCHOS || KONAN_ANDROID
     arc4random_buf(address, size);
-#elif KONAN_LINUX
+#elif KONAN_LINUX || KONAN_OHOS
     long count = 0;
     while (count < size) {
         long ret = syscall(SYS_getrandom, address + count, size - count, 0); // blocking

@@ -47,8 +47,55 @@ void alloc::Allocator::prepareForGC() noexcept {
     impl_->heap().PrepareForGC();
 }
 
+// region Tencent Code
+void alloc::Allocator::onStartGC() noexcept {
+    alloc::StartCollectGarbagePages();
+}
+
+void alloc::Allocator::onFinishGC() noexcept {
+    alloc::FinishCollectGarbagePages();
+    TencentAllocLambdaDebug([allocator = this]() -> std::string {
+        allocator->onFinishGC();
+        return std::string("onFinishGC");
+    });
+}
+// endregion
+
 void alloc::Allocator::clearForTests() noexcept {
     impl_->heap().ClearForTests();
+}
+
+void alloc::Allocator::TraverseAllocatedObjects(std::function<void(ObjHeader*)> fn) noexcept {
+    impl_->heap().TraverseAllocatedObjects(fn);
+}
+
+// region Tencent Code
+void alloc::Allocator::TraverseFixedBlockPageObjects(void *page,
+                                                     const std::function<void(ObjHeader*, uintptr_t)>& process) {
+    impl_->heap().TraverseFixedBlockPageObjects(page, process);
+}
+
+void alloc::Allocator::TraverseNextFitPageObjects(void *page,
+                                                     const std::function<void(ObjHeader*, uintptr_t)>& process) {
+    impl_->heap().TraverseNextFitPageObjects(page, process);
+}
+
+void alloc::Allocator::TraverseSingleObjPageObjects(void *page,
+                                                     const std::function<void(ObjHeader* obj, uintptr_t)>& process) {
+    impl_->heap().TraverseSingleObjPageObjects(page, process);
+}
+
+void alloc::Allocator::TraverseFixedPagesPart(int index, const std::function<void(void *, int, size_t)>& fn) {
+    return impl_->heap().TraverseFixedPagesPart(index, fn);
+}
+
+void alloc::Allocator::TraverseNextFitAndSinglePages(const std::function<void(void *, int, size_t)>& fn) {
+    return impl_->heap().TraverseNextFitAndSinglePages(fn);
+}
+// endregion
+
+void alloc::Allocator::TraverseAllocatedExtraObjects(std::function<void(mm::ExtraObjectData*)> fn) noexcept {
+    impl_->heap().TraverseAllocatedExtraObjects(fn);
 }
 
 void alloc::initObjectPool() noexcept {}

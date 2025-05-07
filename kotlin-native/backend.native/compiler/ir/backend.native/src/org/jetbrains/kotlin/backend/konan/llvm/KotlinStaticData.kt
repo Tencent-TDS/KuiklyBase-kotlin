@@ -34,7 +34,10 @@ internal class KotlinStaticData(override val generationState: NativeGenerationSt
 
     private fun arrayHeader(typeInfo: ConstPointer, length: Int): Struct {
         assert(length >= 0)
-        return Struct(runtime.arrayHeaderType, permanentTag(typeInfo), llvm.constInt32(length))
+        // region @Tencent: Add 'objcFlags_' for KStringProxy on Apple Targets only.
+        val objcFlags = if (context.config.target.family.isAppleFamily) arrayOf(llvm.constInt32(0)) else emptyArray()
+        return Struct(runtime.arrayHeaderType, permanentTag(typeInfo), llvm.constInt32(length), *objcFlags)
+        // endregion
     }
 
     private fun createRef(objHeaderPtr: ConstPointer) = objHeaderPtr.bitcast(kObjHeaderPtr)

@@ -6,6 +6,7 @@
 #include "ConcurrentMarkAndSweep.hpp"
 
 #include <optional>
+#include <Logging.hpp>
 
 #include "AllocatorImpl.hpp"
 #include "CallsChecker.hpp"
@@ -17,6 +18,10 @@
 #include "ThreadSuspension.hpp"
 #include "GCState.hpp"
 #include "GCStatistics.hpp"
+#include "../../../alloc/custom/cpp/CustomLogging.hpp"
+// region Tencent Code
+#include "Porting.h"
+// endregion
 
 using namespace kotlin;
 
@@ -128,9 +133,9 @@ void gc::ConcurrentMarkAndSweep::mainGCThreadBody() {
 }
 
 void gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
+    konan::startTrace("PerformFullGC");
     std::unique_lock mainGCLock(gcMutex);
     auto gcHandle = GCHandle::create(epoch);
-
     markDispatcher_.beginMarkingEpoch(gcHandle);
     GCLogDebug(epoch, "Main GC requested marking in mutators");
 
@@ -139,10 +144,24 @@ void gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
     auto& scheduler = gcScheduler_;
     scheduler.onGCStart();
 
+    // region Tencent Code
     state_.start(epoch);
+    konan::startTrace("ConcurrentMark");
 
-    markDispatcher_.runMainInSTW();
+    if (gcScheduler_.config().enableGCSuspend) {
+        markDispatcher_.runMainInSTWOPT([this] {
+            konan::startTrace("waitResumed");
+            state().waitResumed();
+            konan::finishTrace();
+        });
+    } else {
+        markDispatcher_.runMainInSTWOrigin();
+    }
 
+    konan::finishTrace();
+    konan::startTrace("PrepareForGC");
+    allocator_.onStartGC();
+    // endregion
     // TODO outline as mark_.isolateMarkedHeapAndFinishMark()
     // By this point all the alive heap must be marked.
     // All the mutations (incl. allocations) after this method will be subject for the next GC.
@@ -151,6 +170,26 @@ void gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
     for (auto& thread : kotlin::mm::ThreadRegistry::Instance().LockForIter()) {
         thread.allocator().prepareForGC();
     }
+    // region Tencent Code
+    TencentAllocLambdaInfo([]() -> std::string {
+        int threadCount = 0;
+        logging::TencentLogger logger(300);
+
+        logger.append("ThreadInfo:");
+        for (auto& thread : kotlin::mm::ThreadRegistry::Instance().LockForIter()) {
+            logger.append("%d(%s)", thread.threadId(), thread.getThreadName().c_str());
+
+            if (++threadCount % 10 == 0) {
+                logger.print().clear();
+            }
+        }
+
+        logger.print().clear();
+
+        logger.append("PerformFullGC (prepared %d threads)\n", threadCount).print();
+        return "";
+    });
+    // endregion
     allocator_.prepareForGC();
 
 #ifndef CUSTOM_ALLOCATOR
@@ -163,6 +202,9 @@ void gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
 #endif
 
     resumeTheWorld(gcHandle);
+    // region Tencent Code
+    konan::finishTrace();
+    // endregion
 
 #ifndef CUSTOM_ALLOCATOR
     alloc::SweepExtraObjects<alloc::DefaultSweepTraits<alloc::ObjectFactoryImpl>>(gcHandle, *extraObjectFactoryIterable);
@@ -183,6 +225,10 @@ void gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
     gcHandle.finalizersScheduled(finalizerQueue.size());
     gcHandle.finished();
 
+    // region Tencent Code
+    allocator_.onFinishGC();
+    // endregion
+
     if (!mainThreadFinalizerProcessor_.available()) {
         finalizerQueue.mergeIntoRegular();
     }
@@ -191,4 +237,7 @@ void gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch) noexcept {
     // TODO: Consider having an always on sleeping finalizer thread.
     finalizerProcessor_.ScheduleTasks(std::move(finalizerQueue.regular), epoch);
     mainThreadFinalizerProcessor_.schedule(std::move(finalizerQueue.mainThread), epoch);
+    // region Tencent Code
+    konan::finishTrace();
+    // endregion
 }

@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.backend.konan.env.setEnv
 import org.jetbrains.kotlin.utils.usingNativeMemoryAllocator
 
 private fun mainImpl(args: Array<String>, runFromDaemon: Boolean, konancMain: (Array<String>) -> Unit) {
+    println("${args.joinToString(separator = " ")}")
     val utilityName = args[0]
     val utilityArgs = args.drop(1).toTypedArray()
     when (utilityName) {

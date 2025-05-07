@@ -200,7 +200,7 @@ abstract class ClangFrontend @Inject constructor(
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     val executable: Provider<RegularFile> = layout.file(compiler.map {
-        val executable = execClang.resolveExecutable(it)
+        val executable = execClang.resolveExecutable(targetName.get(), it)
         val executableSuffix = when (HostManager.host.family) {
             Family.MINGW -> ".exe"
             else -> ""

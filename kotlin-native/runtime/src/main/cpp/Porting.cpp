@@ -17,6 +17,12 @@
 #ifdef KONAN_ANDROID
 #include <android/log.h>
 #endif
+#ifdef KONAN_OHOS
+#include <hilog/log.h>
+// region Tencent Code
+#include <hitrace/trace.h>
+// endregion
+#endif
 #include <cstdio>
 #include <cstdlib>
 #include <stdarg.h>
@@ -60,6 +66,8 @@ void consoleWriteUtf8(const char* utf8, uint32_t sizeBytes) {
   } else {
     ::write(STDOUT_FILENO, utf8, sizeBytes);
   }
+#elif KONAN_OHOS
+  OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
 #else
   ::write(STDOUT_FILENO, utf8, sizeBytes);
 #endif
@@ -73,6 +81,8 @@ void consoleErrorUtf8(const char* utf8, uint32_t sizeBytes) {
   } else {
     ::write(STDERR_FILENO, utf8, sizeBytes);
   }
+#elif KONAN_OHOS
+  OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
 #else
   ::write(STDERR_FILENO, utf8, sizeBytes);
 #endif
@@ -194,11 +204,11 @@ NO_EXTERNAL_CALLS_CHECK bool isOnThreadExitNotSetOrAlreadyStarted() {
     return terminationKey != 0 && pthread_getspecific(terminationKey) == nullptr;
 }
 
-#if KONAN_LINUX
+#if KONAN_LINUX || KONAN_OHOS
 static pthread_key_t dummyKey;
 #endif
 static void onThreadExitInit() {
-#if KONAN_LINUX
+#if KONAN_LINUX || KONAN_OHOS
   // Due to glibc bug we have to create first key as dummy, to avoid
   // conflicts with potentially uninitialized dlfcn error key.
   // https://code.woboq.org/userspace/glibc/dlfcn/dlerror.c.html#237
@@ -221,7 +231,7 @@ void onThreadExit(void (*destructor)(void*), void* destructorParameter) {
   pthread_setspecific(terminationKey, destructorRecord);
 }
 
-#if KONAN_LINUX
+#if KONAN_LINUX || KONAN_OHOS
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
@@ -242,6 +252,8 @@ NO_EXTERNAL_CALLS_CHECK int currentThreadId() {
     RuntimeCheck((*(reinterpret_cast<int32_t*>(&tid) + 1)) == 0, "Thread id is not a uint32");
     return tid;
 #elif KONAN_ANDROID
+    return gettid();
+#elif KONAN_OHOS
     return gettid();
 #elif KONAN_LINUX
     return gettid();
@@ -269,5 +281,25 @@ uint64_t getTimeNanos() {
 uint64_t getTimeMicros() {
   return duration_cast<microseconds>(steady_time_clock::now().time_since_epoch()).count();
 }
+
+bool isLittleEndian() {
+    return __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
+}
+
+// region Tencent Code
+// 标记一个同步任务的开始, 需成对使用 finishTrace
+void startTrace(const char* sectionName) {
+#ifdef KONAN_OHOS
+    OH_HiTrace_StartTrace(sectionName);
+#endif
+}
+
+// 标记一个同步任务的结束, 需成对使用 startTrace
+void finishTrace() {
+#ifdef KONAN_OHOS
+    OH_HiTrace_FinishTrace();
+#endif
+}
+// endregion
 
 }  // namespace konan

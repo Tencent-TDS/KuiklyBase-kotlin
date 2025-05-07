@@ -240,7 +240,13 @@ public:
 
 private:
     uint32_t count_;
+// region @Tencent: alignas(ArrayHeader) failed on arm32.
+#if KONAN_ARM32
+    std::array<Payload, ElementCount> elements_{};
+#else
     alignas(ArrayHeader) std::array<Payload, ElementCount> elements_{};
+#endif
+// endregion
 };
 
 } // namespace internal

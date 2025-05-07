@@ -97,6 +97,9 @@ fun copyK2NativeCompilerArguments(from: K2NativeCompilerArguments, to: K2NativeC
     to.verifyBitCode = from.verifyBitCode
     to.verifyCompiler = from.verifyCompiler
     to.workerExceptionHandling = from.workerExceptionHandling
-
+    // region Tencent Code
+    to.objCExportConfigurationPath = from.objCExportConfigurationPath
+    to.enableDefaultObjCExport = from.enableDefaultObjCExport
+    // endregion
     return to
 }

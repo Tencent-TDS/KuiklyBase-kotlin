@@ -313,6 +313,10 @@ fun CompilerConfiguration.setupFromArguments(arguments: K2NativeCompilerArgument
     putIfNotNull(SAVE_DEPENDENCIES_PATH, arguments.saveDependenciesPath)
     putIfNotNull(SAVE_LLVM_IR_DIRECTORY, arguments.saveLlvmIrDirectory)
     putIfNotNull(KONAN_DATA_DIR, arguments.konanDataDir)
+    // region Tencent Code
+    put(ENABLE_OBJC_EXPORT_CONFIGURATION, arguments.enableDefaultObjCExport)
+    arguments.objCExportConfigurationPath?.let { put(OBJC_EXPORT_CONFIG_FILE_PATH, it) }
+    // endregion
 
     if (arguments.manifestNativeTargets != null)
         putIfNotNull(MANIFEST_NATIVE_TARGETS, parseManifestNativeTargets(arguments.manifestNativeTargets!!))

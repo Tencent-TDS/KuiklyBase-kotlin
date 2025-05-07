@@ -1,0 +1,20 @@
+depends = posix
+package = platform.native
+headers =  native_buffer/native_buffer.h native_image/native_image.h \
+    native_window/buffer_handle.h native_window/external_window.h \
+    native_drawing/drawing_types.h native_drawing/drawing_bitmap.h \
+    native_drawing/drawing_brush.h native_drawing/drawing_canvas.h \
+    native_drawing/drawing_color.h native_drawing/drawing_font_collection.h \
+    native_drawing/drawing_path.h native_drawing/drawing_pen.h \
+    native_drawing/drawing_text_declaration.h \
+    native_drawing/drawing_color_filter.h native_drawing/drawing_error_code.h \
+    native_drawing/drawing_image.h native_drawing/drawing_record_cmd.h native_drawing/drawing_filter.h native_drawing/drawing_pixel_map.h \
+    native_drawing/drawing_shadow_layer.h native_drawing/drawing_register_font.h native_drawing/drawing_gpu_context.h \
+    native_drawing/drawing_region.h native_drawing/drawing_color_space.h native_drawing/drawing_surface.h native_drawing/drawing_memory_stream.h \
+    native_drawing/drawing_rect.h native_drawing/drawing_typeface.h native_drawing/drawing_text_blob.h \
+    native_drawing/drawing_sampling_options.h native_drawing/drawing_image_filter.h native_drawing/drawing_mask_filter.h \
+    native_drawing/drawing_matrix.h native_drawing/drawing_font.h \
+    native_drawing/drawing_round_rect.h native_drawing/drawing_point.h \
+    native_drawing/drawing_path_effect.h \
+    native_buffer/buffer_common.h \
+    native_color_space_manager/native_color_space_manager.h

@@ -42,3 +42,11 @@ void alloc::compactObjectPoolInMainThread() noexcept {}
 size_t alloc::allocatedBytes() noexcept {
     return allocatedBytesCounter.load();
 }
+
+// region Tencent Code
+void alloc::Allocator::onStartGC() noexcept {
+}
+
+void alloc::Allocator::onFinishGC() noexcept {
+}
+// endregion

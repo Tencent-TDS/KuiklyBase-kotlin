@@ -87,6 +87,16 @@ bool gc::GC::mainThreadFinalizerProcessorAvailable() noexcept {
     return impl_->gc().mainThreadFinalizerProcessor().available();
 }
 
+// region Tencent Code
+void gc::GC::suspend() noexcept {
+    return impl_->gc().state().suspend();
+}
+
+void gc::GC::resume() noexcept {
+    return impl_->gc().state().resume();
+}
+// endregion
+
 ALWAYS_INLINE void gc::beforeHeapRefUpdate(mm::DirectRefAccessor ref, ObjHeader* value, bool loadAtomic) noexcept {
     barriers::beforeHeapRefUpdate(ref, value, loadAtomic);
 }

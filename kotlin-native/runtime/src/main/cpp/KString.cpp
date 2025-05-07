@@ -32,6 +32,11 @@
 
 #include "polyhash/PolyHash.h"
 
+#if KONAN_OBJC_INTEROP
+#include "TmmConfig.h"
+#include "KStringProxyCompat.h"
+#endif
+
 using namespace kotlin;
 
 namespace {
@@ -52,6 +57,15 @@ KStdStringInserter utf16toUtf8OrThrow(const KChar* start, const KChar* end, KStd
 template<utf8to16 conversion>
 OBJ_GETTER(utf8ToUtf16Impl, const char* rawString, const char* end, uint32_t charCount) {
   if (rawString == nullptr) RETURN_OBJ(nullptr);
+
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (Kotlin_TmmConfig_isStringProxyEnabledGlobally()) {
+    return tmm::utf8ToUtf16Impl(rawString, end, charCount, conversion, OBJ_RESULT);
+  }
+#endif
+// endregion
+
   ArrayHeader* result = AllocArrayInstance(theStringTypeInfo, charCount, OBJ_RESULT)->array();
   KChar* rawResult = CharArrayAddressOfElementAt(result, 0);
   conversion(rawString, end, rawResult);
@@ -61,6 +75,15 @@ OBJ_GETTER(utf8ToUtf16Impl, const char* rawString, const char* end, uint32_t cha
 template<utf16to8 conversion>
 OBJ_GETTER(unsafeUtf16ToUtf8Impl, KString thiz, KInt start, KInt size) {
   RuntimeAssert(thiz->type_info() == theStringTypeInfo, "Must use String");
+
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(thiz)) {
+    return tmm::unsafeUtf16ToUtf8Impl(thiz, start, size, conversion, OBJ_RESULT);
+  }
+#endif
+// endregion
+
   const KChar* utf16 = CharArrayAddressOfElementAt(thiz, start);
   std::string utf8;
   utf8.reserve(size);
@@ -136,6 +159,13 @@ OBJ_GETTER(CreateStringFromUtf8, const char* utf8, uint32_t lengthBytes) {
 char* CreateCStringFromString(KConstRef kref) {
   if (kref == nullptr) return nullptr;
   KString kstring = kref->array();
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+    if (tmm::IsKStringProxy(kstring)) {
+        return tmm::CreateCStringFromString(kstring);
+    }
+#endif
+// endregion
   const KChar* utf16 = CharArrayAddressOfElementAt(kstring, 0);
   std::string utf8;
   utf8.reserve(kstring->count_);
@@ -172,6 +202,14 @@ void FreePermanentStringForTests(ArrayHeader* header) {
 
 // String.kt
 OBJ_GETTER(Kotlin_String_replace, KString thiz, KChar oldChar, KChar newChar) {
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(thiz)) {
+    return tmm::Kotlin_StringProxy_replace(thiz, oldChar, newChar, OBJ_RESULT);
+  }
+#endif
+// endregion
+
   auto count = thiz->count_;
   ArrayHeader* result = AllocArrayInstance(theStringTypeInfo, count, OBJ_RESULT)->array();
   const KChar* thizRaw = CharArrayAddressOfElementAt(thiz, 0);
@@ -188,6 +226,26 @@ OBJ_GETTER(Kotlin_String_plusImpl, KString thiz, KString other) {
   RuntimeAssert(other != nullptr, "other cannot be null");
   RuntimeAssert(thiz->type_info() == theStringTypeInfo, "Must be a string");
   RuntimeAssert(other->type_info() == theStringTypeInfo, "Must be a string");
+
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  bool isThizProxy = tmm::IsKStringProxy(thiz);
+  bool isOtherProxy = tmm::IsKStringProxy(other);
+  
+  if (isThizProxy && isOtherProxy) {
+    return tmm::Kotlin_StringProxy_plusStringProxyImpl(thiz, other, OBJ_RESULT);
+  }
+
+  if (isThizProxy) {
+    return tmm::Kotlin_StringProxy_plusStringImpl(thiz, other, OBJ_RESULT);
+  }
+
+  if (isOtherProxy) {
+    return tmm::Kotlin_String_plusStringProxyImpl(thiz, other, OBJ_RESULT);
+  }
+#endif
+// endregion
+  
   RuntimeAssert(thiz->count_ <= static_cast<uint32_t>(std::numeric_limits<int32_t>::max()), "this cannot be this large");
   RuntimeAssert(other->count_ <= static_cast<uint32_t>(std::numeric_limits<int32_t>::max()), "other cannot be this large");
   // Since thiz and other sizes are bounded by int32_t max value, their sum cannot exceed uint32_t max value - 1.
@@ -215,6 +273,14 @@ OBJ_GETTER(Kotlin_String_unsafeStringFromCharArray, KConstRef thiz, KInt start, 
     RETURN_RESULT_OF0(TheEmptyString);
   }
 
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (Kotlin_TmmConfig_isStringProxyEnabledGlobally()) {
+    return tmm::Kotlin_StringProxy_unsafeStringProxyFromCharArray(thiz, start, size, OBJ_RESULT);
+  }
+#endif
+// endregion
+
   ArrayHeader* result = AllocArrayInstance(theStringTypeInfo, size, OBJ_RESULT)->array();
   memcpy(CharArrayAddressOfElementAt(result, 0),
          CharArrayAddressOfElementAt(array, start),
@@ -223,6 +289,13 @@ OBJ_GETTER(Kotlin_String_unsafeStringFromCharArray, KConstRef thiz, KInt start, 
 }
 
 OBJ_GETTER(Kotlin_String_toCharArray, KString string, KRef destination, KInt destinationOffset, KInt start, KInt size) {
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(string)) {
+    return tmm::Kotlin_StringProxy_toCharArray(string, destination, destinationOffset, start, size, OBJ_RESULT);
+  }
+#endif
+// endregion
   ArrayHeader* destinationArray = destination->array();
   memcpy(CharArrayAddressOfElementAt(destinationArray, destinationOffset),
          CharArrayAddressOfElementAt(string, start),
@@ -238,6 +311,15 @@ OBJ_GETTER(Kotlin_String_subSequence, KString thiz, KInt startIndex, KInt endInd
   if (startIndex == endIndex) {
     RETURN_RESULT_OF0(TheEmptyString);
   }
+
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(thiz)) {
+    return tmm::Kotlin_StringProxy_subSequence(thiz, startIndex, endIndex, OBJ_RESULT);
+  }
+#endif
+// endregion
+
   KInt length = endIndex - startIndex;
   ArrayHeader* result = AllocArrayInstance(theStringTypeInfo, length, OBJ_RESULT)->array();
   memcpy(CharArrayAddressOfElementAt(result, 0),
@@ -247,14 +329,33 @@ OBJ_GETTER(Kotlin_String_subSequence, KString thiz, KInt startIndex, KInt endInd
 }
 
 KInt Kotlin_String_compareTo(KString thiz, KString other) {
-    const uint16_t *first = CharArrayAddressOfElementAt(thiz, 0);
-    const uint16_t *second = CharArrayAddressOfElementAt(other, 0);
-    uint32_t minSize = std::min(thiz->count_, other->count_);
-    uint32_t mismatch_position = mismatch(first, second, minSize);
-    if (mismatch_position != minSize) {
-        return threeWayCompare(first[mismatch_position], second[mismatch_position]);
-    }
-    return threeWayCompare(thiz->count_, other->count_);
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  bool isThizProxy = tmm::IsKStringProxy(thiz);
+  bool isOtherProxy = tmm::IsKStringProxy(other);
+
+  if (isThizProxy && isOtherProxy) {
+    return tmm::Kotlin_StringProxy_compareToStringProxy(thiz, other);
+  }
+
+  if (isThizProxy) {
+    return tmm::Kotlin_StringProxy_compareToString(thiz, other);
+  }
+
+  if (isOtherProxy) {
+    return tmm::Kotlin_String_compareToStringProxy(thiz, other);
+  }
+#endif
+// endregion
+  
+  const uint16_t *first = CharArrayAddressOfElementAt(thiz, 0);
+  const uint16_t *second = CharArrayAddressOfElementAt(other, 0);
+  uint32_t minSize = std::min(thiz->count_, other->count_);
+  uint32_t mismatch_position = mismatch(first, second, minSize);
+  if (mismatch_position != minSize) {
+    return threeWayCompare(first[mismatch_position], second[mismatch_position]);
+  }
+  return threeWayCompare(thiz->count_, other->count_);
 }
 
 ALWAYS_INLINE KChar Kotlin_String_get(KString thiz, KInt index) {
@@ -264,6 +365,13 @@ ALWAYS_INLINE KChar Kotlin_String_get(KString thiz, KInt index) {
   if (static_cast<uint32_t>(index) >= thiz->count_) {
     ThrowArrayIndexOutOfBoundsException();
   }
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(thiz)) {
+    return tmm::Kotlin_StringProxy_get(thiz, index);
+  }
+#endif
+// endregion
   return *CharArrayAddressOfElementAt(thiz, index);
 }
 
@@ -312,6 +420,15 @@ KInt Kotlin_StringBuilder_insertString(KRef builder, KInt distIndex, KString fro
   auto toArray = builder->array();
   RuntimeAssert(sourceIndex >= 0 && static_cast<uint32_t>(sourceIndex + count) <= fromString->count_, "must be true");
   RuntimeAssert(distIndex >= 0 && static_cast<uint32_t>(distIndex + count) <= toArray->count_, "must be true");
+
+  // region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(fromString)) {
+    return tmm::Kotlin_StringBuilder_insertStringProxy(toArray, distIndex, fromString, sourceIndex, count);
+  }
+#endif
+// endregion
+
   memcpy(CharArrayAddressOfElementAt(toArray, distIndex),
          CharArrayAddressOfElementAt(fromString, sourceIndex),
          count * sizeof(KChar));
@@ -339,6 +456,28 @@ KBoolean Kotlin_String_equals(KString thiz, KConstRef other) {
   // Important, due to literal internalization.
   KString otherString = other->array();
   if (thiz == otherString) return true;
+
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (thiz->count_ != otherString->count_) return false;
+
+  bool isThizProxy = tmm::IsKStringProxy(thiz);
+  bool isOtherProxy = tmm::IsKStringProxy(otherString);
+  
+  if (isThizProxy && isOtherProxy) {
+    return tmm::Kotlin_StringProxy_equalsWithStringProxy(thiz, otherString);
+  }
+
+  if (isThizProxy) {
+    return tmm::Kotlin_StringProxy_equalsWithString(thiz, otherString);
+  }
+
+  if (isOtherProxy) {
+    return tmm::Kotlin_StringProxy_equalsWithString(otherString, thiz);
+  }
+  
+#endif
+// endregion
   return thiz->count_ == otherString->count_ &&
       memcmp(CharArrayAddressOfElementAt(thiz, 0),
              CharArrayAddressOfElementAt(otherString, 0),
@@ -347,6 +486,25 @@ KBoolean Kotlin_String_equals(KString thiz, KConstRef other) {
 
 // Bounds checks is are performed on Kotlin side
 KBoolean Kotlin_String_unsafeRangeEquals(KString thiz, KInt thizOffset, KString other, KInt otherOffset, KInt length) {
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  bool isThizProxy = tmm::IsKStringProxy(thiz);
+  bool isOtherProxy = tmm::IsKStringProxy(other);
+
+  if (isThizProxy && isOtherProxy) {
+    return tmm::Kotlin_StringProxy_unsafeRangeEqualsWithStringProxy(thiz, thizOffset, other, otherOffset, length);
+  }
+
+  if (isThizProxy) {
+    return tmm::Kotlin_StringProxy_unsafeRangeEqualsWithString(thiz, thizOffset, other, otherOffset, length);
+  }
+
+  if (isOtherProxy) {
+    return tmm::Kotlin_StringProxy_unsafeRangeEqualsWithString(other, otherOffset, thiz, thizOffset, length);
+  }
+#endif
+// endregion
+  
   return memcmp(
     CharArrayAddressOfElementAt(thiz, thizOffset),
     CharArrayAddressOfElementAt(other, otherOffset),
@@ -373,6 +531,15 @@ KInt Kotlin_String_indexOfChar(KString thiz, KChar ch, KInt fromIndex) {
   if (static_cast<uint32_t>(fromIndex) > thiz->count_) {
     return -1;
   }
+
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(thiz)) {
+    return tmm::Kotlin_StringProxy_indexOfChar(thiz, ch, fromIndex);
+  }
+#endif
+// endregion  
+
   KInt count = thiz->count_;
   const KChar* thizRaw = CharArrayAddressOfElementAt(thiz, fromIndex);
   while (fromIndex < count) {
@@ -389,6 +556,15 @@ KInt Kotlin_String_lastIndexOfChar(KString thiz, KChar ch, KInt fromIndex) {
   if (static_cast<uint32_t>(fromIndex) >= thiz->count_) {
     fromIndex = thiz->count_ - 1;
   }
+
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(thiz)) {
+    return tmm::Kotlin_StringProxy_lastIndexOfChar(thiz, ch, fromIndex);
+  }
+#endif
+// endregion
+
   KInt index = fromIndex;
   const KChar* thizRaw = CharArrayAddressOfElementAt(thiz, index);
   while (index >= 0) {
@@ -415,6 +591,26 @@ KInt Kotlin_String_indexOfString(KString thiz, KString other, KInt fromIndex) {
   if (other->count_ == 0) {
     return fromIndex;
   }
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  bool isThizProxy = tmm::IsKStringProxy(thiz);
+  bool isOtherProxy = tmm::IsKStringProxy(other);
+
+  // Both are NSStringProxies, use CFString methods.
+  if (isThizProxy && isOtherProxy) {
+    return tmm::Kotlin_StringProxy_indexOfStringProxy(thiz, other, fromIndex);
+  }
+
+  if (isThizProxy) {
+    return tmm::Kotlin_StringProxy_indexOfString(thiz, other, fromIndex);
+  }
+
+  if (isOtherProxy) {
+    return tmm::Kotlin_String_indexOfStringProxy(thiz, other, fromIndex);
+  }
+#endif
+// endregion
+
   const KChar* thizRaw = CharArrayAddressOfElementAt(thiz, 0);
   const KChar* otherRaw = CharArrayAddressOfElementAt(other, 0);
   const auto otherSize = other->count_ * sizeof(KChar);
@@ -442,6 +638,25 @@ KInt Kotlin_String_lastIndexOfString(KString thiz, KString other, KInt fromIndex
     return fromIndex < count ? fromIndex : count;
   }
 
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  bool isThizProxy = tmm::IsKStringProxy(thiz);
+  bool isOtherProxy = tmm::IsKStringProxy(other);
+
+  if (isThizProxy && isOtherProxy) {
+    return tmm::Kotlin_StringProxy_lastIndexOfStringProxy(thiz, other, fromIndex);
+  }
+
+  if (isThizProxy) {
+    return tmm::Kotlin_StringProxy_lastIndexOfString(thiz, other, fromIndex);
+  }
+
+  if (isOtherProxy) {
+    return tmm::Kotlin_String_lastIndexOfStringProxy(thiz, other, fromIndex);
+  }
+#endif
+// endregion
+
   KInt start = fromIndex;
   if (fromIndex > count - otherCount)
     start = count - otherCount;
@@ -462,6 +677,14 @@ KInt Kotlin_String_lastIndexOfString(KString thiz, KString other, KInt fromIndex
 }
 
 KInt Kotlin_String_hashCode(KString thiz) {
+// region @Tencent
+#ifdef KONAN_OBJC_INTEROP
+  if (tmm::IsKStringProxy(thiz)) {
+    return tmm::Kotlin_StringProxy_hashCode(thiz);
+  }
+#endif
+// endregion
+
   // TODO: consider caching strings hashes.
   return polyHash(thiz->count_, CharArrayAddressOfElementAt(thiz, 0));
 }

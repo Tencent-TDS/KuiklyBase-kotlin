@@ -206,7 +206,13 @@ class ObjCExportTranslatorImpl(
             descriptor.constructors
                 .makeMethodsOrderStable()
                 .asSequence()
-                .filter { mapper.shouldBeExposed(it) }
+                .filter {
+                    // region Tencent Code Modify : Only the exported classes that are marked for export will have their constructors exported in the header file,
+                    // which can reduce the number of constructors for reference types.
+//                    mapper.shouldBeExposed(it)
+                    mapper.shouldBeExposedByConfiguration(descriptor) && mapper.shouldBeExposed(it)
+                    // endregion
+                }
                 .forEach {
                     val selector = getSelector(it)
                     if (!descriptor.isArray) presentConstructors += selector
@@ -220,31 +226,38 @@ class ObjCExportTranslatorImpl(
                         )
                     }
                 }
+            // region Tencent Code Delete : The following unavailable code is not usable in Objective-C,
+            // it is intended for API completeness and compatibility. Removing it will reduce the header file size.
+//            if (descriptor.isArray || descriptor.kind == ClassKind.OBJECT || descriptor.kind == ClassKind.ENUM_CLASS) {
+//                add { ObjCMethod(null, false, ObjCInstanceType, listOf("alloc"), emptyList(), listOf("unavailable")) }
+//
+//                val parameter = ObjCParameter("zone", null, ObjCRawType("struct _NSZone *"))
+//                add { ObjCMethod(descriptor, false, ObjCInstanceType, listOf("allocWithZone:"), listOf(parameter), listOf("unavailable")) }
+//            }
+            // endregion
 
-            if (descriptor.isArray || descriptor.kind == ClassKind.OBJECT || descriptor.kind == ClassKind.ENUM_CLASS) {
-                add { ObjCMethod(null, false, ObjCInstanceType, listOf("alloc"), emptyList(), listOf("unavailable")) }
-
-                val parameter = ObjCParameter("zone", null, ObjCRawType("struct _NSZone *"))
-                add { ObjCMethod(descriptor, false, ObjCInstanceType, listOf("allocWithZone:"), listOf(parameter), listOf("unavailable")) }
-            }
-
-            // Hide "unimplemented" super constructors:
-            superClass?.constructors
-                ?.makeMethodsOrderStable()
-                ?.asSequence()
-                ?.filter { mapper.shouldBeExposed(it) }
-                ?.forEach {
-                    val selector = getSelector(it)
-                    if (selector !in presentConstructors) {
-                        add { buildMethod(it, it, ObjCRootExportScope, unavailable = true) }
-
-                        if (selector == "init") {
-                            add { ObjCMethod(null, false, ObjCInstanceType, listOf("new"), emptyList(), listOf("unavailable")) }
-                        }
-
-                        // TODO: consider adding exception-throwing impls for these.
-                    }
-                }
+            // region Tencent Code Delete : The following is to mark constructors that have not yet been defined or processed as unavailable,
+            // in order to reduce the header file size.
+//            // Hide "unimplemented" super constructors:
+//            superClass?.constructors
+//                ?.makeMethodsOrderStable()
+//                ?.asSequence()
+//                ?.filter {
+//                    mapper.shouldBeExposed(it)
+//                }
+//                ?.forEach {
+//                    val selector = getSelector(it)
+//                    if (selector !in presentConstructors) {
+//                        add { buildMethod(it, it, ObjCRootExportScope, unavailable = true) }
+//
+//                        if (selector == "init") {
+//                            add { ObjCMethod(null, false, ObjCInstanceType, listOf("new"), emptyList(), listOf("unavailable")) }
+//                        }
+//
+//                        // TODO: consider adding exception-throwing impls for these.
+//                    }
+//                }
+            // endregion
 
             if (descriptor.needCompanionObjectProperty(namer, mapper)) {
                 add {

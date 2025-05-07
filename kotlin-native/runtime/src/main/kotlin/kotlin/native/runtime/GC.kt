@@ -289,6 +289,16 @@ public object GC {
         get() = getPauseOnTargetHeapOverflow()
         set(value) = setPauseOnTargetHeapOverflow(value)
 
+    // region Tencent Code
+    public var suspendGCToggle: Boolean
+        get() = getSuspendGCToggle()
+        set(value) = setSuspendGCToggle(value)
+
+    public var delayFreePageAfterSTW: Boolean
+        get() = getDelayFreePageAfterSTW()
+        set(value) = setDelayFreePageAfterSTW(value)
+    // endregion
+
     /**
      * Deprecated and unused. Always returns null.
      *
@@ -311,6 +321,14 @@ public object GC {
     @ExperimentalStdlibApi
     public val lastGCInfo: GCInfo?
         get() = GCInfo.lastGCInfo
+
+    public val totalThreadsSuspendTimes: Long
+        get() = getTotalThreadsSuspendTimes()
+
+    // region Tencent Code
+    public val allocatedBytes: Long
+        get() = getAllocatedBytes()
+    // endregion
 
     /**
      * Deprecated and unused. Always returns null.
@@ -497,4 +515,24 @@ public object GC {
 
     @GCUnsafeCall("Kotlin_native_internal_GC_setPauseOnTargetHeapOverflow")
     private external fun setPauseOnTargetHeapOverflow(value: Boolean)
+
+    @GCUnsafeCall("Kotlin_native_internal_GC_getTotalThreadsSuspendTimes")
+    private external fun getTotalThreadsSuspendTimes(): Long
+
+    // region Tencent Code
+    @GCUnsafeCall("Kotlin_native_internal_GC_getDelayFreePageAfterSTW")
+    private external fun getDelayFreePageAfterSTW(): Boolean
+
+    @GCUnsafeCall("Kotlin_native_internal_GC_setDelayFreePageAfterSTW")
+    private external fun setDelayFreePageAfterSTW(value: Boolean)
+
+    @GCUnsafeCall("Kotlin_native_internal_GC_getAllocatedBytes")
+    private external fun getAllocatedBytes(): Long
+
+    @GCUnsafeCall("Kotlin_native_internal_GC_getSuspendGCToggle")
+    private external fun getSuspendGCToggle(): Boolean
+
+    @GCUnsafeCall("Kotlin_native_internal_GC_setSuspendGCToggle")
+    private external fun setSuspendGCToggle(value: Boolean)
+    // endregion
 }

@@ -14,6 +14,7 @@ open class PlatformManagerPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val konanDataDir = project.kotlinBuildProperties.getOrNull("konan.data.dir") as String?
         val platformManager = PlatformManager(buildDistribution(project.project(":kotlin-native").projectDir.absolutePath, konanDataDir), false)
+        platformManager.preferMinimalTargets = project.findProperty("tencent.preferMinimalTargets") == "true"
         project.extensions.add("platformManager", platformManager)
     }
 }

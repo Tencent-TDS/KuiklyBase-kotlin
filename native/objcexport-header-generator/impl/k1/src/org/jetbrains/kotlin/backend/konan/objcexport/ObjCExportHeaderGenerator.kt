@@ -74,13 +74,19 @@ abstract class ObjCExportHeaderGenerator @InternalKotlinNativeApi constructor(
     }
 
     private fun translateClass(descriptor: ClassDescriptor) {
-        if (mapper.shouldBeExposed(descriptor)) {
+        // region Tencent Code Modify
+        /* if (mapper.shouldBeExposed(descriptor)) { */
+        if (mapper.shouldBeExposedByConfiguration(descriptor)) {
+        // endregion
             if (descriptor.isInterface) {
                 generateInterface(descriptor)
             } else {
                 generateClass(descriptor)
             }
-        } else if (mapper.shouldBeVisible(descriptor)) {
+       // region Tencent Code Modify
+       /* } else if (mapper.shouldBeVisible(descriptor)) { */
+        } else if (mapper.shouldBeVisibleByConfiguration(descriptor)) {
+       // endregion
             stubs += if (descriptor.isInterface) {
                 translator.translateUnexposedInterfaceAsUnavailableStub(descriptor)
             } else {
@@ -100,7 +106,10 @@ abstract class ObjCExportHeaderGenerator @InternalKotlinNativeApi constructor(
             .forEach {
                 collector += it
                 // Avoid collecting nested declarations from unexposed classes.
-                if (mapper.shouldBeExposed(it)) {
+                // region Tencent Code Modify
+                /*if (mapper.shouldBeExposed(it)) {*/
+                if (mapper.shouldBeExposedByConfiguration(it)) {
+                // endregion
                     it.unsubstitutedMemberScope.collectClasses(collector)
                 }
             }
@@ -115,7 +124,12 @@ abstract class ObjCExportHeaderGenerator @InternalKotlinNativeApi constructor(
             packageFragment.getMemberScope().getContributedDescriptors()
                 .asSequence()
                 .filterIsInstance<CallableMemberDescriptor>()
-                .filter { mapper.shouldBeExposed(it) }
+                .filter {
+                    // region Tencent Code Modify
+                    /*mapper.shouldBeExposed(it)*/
+                    mapper.shouldBeExposedByConfiguration(it)
+                    // endregion
+                }
                 .forEach {
                     val classDescriptor = mapper.getClassIfCategory(it)
                     if (classDescriptor != null) {

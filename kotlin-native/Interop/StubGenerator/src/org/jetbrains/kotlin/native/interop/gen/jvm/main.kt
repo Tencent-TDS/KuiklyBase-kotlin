@@ -626,9 +626,11 @@ fun prepareVfsOverlayFromXcodeHeaders(
     val overridingHeaders = mutableListOf<Pair<File, IncludeRelativePath>>()
     headersForVfsOverlay.forEach { includeRelativePath ->
         val headerCopyPath = outputDirectory.resolve(File(includeRelativePath).name)
-        val xcodeSysroot = sysrootForVfsOverlay?.let { File(it) } ?: sysrootPathFromXcode(
+        val xcodeSysroot = sysrootForVfsOverlay?.let { File(it) }?.takeIf { it.exists() } ?: sysrootPathFromXcode(
                 target = target,
-                xcodePath = File(xcodeForVfsOverlay)
+                xcodePath = File(xcodeForVfsOverlay).also {
+                    if (!it.exists()) error("Invalid Xcode path: ${it.path}")
+                }
         )
         val originalHeaderPath = xcodeSysroot.resolve("usr/include").resolve(includeRelativePath)
         // Copy headers to prevent clang from failing with -fmodules due to "module was built in directory but now resides in directory"

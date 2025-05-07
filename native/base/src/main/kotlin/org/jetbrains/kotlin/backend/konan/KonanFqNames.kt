@@ -43,6 +43,9 @@ object KonanFqNames {
     val gcUnsafeCall = NativeRuntimeNames.Annotations.gcUnsafeCallClassId.asSingleFqName()
     val eagerInitialization = FqName("kotlin.native.EagerInitialization")
     val noReorderFields = FqName("kotlin.native.internal.NoReorderFields")
+    // region @Tencent: Just like what HiddenFromObjC does.
+    val hiddenFromC = FqName("kotlin.native.HiddenFromC")
+    // endregion
     val objCName = FqName("kotlin.native.ObjCName")
     val hidesFromObjC = FqName("kotlin.native.HidesFromObjC")
     val refinesInSwift = FqName("kotlin.native.RefinesInSwift")

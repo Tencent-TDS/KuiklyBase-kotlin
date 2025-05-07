@@ -30,6 +30,14 @@ ALWAYS_INLINE void alloc::Allocator::ThreadData::destroyUnattachedExtraObjectDat
     impl_->extraObjectDataFactoryThreadQueue().DestroyExtraObjectData(extraObject);
 }
 
+// region Tencent Code
+void alloc::Allocator::onStartGC() noexcept {
+}
+
+void alloc::Allocator::onFinishGC() noexcept {
+}
+// endregion
+
 void alloc::Allocator::ThreadData::prepareForGC() noexcept {
     impl_->extraObjectDataFactoryThreadQueue().Publish();
     impl_->objectFactoryThreadQueue().Publish();
@@ -38,6 +46,20 @@ void alloc::Allocator::ThreadData::prepareForGC() noexcept {
 void alloc::Allocator::ThreadData::clearForTests() noexcept {
     impl_->extraObjectDataFactoryThreadQueue().ClearForTests();
     impl_->objectFactoryThreadQueue().ClearForTests();
+}
+
+void alloc::Allocator::TraverseAllocatedObjects(std::function<void(ObjHeader*)> fn) noexcept {
+    auto iter = impl_->objectFactory().LockForIter();
+    for (auto it = iter.begin(); it != iter.end();) {
+        fn(it->GetObjHeader());
+    }
+}
+
+void alloc::Allocator::TraverseAllocatedExtraObjects(std::function<void(mm::ExtraObjectData*)> fn) noexcept {
+    auto iter = impl_->extraObjectDataFactory().LockForIter();
+    for (auto it = iter.begin(); it != iter.end();) {
+        fn(&*it);
+    }
 }
 
 alloc::Allocator::Allocator() noexcept : impl_(std::make_unique<Impl>()) {}

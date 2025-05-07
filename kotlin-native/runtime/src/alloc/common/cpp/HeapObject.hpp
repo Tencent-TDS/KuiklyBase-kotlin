@@ -30,6 +30,19 @@ struct HeapObject {
 
     size_t size() noexcept;
 
+    // region Tencent Code
+    // 通过编译期计算的偏移量直接访问
+    uintptr_t GetObjHeaderAddress(uintptr_t ptr) noexcept {
+        // 这里在循环中调用，格式是固定的，static 保证只计算一次
+        // 计算 KObject 字段在 Composite<HeapObject, HeapHeader, KObject> 中的偏移
+        static const size_t kObjectOffset = descriptorFrom(nullptr).template fieldOffset<1>();
+        // 计算 header() 在 KObject 中的偏移量（通常为0）
+        static constexpr size_t headerOffset = 0;
+        // 直接通过偏移计算访问
+        return ptr + kObjectOffset + headerOffset;
+    }
+    // endregion
+
 private:
     HeapObject() = delete;
     ~HeapObject() = delete;
@@ -54,6 +67,15 @@ struct HeapArray {
     HeapHeader& heapHeader() noexcept { return *descriptorFrom(nullptr).template field<0>(this).second; }
 
     ArrayHeader* array() noexcept { return descriptorFrom(nullptr, 0).template field<1>(this).second->header(); }
+
+    // region Tencent Code
+    // 通过编译期计算的偏移量直接访问，与 KObject 一样，不过这里计算的是 KArray
+    uintptr_t GetArrayHeaderAddress(uintptr_t ptr) noexcept {
+        static const size_t kObjectOffset = descriptorFrom(nullptr, 0).template fieldOffset<1>();
+        static constexpr size_t headerOffset = 0;
+        return ptr + kObjectOffset + headerOffset;
+    }
+    // endregion
 
     operator HeapObject<HeapHeader>&() noexcept { return reinterpret_cast<HeapObject<HeapHeader>&>(*this); }
 

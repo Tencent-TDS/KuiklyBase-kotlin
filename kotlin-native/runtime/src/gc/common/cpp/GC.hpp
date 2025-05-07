@@ -83,6 +83,11 @@ public:
     void configureMainThreadFinalizerProcessor(std::function<void(alloc::RunLoopFinalizerProcessorConfig&)> f) noexcept;
     bool mainThreadFinalizerProcessorAvailable() noexcept;
 
+    // region Tencent Code
+    void suspend() noexcept;
+    void resume() noexcept;
+    // endregion
+
 private:
     std::unique_ptr<Impl> impl_;
 };

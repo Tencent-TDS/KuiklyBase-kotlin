@@ -31,6 +31,10 @@ protected:
     ~AnyPage() = default;
 
     AllocatedSizeTracker::Page allocatedSizeTracker_{};
+// region Tencent Code
+public:
+    std::string threadName_;
+// endregion
 };
 
 } // namespace kotlin::alloc

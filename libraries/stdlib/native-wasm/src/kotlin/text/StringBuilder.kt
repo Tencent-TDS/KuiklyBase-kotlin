@@ -11,16 +11,16 @@ package kotlin.text
  * String builder can be used to efficiently perform multiple string manipulation operations.
  */
 public actual class StringBuilder
-private constructor (private var array: CharArray) : CharSequence, Appendable {
+private constructor (private var array: NativeCharArray) : CharSequence, Appendable {
 
     /** Constructs an empty string builder. */
     public actual constructor() : this(10)
 
     /** Constructs an empty string builder with the specified initial [capacity]. */
-    public actual constructor(capacity: Int) : this(CharArray(capacity))
+    public actual constructor(capacity: Int) : this(NativeCharArray(capacity))
 
     /** Constructs a string builder that contains the same characters as the specified [content] string. */
-    public actual constructor(content: String) : this(content.toCharArray()) {
+    public actual constructor(content: String) : this(content.toNativeCharArray()) {
         _length = array.size
     }
 
@@ -471,7 +471,7 @@ private constructor (private var array: CharArray) : CharSequence, Appendable {
      */
     public actual fun substring(startIndex: Int, endIndex: Int): String {
         AbstractList.checkBoundsIndexes(startIndex, endIndex, _length)
-        return unsafeStringFromCharArray(array, startIndex, endIndex - startIndex)
+        return unsafeStringFromNativeCharArray(array, startIndex, endIndex - startIndex)
     }
 
     /**
@@ -493,10 +493,12 @@ private constructor (private var array: CharArray) : CharSequence, Appendable {
      */
     public actual fun trimToSize() {
         if (_length < array.size)
-            array = array.copyOf(_length)
+        // region @Tencent: resize inplace in NativeCharArray for effeciency.
+            array = array.resizeTo(_length)
+        // endregion
     }
 
-    override fun toString(): String = unsafeStringFromCharArray(array, 0, _length)
+    override fun toString(): String = unsafeStringFromNativeCharArray(array, 0, _length)
 
     /**
      * Sets the character at the specified [index] to the specified [value].
@@ -700,7 +702,9 @@ private constructor (private var array: CharArray) : CharSequence, Appendable {
         if (minCapacity < 0) throw OutOfMemoryError()    // overflow
         if (minCapacity > array.size) {
             val newSize = AbstractList.newCapacity(array.size, minCapacity)
-            array = array.copyOf(newSize)
+            // region @Tencent: resize inplace in NativeCharArray for effeciency.
+            array = array.resizeTo(newSize)
+            // endregion
         }
     }
 
@@ -911,7 +915,7 @@ public actual inline fun StringBuilder.insertRange(index: Int, value: CharSequen
         this.insertRange(index, value, startIndex, endIndex)
 
 
-internal fun insertString(array: CharArray, start: Int, value: String): Int =
+internal fun insertString(array: NativeCharArray, start: Int, value: String): Int =
         insertString(array, start, value, 0, value.length)
 
 // Method renamings
@@ -959,6 +963,6 @@ public inline fun StringBuilder.deleteCharAt(index: Int): StringBuilder = this.d
 
 
 
-internal expect fun unsafeStringFromCharArray(array: CharArray, start: Int, size: Int): String
-internal expect fun insertInt(array: CharArray, start: Int, value: Int): Int
-internal expect fun insertString(array: CharArray, destinationIndex: Int, value: String, sourceIndex: Int, count: Int): Int
+internal expect fun unsafeStringFromCharArray(array: NativeCharArray, start: Int, size: Int): String
+internal expect fun insertInt(array: NativeCharArray, start: Int, value: Int): Int
+internal expect fun insertString(array: NativeCharArray, destinationIndex: Int, value: String, sourceIndex: Int, count: Int): Int

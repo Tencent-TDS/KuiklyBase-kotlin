@@ -48,6 +48,41 @@ class StdlibTest : AbstractNativeBlackBoxTest() {
     fun default() = dynamicTestCase(TestCaseId.Named("default"))
 }
 
+// region @Tencent: Tests for StringProxy.
+@Tag("StringProxy")
+@PredefinedTestCases(
+    TC(
+        name = "default",
+        runnerType = TestRunnerType.DEFAULT,
+        freeCompilerArgs = [
+            ENABLE_MPP, STDLIB_IS_A_FRIEND, ENABLE_X_STDLIB_API, ENABLE_X_ENCODING_API, ENABLE_RANGE_UNTIL,
+            ENABLE_X_FOREIGN_API, ENABLE_X_NATIVE_API, ENABLE_OBSOLETE_NATIVE_API, ENABLE_NATIVE_RUNTIME_API,
+            ENABLE_OBSOLETE_WORKERS_API, ENABLE_INTERNAL_FOR_KOTLIN_NATIVE, ENABLE_X_UUID_API,
+            "-language-version", "1.9",
+            "-api-version", "2.0",
+            "-Xsuppress-api-version-greater-than-language-version-error"
+        ],
+        sourceLocations = [
+            "libraries/stdlib/common/test/testUtils.kt",
+            "libraries/stdlib/test/collections/ComparisonDSL.kt",
+            "libraries/stdlib/test/collections/CollectionBehaviors.kt",
+            "libraries/stdlib/test/testUtils.kt",
+            "libraries/stdlib/test/text/**.kt",
+            "kotlin-native/runtime/test/utils.kt",
+            "kotlin-native/runtime/test/text/**.kt",
+            "kotlin-native/runtime/test-macos/**.kt"
+        ],
+        ignoredTests = [DISABLED_STDLIB_TEST]
+    )
+)
+@EnforcedProperty(property = ClassLevelProperty.EXECUTION_TIMEOUT, propertyValue = "2m")
+@UsePartialLinkage(UsePartialLinkage.Mode.DISABLED)
+class StringProxyTest : AbstractNativeBlackBoxTest() {
+    @TestFactory
+    fun default() = dynamicTestCase(TestCaseId.Named("default"))
+}
+// endregion
+
 @Tag("stdlib")
 @Tag("frontend-fir")
 @PredefinedTestCases(

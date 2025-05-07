@@ -37,6 +37,11 @@ public:
         // TODO: Move into AllocatorTestSupport.hpp
         void clearForTests() noexcept;
 
+        // region Tencent Code
+        void onStartGC() noexcept;
+        void onFinishGC() noexcept;
+        // endregion
+
     private:
         std::unique_ptr<Impl> impl_;
     };
@@ -48,8 +53,29 @@ public:
 
     void prepareForGC() noexcept;
 
+    // region Tencent Code
+    void onStartGC() noexcept;
+    void onFinishGC() noexcept;
+    // endregion
+
     // TODO: Move into AllocatorTestSupport.hpp
     void clearForTests() noexcept;
+
+    void TraverseAllocatedObjects(std::function<void(ObjHeader*)> fn) noexcept;
+
+    // region Tencent Code
+    void TraverseFixedPagesPart(int index, const std::function<void(void *, int, size_t)>& fn);
+
+    void TraverseNextFitAndSinglePages(const std::function<void(void *, int, size_t)>& fn);
+
+    void TraverseFixedBlockPageObjects(void *page, const std::function<void(ObjHeader*, uintptr_t)>& process);
+
+    void TraverseNextFitPageObjects(void *page, const std::function<void(ObjHeader*, uintptr_t)>& process);
+
+    void TraverseSingleObjPageObjects(void *page, const std::function<void(ObjHeader *obj, uintptr_t)>& process);
+    // endregion
+
+    void TraverseAllocatedExtraObjects(std::function<void(mm::ExtraObjectData*)> fn) noexcept;
 
 private:
     std::unique_ptr<Impl> impl_;

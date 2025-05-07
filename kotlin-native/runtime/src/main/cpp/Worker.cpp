@@ -33,6 +33,9 @@
 #include "Runtime.h"
 #include "Types.h"
 #include "Worker.h"
+#include "Logging.hpp"
+#include <KString.h>
+#include "./concurrent/ScopedThread.hpp"
 #include "objc_support/AutoreleasePool.hpp"
 
 using namespace kotlin;
@@ -176,7 +179,13 @@ class Worker {
 
   MemoryState* memoryState() { return memoryState_; }
 
- private:
+  // region Tencent Code
+  void setThreadName(const char* name) { threadName_ = name; }
+
+  std::string getThreadName() { return threadName_; }
+  // endregion
+
+private:
   void setThread(pthread_t thread) {
     // For workers started using the Worker API, we set thread_ in startEventLoop when calling pthread_create.
     // But we also set thread_ in WorkerInit to handle the main thread and threads calling Kotlin from native code.
@@ -209,6 +218,9 @@ class Worker {
   // MemoryState for worker's thread.
   // We set it in WorkerInit and use to correctly switch thread states in woker's destructor.
   MemoryState* memoryState_ = nullptr;
+  // region Tencent Code
+  std::string threadName_;
+  // endregion
 };
 
 namespace {
@@ -715,6 +727,18 @@ extern "C" void ReportUnhandledException(KRef e);
 KInt startWorker(WorkerExceptionHandling exceptionHandling, KRef customName) {
   Worker* worker = theState()->addWorkerUnlocked(exceptionHandling, customName, WorkerKind::kNative);
   if (worker == nullptr) return -1;
+
+  // region Tencent Code
+  char* name = CreateCStringFromString(customName);
+  if (name != nullptr) {
+      worker->setThreadName(name);
+      std::free(name);
+  }
+  TencentAllocLambdaDebug(([&worker]() -> std::string {
+    return std::string("startWorker setCname ") + worker->getThreadName();
+  }));
+  // endregion
+
   worker->startEventLoop();
   return worker->id();
 }
@@ -880,6 +904,15 @@ namespace {
 
 void* workerRoutine(void* argument) {
   Worker* worker = reinterpret_cast<Worker*>(argument);
+
+  // region Tencent Code
+  if (!worker->getThreadName().empty()) {
+      kotlin::internal::setCurrentThreadName(worker->getThreadName());
+  }
+  TencentAllocLambdaDebug([worker]() -> std::string {
+    return std::string("setCurrentThreadName" + worker->getThreadName());
+  });
+  // endregion
 
   // Kotlin_initRuntimeIfNeeded calls WorkerInit that needs
   // to see there's already a worker created for this thread.

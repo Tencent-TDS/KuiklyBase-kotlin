@@ -52,6 +52,7 @@ public:
         regularIntervalPacer_(config),
         timer_("GC Timer thread", config_.regularGcInterval(), [this] {
             if (appStateTracking_.state() == mm::AppStateTracking::State::kBackground) {
+                RuntimeLogDebug({kTagGC}, "Scheduling GC by timer but Background");
                 return;
             }
             if (regularIntervalPacer_.NeedsGC()) {
@@ -72,6 +73,7 @@ public:
             case HeapGrowthController::MemoryBoundary::kNone:
                 return;
             case HeapGrowthController::MemoryBoundary::kTrigger:
+                RuntimeLogDebug({kTagGC}, "Scheduling GC by allocation.");
                 scheduleGC_.scheduleNextEpochIfNotInProgress(ScheduleReason::byAllocation(bytes));
                 return;
             case HeapGrowthController::MemoryBoundary::kTarget:

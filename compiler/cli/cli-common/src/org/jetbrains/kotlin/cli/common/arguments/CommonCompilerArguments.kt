@@ -793,6 +793,30 @@ The corresponding calls' declarations may not be marked with @BuilderInference."
             field = value
         }
 
+    // region Tencent Code
+    @Argument(
+        value = "-Xobjc-export-configuration-path",
+        valueDescription = "<path>",
+        description = "Export configuration file path."
+    )
+    var objCExportConfigurationPath: String? = null
+        set(value) {
+            checkFrozen()
+            field = value
+        }
+
+    @Argument(
+        value = "-Xenable-default-objc-export",
+        valueDescription = "{true|false}",
+        description = "Enable objcExport configuration."
+    )
+    var enableDefaultObjCExport: Boolean = true
+        set(value) {
+            checkFrozen()
+            field = value
+        }
+    // endregion
+
     @OptIn(IDEAPluginsCompatibilityAPI::class)
     open fun configureAnalysisFlags(collector: MessageCollector, languageVersion: LanguageVersion): MutableMap<AnalysisFlag<*>, Any> {
         return HashMap<AnalysisFlag<*>, Any>().apply {

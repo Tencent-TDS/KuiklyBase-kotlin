@@ -27,8 +27,9 @@ sealed class ClangArgs(
 
     private val absoluteTargetToolchain = configurables.absoluteTargetToolchain
     private val absoluteTargetSysRoot = configurables.absoluteTargetSysRoot
-    private val absoluteLlvmHome = configurables.absoluteLlvmHome
+    private val absoluteLlvmHome = configurables.absoluteLlvmHome(configurables.target)
     private val target = configurables.target
+    private val targetCPU = configurables.targetCpu
     private val targetTriple = configurables.targetTriple
 
     // TODO: Should be dropped in favor of real MSVC target.
@@ -51,7 +52,6 @@ sealed class ClangArgs(
                     "HAS_FOUNDATION_FRAMEWORK".takeIf { target.hasFoundationFramework() },
                     "HAS_UIKIT_FRAMEWORK".takeIf { target.hasUIKitFramework() },
                     "REPORT_BACKTRACE_TO_IOS_CRASH_LOG".takeIf { target.supportsIosCrashLog() },
-                    "NEED_SMALL_BINARY".takeIf { target.needSmallBinary() },
                     "SUPPORTS_GRAND_CENTRAL_DISPATCH".takeIf { target.supportsGrandCentralDispatch },
                     "SUPPORTS_SIGNPOSTS".takeIf { target.supportsSignposts },
             ).map { "KONAN_$it=1" }
@@ -194,6 +194,12 @@ sealed class ClangArgs(
                     "-I$toolchainSysroot/usr/include/$clangTarget"
             )
         }
+
+        KonanTarget.OHOS_ARM64 -> listOf(
+            "-mcpu=$targetCPU",
+            "-I$absoluteTargetSysRoot/usr/include/$targetTriple",
+            "-I$absoluteLlvmHome/lib/clang/12.0.1/include"
+        )
 
         else -> emptyList()
     }

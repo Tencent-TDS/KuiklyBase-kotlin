@@ -4,6 +4,10 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.jetbrains.com/scans?search.rootProjectNames=Kotlin)
 
+**NOTE**: This project is a fork of the original [JetBrains/kotlin](https://github.com/jetbrains/kotlin). You can navigate to the [introduction](ReadMe_KuiklyBase_kotlin.md) | [项目介绍](ReadMe_KuiklyBase_kotlin_Zh.md) to get more details about this.
+
+---
+
 # Kotlin Programming Language
 
 Welcome to [Kotlin](https://kotlinlang.org/)!   

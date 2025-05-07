@@ -68,7 +68,7 @@ abstract class KonanPropertiesLoader(
     )
 
     open val dependencies: List<String>
-        get() = hostTargetList("dependencies") + compilerDependencies()
+        get() = hostTargetList("dependencies") + hostList("commonDependencies") + compilerDependencies()
 
     override fun downloadDependencies() {
         dependencyProcessor!!.run()

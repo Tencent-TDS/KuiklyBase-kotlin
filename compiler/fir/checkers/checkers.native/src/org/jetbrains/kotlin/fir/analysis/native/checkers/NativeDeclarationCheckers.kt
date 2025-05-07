@@ -45,6 +45,9 @@ object NativeDeclarationCheckers : DeclarationCheckers() {
         get() = setOf(
             FirNativeObjCRefinementAnnotationChecker,
             FirNativeHiddenFromObjCInheritanceChecker,
+            // region @Tencent: Also check classes marked as HiddenFromC
+            FirNativeHiddenFromCInheritanceChecker,
+            // endregion
         )
 
     override val fileCheckers: Set<FirFileChecker>

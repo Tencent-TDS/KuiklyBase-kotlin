@@ -154,6 +154,21 @@ interface KotlinTargetContainerWithPresetFunctions : KotlinTargetsContainerWithP
     fun androidNativeArm64(name: String, configure: Action<KotlinNativeTarget>) = androidNativeArm64(name) { configure.execute(this) }
     fun androidNativeArm64(configure: Action<KotlinNativeTarget>) = androidNativeArm64 { configure.execute(this) }
 
+    fun ohosArm64(
+        name: String = "ohosArm64",
+        configure: KotlinNativeTarget.() -> Unit = { }
+    ): KotlinNativeTarget =
+        configureOrCreate(
+            name,
+            @Suppress("DEPRECATION")
+            presets.getByName("ohosArm64") as KotlinNativeTargetPreset,
+            configure
+        )
+
+    fun ohosArm64() = ohosArm64("ohosArm64") { }
+    fun ohosArm64(name: String) = ohosArm64(name) { }
+    fun ohosArm64(name: String, configure: Action<KotlinNativeTarget>) = ohosArm64(name) { configure.execute(this) }
+    fun ohosArm64(configure: Action<KotlinNativeTarget>) = ohosArm64 { configure.execute(this) }
 
     @Deprecated(DEPRECATED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
     fun iosArm32(

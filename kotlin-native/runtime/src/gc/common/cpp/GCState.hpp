@@ -15,6 +15,13 @@
 
 class GCStateHolder {
 public:
+    // region Tencent Code
+    // GC 挂起状态标志
+    static constexpr int64_t GC_SUSPENDED = -1;
+    // GC 挂起最大时长，单位为秒
+    static constexpr int32_t MAX_SUSPEND_TIME = 10;
+    // endregion
+
     int64_t schedule() {
         std::unique_lock lock(mutex_);
         if (*scheduledEpoch <= *startedEpoch) {
@@ -30,9 +37,19 @@ public:
         finishedEpoch.notify();
         scheduledEpoch.notify();
         finalizedEpoch.notify();
+        // region Tencent Code
+        resumeGCEpoch.notify();
+        // endregion
     }
 
-    void start(int64_t epoch) { startedEpoch.set(epoch); }
+    void start(int64_t epoch) {
+        startedEpoch.set(epoch);
+        // region Tencent Code
+        if (*resumeGCEpoch != GC_SUSPENDED) {
+            resumeGCEpoch.set(epoch);
+        }
+        // endregion
+    }
 
     void finish(int64_t epoch) { finishedEpoch.set(epoch); }
 
@@ -51,6 +68,23 @@ public:
         if (shutdownFlag_) return std::nullopt;
         return result;
     }
+
+    // region Tencent Code
+    // 等待 GC 恢复，等待 GC 恢复时间不超过 MAX_SUSPEND_TIME 秒
+    void waitResumed() {
+        resumeGCEpoch.wait_for([this] { return *resumeGCEpoch != GC_SUSPENDED || shutdownFlag_; }, std::chrono::seconds(MAX_SUSPEND_TIME));
+    }
+
+    // 挂起 GC
+    void suspend() {
+        resumeGCEpoch.set(GC_SUSPENDED);
+    }
+
+    // 恢复 GC
+    void resume() {
+        resumeGCEpoch.set(*startedEpoch);
+    }
+    // endregion
 
 private:
     template <typename T>
@@ -79,6 +113,13 @@ private:
             return value_;
         }
 
+        template <class Predicate>
+        const T& wait_for(Predicate stop_waiting, std::chrono::seconds timeout) {
+            std::unique_lock lock(mutex_);
+            cond_.wait_for(lock, timeout, stop_waiting);
+            return value_;
+        }
+
     private:
         T value_;
         std::mutex& mutex_;
@@ -91,5 +132,8 @@ private:
     ValueWithCondVar<int64_t> finishedEpoch{0, mutex_};
     ValueWithCondVar<int64_t> scheduledEpoch{0, mutex_};
     ValueWithCondVar<int64_t> finalizedEpoch{0, mutex_};
+    // region Tencent Code
+    ValueWithCondVar<int64_t> resumeGCEpoch{0, mutex_};
+    // endregion
     bool shutdownFlag_ = false;
 };

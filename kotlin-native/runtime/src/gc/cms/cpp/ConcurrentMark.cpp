@@ -26,10 +26,11 @@ void gc::mark::ConcurrentMark::ThreadData::onSafePoint() noexcept {
     FlushActionActivator::doIfActive([this] { ensureFlushActionExecuted(); });
 }
 
+// region Tencent Code
 void gc::mark::ConcurrentMark::beginMarkingEpoch(gc::GCHandle gcHandle) {
     gcHandle_ = gcHandle;
 
-    lockedMutatorsList_ = mm::ThreadRegistry::Instance().LockForIter();
+    lockMutatorsList();
 
     parallelProcessor_.construct();
 }
@@ -37,10 +38,20 @@ void gc::mark::ConcurrentMark::beginMarkingEpoch(gc::GCHandle gcHandle) {
 void gc::mark::ConcurrentMark::endMarkingEpoch() {
     parallelProcessor_.destroy();
     resetMutatorFlags();
-    lockedMutatorsList_ = std::nullopt;
+    unlockMutatorsList();
 }
 
-void gc::mark::ConcurrentMark::runMainInSTW() {
+void gc::mark::ConcurrentMark::lockMutatorsList() {
+    lockedMutatorsList_ = mm::ThreadRegistry::Instance().LockForIter();
+}
+
+void gc::mark::ConcurrentMark::unlockMutatorsList() {
+    lockedMutatorsList_ = std::nullopt;
+}
+// endregion
+
+// region Tencent Code
+void gc::mark::ConcurrentMark::runMainInSTWOrigin() {
     ParallelProcessor::Worker mainWorker(*parallelProcessor_);
     GCLogDebug(gcHandle().getEpoch(), "Creating main (#0) mark worker");
 
@@ -94,6 +105,66 @@ void gc::mark::ConcurrentMark::runMainInSTW() {
     }
     endMarkingEpoch();
 }
+
+void gc::mark::ConcurrentMark::runMainInSTWOPT(const std::function<void()>& onPrepareToSweep) {
+    ParallelProcessor::Worker mainWorker(*parallelProcessor_);
+    GCLogDebug(gcHandle().getEpoch(), "Creating main (#0) mark worker");
+
+    // create mutator mark queues
+    for (auto& thread : *lockedMutatorsList_) {
+        thread.gc().impl().gc().mark().markQueue().construct(*parallelProcessor_);
+    }
+
+    completeMutatorsRootSet(mainWorker);
+
+    barriers::enableBarriers(gcHandle().getEpoch());
+    resumeTheWorld(gcHandle());
+
+    // global root set must be collected after all the mutator's global data have been published
+    collectRootSetGlobals<MarkTraits>(gcHandle(), mainWorker);
+
+    // Mutator threads might release their internal batch at a pretty arbitrary moment (during a barrier execution with overflow).
+    // So there are not so many reliable ways to track releases of new work.
+    // The number of batches sharad inside a parallel processor may only grow,
+    // we use this number to decide when to finish the mark.
+    auto everSharedBatches = parallelProcessor_->batchesEverShared();
+    size_t iter = 0;
+    bool terminateInSTW = false;
+    do {
+        GCLogDebug(gcHandle().getEpoch(), "Building mark closure (attempt #%zu)", iter);
+        Mark<MarkTraits>(gcHandle(), mainWorker);
+
+        RuntimeCheck(iter <= compiler::concurrentMarkMaxIterations(), "Failed to terminate mark in STW in a single iteration");
+        ++iter;
+        if (iter == compiler::concurrentMarkMaxIterations()) {
+            GCLogWarning(gcHandle().getEpoch(), "Finishing mark closure in STW after (%zu concurrent attempts)", iter);
+            stopTheWorld(gcHandle(), "GC stop the world #2: concurrent mark took too long");
+            terminateInSTW = true;
+        }
+    } while (!tryTerminateMark(everSharedBatches));
+
+    // By this point mutator mark queues may not be populated anymore.
+    // However, some threads may still try to enqueue a marked object, before they observe the barrier disablement.
+    // Thus, mark queue destruction takes place only later below.
+
+    gc::processWeaks<DefaultProcessWeaksTraits>(gcHandle(), mm::SpecialRefRegistry::instance());
+
+    if (!terminateInSTW) {
+        // onPrepareToSweep 会进行 sleep 操作，需在 sleep 之前解锁 list。防止新启的 Kotlin 线程无法 initRuntime。
+        this->unlockMutatorsList();
+        onPrepareToSweep();
+        this->lockMutatorsList();
+        stopTheWorld(gcHandle(), "GC stop the world #2: prepare to sweep");
+    }
+
+    barriers::disableBarriers();
+
+    for (auto& thread : *lockedMutatorsList_) {
+        thread.gc().impl().gc().mark().markQueue().destroy();
+    }
+    endMarkingEpoch();
+}
+// endregion
 
 void gc::mark::ConcurrentMark::runOnMutator(mm::ThreadData&) {
     // no-op

@@ -45,8 +45,8 @@ private class IdeaSyncKotlinNativeCInteropRunnerExecutionContext(
         try {
             action()
         } catch (t: Throwable) {
-            val errorText = "Warning: Failed to generate cinterop for ${task.path}: ${t.message ?: ""}"
-            task.logger.warn(errorText, t)
+            val errorText = "Error: Failed to generate cinterop for ${task.path}: ${t.message ?: ""}"
+            task.logger.error(errorText, t)
             task.outputs.files.forEach { file -> file.deleteRecursively() }
             errorFile.writeText(errorText)
         }

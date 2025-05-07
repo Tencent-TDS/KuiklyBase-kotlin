@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.descriptors.impl.*;
 import org.jetbrains.kotlin.diagnostics.Errors;
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation;
 import org.jetbrains.kotlin.lexer.KtTokens;
+import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.name.SpecialNames;
 import org.jetbrains.kotlin.psi.*;
@@ -99,6 +100,7 @@ public class DescriptorResolver {
     private final DataFlowValueFactory dataFlowValueFactory;
     private final Iterable<DeclarationSignatureAnonymousTypeTransformer> anonymousTypeTransformers;
     private final AdditionalClassPartsProvider additionalClassPartsProvider;
+    private static final FqName OBJC_NAME = new FqName("kotlin.native.ObjCName");
 
     public DescriptorResolver(
             @NotNull AnnotationResolver annotationResolver,
@@ -1345,6 +1347,15 @@ public class DescriptorResolver {
                 annotationSplitter.getAnnotationsForTarget(PROPERTY),
                 annotationSplitter.getOtherAnnotations()
         );
+
+        // region Tencent Code : If the constructor parameters do not have the PROPERTY annotations, then use the constructor parameter ObjCName annotations.
+        Annotations constructorParameterAnnotations
+                = annotationSplitter.getAnnotationsForTarget(CONSTRUCTOR_PARAMETER); // Getting the Annotation for Constructor Parameters
+        if (!propertyAnnotations.hasAnnotation(OBJC_NAME) &&
+            constructorParameterAnnotations.hasAnnotation(OBJC_NAME)) {
+            propertyAnnotations = new CompositeAnnotations(constructorParameterAnnotations, propertyAnnotations);
+        }
+        // endregion
 
         PropertyDescriptorImpl propertyDescriptor = PropertyDescriptorImpl.create(
                 classDescriptor,

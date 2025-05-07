@@ -298,4 +298,6 @@ public:
     }
 };
 
+size_t getTotalThreadsSuspendTimes() noexcept;
+
 }

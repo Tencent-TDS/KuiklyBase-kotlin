@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.MUST
 import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.NON_LITERAL_OBJC_NAME_ARG
 import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.PROPERTY_MUST_BE_VAR
 import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.REDUNDANT_SWIFT_REFINEMENT
+import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.SUBTYPE_OF_HIDDEN_FROM_C
 import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.SUBTYPE_OF_HIDDEN_FROM_OBJC
 import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.THROWS_LIST_EMPTY
 import org.jetbrains.kotlin.fir.analysis.diagnostics.native.FirNativeErrors.TWO_OR_LESS_PARAMETERS_ARE_SUPPORTED_HERE
@@ -94,6 +95,9 @@ object FirNativeErrorsDefaultMessages : BaseDiagnosticRendererFactory() {
         map.put(MISSING_EXACT_OBJC_NAME, "Exact '@ObjCName' is required to have an ObjC name.")
         map.put(NON_LITERAL_OBJC_NAME_ARG, "'@ObjCName' accepts only literal 'String' and 'Boolean' values.")
         map.put(SUBTYPE_OF_HIDDEN_FROM_OBJC, "Only '@HiddenFromObjC' declaration can be a subtype of '@HiddenFromObjC' declaration.")
+        // region @Tencent
+        map.put(SUBTYPE_OF_HIDDEN_FROM_C, "Only '@HiddenFromC' declaration can be a subtype of '@HiddenFromC' declaration.")
+        // endregion
 
 
         map.put(

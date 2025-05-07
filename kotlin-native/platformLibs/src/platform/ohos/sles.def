@@ -1,0 +1,5 @@
+depends = posix
+package = platform.sles
+headers = SLES/OpenSLES.h SLES/OpenSLES_OpenHarmony.h SLES/OpenSLES_Platform.h
+headerFilter = SLES/**
+linkerOpts = -lOpenSLES

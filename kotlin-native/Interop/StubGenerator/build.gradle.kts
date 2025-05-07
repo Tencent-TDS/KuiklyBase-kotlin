@@ -10,6 +10,7 @@ application {
 
 dependencies {
     implementation(project(":kotlin-native:Interop:Indexer"))
+    implementation(project(":kotlin-native:Interop:Indexer12"))
     implementation(project(path = ":kotlin-native:endorsedLibraries:kotlinx.cli", configuration = "jvmRuntimeElements"))
 
     api(kotlinStdlib())

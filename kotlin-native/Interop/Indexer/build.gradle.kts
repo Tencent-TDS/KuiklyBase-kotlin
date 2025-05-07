@@ -30,11 +30,11 @@ val libclang =
         "lib/${System.mapLibraryName("clang")}"
     }
 
-val cflags = mutableListOf( "-I${nativeDependencies.llvmPath}/include",
+val cflags = mutableListOf( "-I${nativeDependencies.llvm11Path}/include",
         "-I${project(":kotlin-native:libclangext").projectDir.absolutePath}/src/main/include",
                             *platformManager.hostPlatform.clangForJni.hostCompilerArgsForJni)
 
-val ldflags = mutableListOf("${nativeDependencies.llvmPath}/$libclang", "-L${libclangextDir.absolutePath}", "-lclangext")
+val ldflags = mutableListOf("${nativeDependencies.llvm11Path}/$libclang", "-L${libclangextDir.absolutePath}", "-lclangext")
 if (HostManager.hostIsMac) {
     ldflags.addAll(listOf("-Xlinker", "-lto_library", "-Xlinker", "KT-69382"))
 }
@@ -76,8 +76,8 @@ if (libclangextIsEnabled) {
             "clangToolingCore",
             "clangTooling", "clangFormat", "LLVMTarget", "LLVMMC", "LLVMLinker", "LLVMTransformUtils",
             "LLVMBitWriter", "LLVMBitReader", "LLVMAnalysis", "LLVMProfileData", "LLVMCore",
-            "LLVMSupport", "LLVMBinaryFormat", "LLVMDemangle"
-    ).map { "${nativeDependencies.llvmPath}/lib/lib${it}.a" }
+            "LLVMSupport", "LLVMBinaryFormat", "LLVMDemangle", "LLVMFrontendOpenMP"
+    ).map { "${nativeDependencies.llvm11Path}/lib/lib${it}.a" }
 
     ldflags.addAll(llvmLibs)
     ldflags.addAll(listOf("-lpthread", "-lz", "-lm", "-lcurses"))
@@ -196,7 +196,7 @@ tasks.withType<Test>().configureEach {
         it.layout.buildDirectory.dir("nativelibs").get().asFile.absolutePath
     })
 
-    systemProperty("kotlin.native.llvm.libclang", "${nativeDependencies.llvmPath}/" + if (HostManager.hostIsMingw) {
+    systemProperty("kotlin.native.llvm.libclang", "${nativeDependencies.llvm11Path}/" + if (HostManager.hostIsMingw) {
         "bin/libclang.dll"
     } else {
         "lib/${System.mapLibraryName("clang")}"

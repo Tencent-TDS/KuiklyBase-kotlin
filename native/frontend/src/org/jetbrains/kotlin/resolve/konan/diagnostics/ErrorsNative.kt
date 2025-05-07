@@ -61,6 +61,10 @@ object ErrorsNative {
     val INVALID_REFINES_IN_SWIFT_TARGETS = DiagnosticFactory0.create<KtElement>(Severity.ERROR)
     @JvmField
     val SUBTYPE_OF_HIDDEN_FROM_OBJC = DiagnosticFactory0.create<KtElement>(Severity.ERROR)
+    // region @Tencent
+    @JvmField
+    val SUBTYPE_OF_HIDDEN_FROM_C = DiagnosticFactory0.create<KtElement>(Severity.ERROR)
+    // endregion
     @JvmField
     val CANNOT_CHECK_FOR_FORWARD_DECLARATION = DiagnosticFactory1.create<PsiElement, KotlinType>(Severity.ERROR)
     @JvmField

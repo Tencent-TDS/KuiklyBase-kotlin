@@ -41,6 +41,8 @@ sealed class KonanTarget(override val name: String, val family: Family, val arch
 
     object LINUX_ARM32_HFP : KonanTarget("linux_arm32_hfp", Family.LINUX, Architecture.ARM32)
 
+    object OHOS_ARM64 : KonanTarget("ohos_arm64", Family.OHOS, Architecture.ARM64)
+
     /**
      * Removed targets. References are left just to provide a readable diagnostic message (as opposed to
      * plain "unresolved reference error").
@@ -83,7 +85,8 @@ sealed class KonanTarget(override val name: String, val family: Family, val arch
                 LINUX_X64,
                 MINGW_X64,
                 MACOS_X64, MACOS_ARM64,
-                LINUX_ARM64, LINUX_ARM32_HFP
+                LINUX_ARM64, LINUX_ARM32_HFP,
+                OHOS_ARM64
             ).associateBy { it.name }
         }
 

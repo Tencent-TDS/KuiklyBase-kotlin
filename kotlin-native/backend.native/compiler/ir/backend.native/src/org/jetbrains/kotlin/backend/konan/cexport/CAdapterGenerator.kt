@@ -56,6 +56,10 @@ private fun isExportedFunction(descriptor: FunctionDescriptor): Boolean {
         return false
     if (descriptor.isSuspend)
         return false
+    // region @Tencent: by @HiddenFromC
+    if (descriptor.isHiddenFromC())
+        return false
+    // endregion
     return !descriptor.typeParameters.any()
 }
 
@@ -70,7 +74,10 @@ private fun isExportedClass(descriptor: ClassDescriptor): Boolean {
     if (!descriptor.declaredTypeParameters.isEmpty()) return false
     // Do not export inline classes for now. TODO: add proper support.
     if (descriptor.isInlined()) return false
-
+    // region @Tencent: by @HiddenFromC
+    if (descriptor.isHiddenFromC())
+        return false
+    // endregion
     return true
 }
 

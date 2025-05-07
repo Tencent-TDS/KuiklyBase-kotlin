@@ -10,12 +10,22 @@ import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.jetbrains.kotlin.konan.target.PlatformManager
+import org.jetbrains.kotlin.konan.target.KonanTarget
 
-fun PlatformManager.resolveLlvmUtility(utility: String) = "${hostPlatform.absoluteLlvmHome}/bin/$utility"
+fun PlatformManager.resolveLlvmUtility(utility: String, target: KonanTarget? = null): String {
+    val platform = target?.let { platform(target) } ?: hostPlatform
+    return "${platform.absoluteLlvmHome(target)}/bin/$utility"
+}
 
-fun ExecOperations.execLlvmUtility(platformManager: PlatformManager, utility: String, action: Action<in ExecSpec>): ExecResult {
+fun ExecOperations.execLlvmUtility(
+        platformManager: PlatformManager,
+        utility: String,
+        target: KonanTarget = platformManager.targetByName("host"),
+        action: Action<in ExecSpec>
+): ExecResult {
     return exec {
         action.execute(this)
-        executable = platformManager.resolveLlvmUtility(utility)
+        executable = platformManager.resolveLlvmUtility(utility, target)
+        println("${executable} ${args.joinToString(separator = " ")})")
     }
 }

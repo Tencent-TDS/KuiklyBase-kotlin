@@ -14,6 +14,9 @@ struct AllocatedSizeTracker {
     public:
         void onPageOverflow(std::size_t allocatedBytes) noexcept;
         void afterSweep(std::size_t allocatedBytes) noexcept;
+        // region Tencent Code
+        std::size_t getAllocatedSize() const;
+        // endregion
 
     private:
         std::size_t allocatedBytesLastRecorded_ = 0;

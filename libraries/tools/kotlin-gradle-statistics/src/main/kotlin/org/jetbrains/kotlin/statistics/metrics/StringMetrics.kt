@@ -46,6 +46,7 @@ enum class StringMetrics(val type: StringOverridePolicy, val anonymization: Stri
                 "linux_arm32_hfp",
                 "linux_arm64",
                 "linux_x64",
+                "ohos_arm64",
                 "macos_x64",
                 "macos_arm64",
                 "mingw_x64",

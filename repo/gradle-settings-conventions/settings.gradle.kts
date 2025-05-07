@@ -44,6 +44,8 @@ develocity {
         server.set(buildProperties.buildScanServer)
     }
     buildScan {
+        // Publish scan results only on explicitly requested.
+        publishing.onlyIf { false }
         capture {
             uploadInBackground = !isTeamCity
         }

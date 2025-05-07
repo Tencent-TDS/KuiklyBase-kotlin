@@ -405,8 +405,11 @@ class WorkerTest {
 
         val actualWorkers = Worker.activeWorkers.toSet()
 
-        assertTrue(actualWorkers.size - workers.size == 1 || actualWorkers.size - workers.size == 2,
-                "actualWorkers.size = ${actualWorkers.size} workers.size = ${workers.size} actual size must be greater by 1 (main worker) or 2 (cleaners worker)")
+        // region @Tencent: actualWorkers may also contain a worker created by FinalizerProcessor.
+        assertTrue(actualWorkers.size - workers.size == 1 || actualWorkers.size - workers.size == 2 || actualWorkers.size - workers.size == 3,
+                "actualWorkers.size = ${actualWorkers.size} workers.size = ${workers.size} actual size must be greater by 1 (main worker) or 2 (cleaners worker) or 3(FinalizerProcessor worker)")
+        // endregion
+
         workers.forEach {
             actualWorkers.contains(it)
         }

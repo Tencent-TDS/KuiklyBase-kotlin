@@ -42,7 +42,7 @@ class NativeCompilerDownloader(
 
         internal var NEED_TO_DOWNLOAD_FLAG: Boolean = true
 
-        internal const val BASE_DOWNLOAD_URL = "https://download.jetbrains.com/kotlin/native/builds"
+        internal const val BASE_DOWNLOAD_URL = "https://mirrors.tencent.com/nexus/repository/maven-public/kuikly-base/kotlin/native/builds"
         internal const val KOTLIN_GROUP_ID = "org.jetbrains.kotlin"
 
         internal fun getCompilerDependencyNotation(project: Project): Map<String, String> {

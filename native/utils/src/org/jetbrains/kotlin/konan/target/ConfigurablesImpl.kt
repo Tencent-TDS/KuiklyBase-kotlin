@@ -42,5 +42,7 @@ fun loadConfigurables(
 
     Family.ANDROID -> AndroidConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
 
+    Family.OHOS -> OhosConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
+
     Family.MINGW -> MingwConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
 }

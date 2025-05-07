@@ -31,6 +31,9 @@ object NativePlatformConfigurator : PlatformConfiguratorBase(
         NativeObjCRefinementChecker, NativeObjCRefinementAnnotationChecker,
         NativeObjCRefinementOverridesChecker, NativeHiddenFromObjCInheritanceChecker,
         NativeObjcOverrideApplicabilityChecker,
+        // region @Tencent: Also check classes marked as HiddenFromC
+        NativeHiddenFromCInheritanceChecker
+        // endregion
     ),
     platformSpecificCastChecker = NativePlatformSpecificCastChecker
 ) {

@@ -136,6 +136,7 @@ interface KotlinHierarchyBuilder {
     fun withTvos()
     fun withMingw()
     fun withLinux()
+    fun withOhos()
     fun withAndroidNative()
 
     /* Actual targets */
@@ -170,6 +171,7 @@ interface KotlinHierarchyBuilder {
     fun withMacosX64()
     fun withMacosArm64()
     fun withLinuxArm64()
+    fun withOhosArm64()
 
     @Deprecated(message = REMOVED_TARGET_MESSAGE, level = DeprecationLevel.ERROR)
     fun withIosArm32()

@@ -37,8 +37,28 @@ public object Debugging {
     @InternalForKotlinNative
     public val isThreadStateRunnable: Boolean
         get() = Debugging_isThreadStateRunnable()
+
+    // region Tencent Code
+    public val firstRuntimeStackTraceString: String
+        get() = getFirstRuntimeStackTraceString() ?: ""
+    // endregion
+
+    /**
+     * Dump memory in binary format to the given POSIX file descriptor and
+     * returns success flag.
+     */
+    @GCUnsafeCall("Kotlin_native_runtime_Debugging_dumpMemory")
+    public external fun dumpMemory(fd: Long): Boolean
+
+    @GCUnsafeCall("Kotlin_native_runtime_Debugging_dumpMemoryAsync")
+    public external fun dumpMemoryAsync(fd: Int, asyncCacheDir: String?): Boolean
+
 }
 
+// region Tencent Code
+@GCUnsafeCall("Kotlin_getFirstRuntimeStackTraceString")
+private external fun getFirstRuntimeStackTraceString(): String?
+// endregion
 
 @GCUnsafeCall("Kotlin_Debugging_getForceCheckedShutdown")
 private external fun Debugging_getForceCheckedShutdown(): Boolean

@@ -30,7 +30,11 @@ class ObjCExportMapper(
     internal val deprecationResolver: DeprecationResolver? = null,
     private val local: Boolean = false,
     internal val unitSuspendFunctionExport: UnitSuspendFunctionObjCExport,
+    // region Tencent Code
+    internal val objCExportCustomConfig: ObjCExportCustomConfig? = null,
+    // endregion
 ) {
+
     fun getCustomTypeMapper(descriptor: ClassDescriptor): CustomTypeMapper? = CustomTypeMappers.getMapper(descriptor)
 
     val hiddenTypes: Set<ClassId> get() = CustomTypeMappers.hiddenTypes
@@ -50,6 +54,17 @@ class ObjCExportMapper(
             bridgeMethodImpl(descriptor)
         }
     }
+
+    // region Tencent Code
+    private val configurationUtils = ConfigurationUtils(
+        objCExportCustomConfig?.objCExportConfigurationPath,
+        objCExportCustomConfig?.problemCollector
+    )
+
+    fun shouldBeExportByFqName(fqName: String): Boolean = configurationUtils.shouldBeExportByFqName(fqName)
+
+    fun shouldBeDefaultExportByModule(moduleName: String): Boolean = configurationUtils.shouldBeDefaultExportByModule(moduleName)
+    // endregion
 }
 
 internal fun ObjCExportMapper.getClassIfCategory(descriptor: CallableMemberDescriptor): ClassDescriptor? {
@@ -103,6 +118,27 @@ fun ObjCExportMapper.shouldBeExposed(descriptor: CallableMemberDescriptor): Bool
     else -> true
 }
 
+// region Tencent Code
+// Note: partially duplicated in ObjCExportLazyImpl.translateTopLevels.
+@InternalKotlinNativeApi
+fun ObjCExportMapper.shouldBeExposedByConfiguration(descriptor: CallableMemberDescriptor): Boolean = when {
+    !shouldBeExposed(descriptor) -> false
+    objCExportCustomConfig?.enableDefaultObjCExport == true -> true
+    descriptor.containingDeclaration.module.name.asStringStripSpecialMarkers().let { shouldBeDefaultExportByModule(it) } -> true
+    descriptor.isObjCName() -> true
+    descriptor.fqNameOrNull()?.let { shouldBeExportByFqName(it.asString()) } == true -> true
+    else -> false
+}
+
+private fun CallableMemberDescriptor.isObjCName(): Boolean = when {
+    // Note: the front-end checker requires all overridden descriptors to be either refined or not refined.
+    overriddenDescriptors.isNotEmpty() -> overriddenDescriptors.first().isObjCName()
+    else -> annotations.any { annotation ->
+        annotation.fqName == KonanFqNames.objCName
+    }
+}
+// endregion
+
 private fun CallableMemberDescriptor.isHiddenFromObjC(): Boolean = when {
     // Note: the front-end checker requires all overridden descriptors to be either refined or not refined.
     overriddenDescriptors.isNotEmpty() -> overriddenDescriptors.first().isHiddenFromObjC()
@@ -120,6 +156,21 @@ internal fun ClassDescriptor.isHiddenFromObjC(): Boolean = when {
         annotation.annotationClass?.annotations?.any { it.fqName == KonanFqNames.hidesFromObjC } == true
     }
 }
+
+// region Tencent Code
+/**
+ * Check if the given class or its enclosing declaration is marked as @HiddenFromObjC.
+ */
+private fun ClassDescriptor.isObjCName(): Boolean = when {
+    (this.containingDeclaration as? ClassDescriptor)?.isObjCName() == true -> true
+    else -> annotations.any { annotation ->
+        annotation.fqName == KonanFqNames.objCName
+    }
+}
+
+internal fun ObjCExportMapper.shouldBeExposedByConfiguration(descriptor: ClassDescriptor): Boolean =
+    shouldBeVisibleByConfiguration(descriptor) && !isSpecialMapped(descriptor) && !descriptor.defaultType.isObjCObjectType()
+// endregion
 
 internal fun ObjCExportMapper.shouldBeExposed(descriptor: ClassDescriptor): Boolean =
     shouldBeVisible(descriptor) && !isSpecialMapped(descriptor) && !descriptor.defaultType.isObjCObjectType()
@@ -183,6 +234,15 @@ private fun ObjCExportMapper.isHiddenByDeprecation(descriptor: ClassDescriptor):
 
     return false
 }
+
+// region Tencent Code
+// Note: the logic is partially duplicated in ObjCExportLazyImpl.translateClasses.
+@OptIn(InternalKotlinNativeApi::class)
+internal fun ObjCExportMapper.shouldBeVisibleByConfiguration(descriptor: ClassDescriptor): Boolean =
+    shouldBeVisible(descriptor) && (objCExportCustomConfig?.enableDefaultObjCExport == true || descriptor.isObjCName() ||
+        descriptor.module.name.asStringStripSpecialMarkers().let { shouldBeDefaultExportByModule(it) } ||
+        descriptor.fqNameOrNull()?.let { shouldBeExportByFqName(it.asString()) } == true)
+// endregion
 
 // Note: the logic is partially duplicated in ObjCExportLazyImpl.translateClasses.
 internal fun ObjCExportMapper.shouldBeVisible(descriptor: ClassDescriptor): Boolean =

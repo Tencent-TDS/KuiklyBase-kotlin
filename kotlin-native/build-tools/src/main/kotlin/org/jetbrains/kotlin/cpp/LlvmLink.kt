@@ -20,6 +20,7 @@ import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.execLlvmUtility
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.PlatformManager
 import javax.inject.Inject
 
@@ -29,14 +30,19 @@ private abstract class LlvmLinkJob : WorkAction<LlvmLinkJob.Parameters> {
         val outputFile: RegularFileProperty
         val arguments: ListProperty<String>
         val platformManager: Property<PlatformManager>
+        val targetName: Property<String>
     }
 
     @get:Inject
     abstract val execOperations: ExecOperations
 
+    private val target: KonanTarget by lazy {
+        parameters.platformManager.get().targetByName(parameters.targetName.get())
+    }
+
     override fun execute() {
         with(parameters) {
-            execOperations.execLlvmUtility(platformManager.get(), "llvm-link") {
+            execOperations.execLlvmUtility(platformManager.get(), "llvm-link", target) {
                 args = listOf("-o", outputFile.asFile.get().absolutePath) + arguments.get() + inputFiles.map { it.absolutePath }
             }
         }
@@ -60,6 +66,12 @@ abstract class LlvmLink : DefaultTask() {
     abstract val outputFile: RegularFileProperty
 
     /**
+     * Will select the appropriate compiler and additional flags.
+     */
+    @get:Input
+    abstract val targetName: Property<String>
+
+    /**
      * Extra arguments for `llvm-link`.
      */
     @get:Input
@@ -79,6 +91,7 @@ abstract class LlvmLink : DefaultTask() {
             outputFile.set(this@LlvmLink.outputFile)
             arguments.set(this@LlvmLink.arguments)
             platformManager.set(this@LlvmLink.platformManager)
+            targetName.set(this@LlvmLink.targetName.get())
         }
     }
 }

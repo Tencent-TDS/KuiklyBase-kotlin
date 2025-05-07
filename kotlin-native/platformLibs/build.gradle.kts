@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.utils.keysToMap
 plugins {
     id("base")
     id("platform-manager")
+    id("native-dependencies")
 }
 
 // region: Util functions.
@@ -44,6 +45,9 @@ abstract class SimdOverlayTask @Inject constructor(private val execOperations: E
     abstract val xcodeForVfsoverlay: Property<String>
 
     @get:Internal
+    abstract val sysrootForVfsOverlay: Property<String>
+
+    @get:Internal
     abstract val targetName: Property<String>
 
     @get:Internal
@@ -56,6 +60,7 @@ abstract class SimdOverlayTask @Inject constructor(private val execOperations: E
                     cinteropPath.get().absolutePath,
                     "-target", targetName.get(),
                     "-Xcreate-vfsoverlay-from-xcode-headers", xcodeForVfsoverlay.get(),
+                    *(sysrootForVfsOverlay.orNull?.let { listOf("-Xsysroot-for-vfsoverlay", it) } ?: emptyList()).toTypedArray(),
                     "-Xheaders-copy-directory-for-vfsoverlay", vfsoverlayCopyDirectory.get().asFile.absolutePath,
             )
         }
@@ -63,6 +68,7 @@ abstract class SimdOverlayTask @Inject constructor(private val execOperations: E
 }
 
 val simdOverlayProperty = providers.gradleProperty("konan.xcodeForSimdOverlay")
+val simdOverlaySysRootProperty = providers.gradleProperty("konan.sysrootForSimdOverlay")
 val simdOverlayCompilerArgumentPerTarget = KonanTarget.predefinedTargets.values.filter {
     it.architecture == Architecture.X64 && it.family.isAppleFamily
 }.keysToMap { target ->
@@ -71,7 +77,7 @@ val simdOverlayCompilerArgumentPerTarget = KonanTarget.predefinedTargets.values.
 
     val targetName = target.visibleName
     val cinteropPath = kotlinNativeDist.resolve("bin/cinterop")
-
+    val sysrootForVfsOverlay = simdOverlaySysRootProperty.map { "${rootProject.file(it)}/$targetName" }.orNull
     val task = tasks.register(
             "simdOverlay${target.name}",
             SimdOverlayTask::class.java,
@@ -79,6 +85,7 @@ val simdOverlayCompilerArgumentPerTarget = KonanTarget.predefinedTargets.values.
         dependsOn(":kotlin-native:${targetName}CrossDist")
         this.cinteropPath.set(cinteropPath)
         this.xcodeForVfsoverlay.set(simdOverlayProperty)
+        this.sysrootForVfsOverlay.set(sysrootForVfsOverlay)
         this.targetName.set(targetName)
         this.vfsoverlayCopyDirectory.set(vfsoverlayCopyDirectory)
     }
@@ -129,6 +136,11 @@ enabledTargets(platformManager).forEach { target ->
             this.compilerOpts.addAll(
                     "-fmodules-cache-path=${project.layout.buildDirectory.dir("clangModulesCache").get().asFile}"
             )
+            if (target.family == Family.OHOS) {
+                this.compilerOpts.addAll(
+                        "-I${nativeDependencies.llvmPath}/include/c++/v1",
+                )
+            }
             this.enableParallel.set(project.findProperty("kotlin.native.platformLibs.parallel")?.toString()?.toBoolean() ?: true)
         }
 

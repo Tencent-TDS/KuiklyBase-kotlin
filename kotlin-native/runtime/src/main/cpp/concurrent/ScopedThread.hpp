@@ -17,6 +17,9 @@ namespace kotlin {
 namespace internal {
 
 void setCurrentThreadName(std::string_view name) noexcept;
+// region @Tencent: pthread_getname_np is not available below Android 26.
+std::string getCurrentThreadName() noexcept;
+// endregion
 
 } // namespace internal
 
