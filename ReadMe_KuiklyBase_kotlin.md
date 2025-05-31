@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**KuiklyBase-Kotlin** is an open-source project developed and maintained by the Tencent Video team, based on [Kotlin](https://github.com/jetbrains/kotlin), the open-source language created by [JetBrains](https://www.jetbrains.com/). Compared to the official version, **KuiklyBase-Kotlin** adds support for the HarmonyOS platform and includes optimizations and adjustments to the Kotlin compiler and Kotlin/Native runtime based on practical experience from Tencent Video. It has already been successfully adopted in several Tencent apps.
+**KuiklyBase-Kotlin** is an open-sourced project that is a secondary development based on [Kotlin](https://github.com/jetbrains/kotlin), which is open-sourced by [JetBrains](https://www.jetbrains.com/). It is developed and open-sourced by the Oteam of Tencent's large front-end. Tencent Video and the PCG Device-side technology team were deeply involved in its construction. Compared to the official version, **KuiklyBase-Kotlin** adds support for the HarmonyOS platform and includes optimizations and adjustments to the Kotlin compiler and Kotlin/Native runtime based on practical experience from Tencent Video. It has already been successfully adopted in several Tencent apps.
 
 ## Feature Highlights
 

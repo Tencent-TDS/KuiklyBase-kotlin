@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-**KuiklyBase-Kotlin** 是腾讯视频团队基于由 [JetBrains](https://www.jetbrains.com/zh-cn/) 公司开源的 [Kotlin](https://github.com/jetbrains/kotlin) 二次开发并开源的项目。与原版相比，**KuiklyBase-Kotlin** 新增了对鸿蒙平台的支持，同时基于腾讯视频团队的应用实践对 Kotlin 编译器和 Kotlin Native 运行时进行了优化和调整，目前已经在腾讯公司多个线上应用中成功落地。
+**KuiklyBase-Kotlin** 是腾讯大前端Oteam基于 [JetBrains](https://www.jetbrains.com/zh-cn/) 公司开源的 [Kotlin](https://github.com/jetbrains/kotlin) 二次开发并开源的项目，由腾讯视频、PCG端技术深度参与建设完成。与原版相比，**KuiklyBase-Kotlin** 新增了对鸿蒙平台的支持，同时基于腾讯视频团队的应用实践对 Kotlin 编译器和 Kotlin Native 运行时进行了优化和调整，目前已经在腾讯公司多个线上应用中成功落地。
 
 ## 功能概述
 

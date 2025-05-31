@@ -4,7 +4,17 @@
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.jetbrains.com/scans?search.rootProjectNames=Kotlin)
 
-**NOTE**: This project is a fork of the original [JetBrains/kotlin](https://github.com/jetbrains/kotlin). You can navigate to the [introduction](ReadMe_KuiklyBase_kotlin.md) | [项目介绍](ReadMe_KuiklyBase_kotlin_Zh.md) to get more details about this.
+# KuiklyBase-Kotlin
+
+### Eglish
+**KuiklyBase-Kotlin** is an open-sourced project that is a secondary development based on [Kotlin](https://github.com/jetbrains/kotlin), which is open-sourced by [JetBrains](https://www.jetbrains.com/). It is developed and open-sourced by the Oteam of Tencent's large front-end. Tencent Video and the PCG Device-side technology team were deeply involved in its construction.
+
+You can navigate to the [introduction](ReadMe_KuiklyBase_kotlin.md) to get more details about this.
+
+### 中文
+**KuiklyBase-Kotlin** 是腾讯大前端Oteam基于 [JetBrains](https://www.jetbrains.com/) 公司开源的 [Kotlin](https://github.com/jetbrains/kotlin) 二次开发并开源的项目，由腾讯视频、PCG端技术深度参与建设完成。
+
+您可以导航到[项目介绍](ReadMe_KuiklyBase_kotlin_Zh.md)获取更多详细信息。
 
 ---
 
