@@ -33,13 +33,14 @@
 
 ### 配置仓库
 
-为了尽可能与官方 Kotlin 的使用体验保持一致，**KuiklyBase-Kotlin** 的产物会以同样的方式发布于腾讯软件源的 Maven 仓库中，开发者在使用前需要先在项目中添加以下仓库：
+为了尽可能与官方 Kotlin 的使用体验保持一致，**KuiklyBase-Kotlin** 的产物会以同样的方式发布于腾讯软件源的 Maven 仓库中，开发者在使用前需要先在项目中添加腾讯软件源仓库：
 
 ```
+https://mirrors.tencent.com/nexus/repository/maven-tencent/
 https://mirrors.tencent.com/nexus/repository/maven-public/
 ```
 
->**说明**：该仓库也同时代理了十多个常用的国内外 Maven 仓库，包括 Maven 中央仓库、Google Maven 仓库、JitPack Maven 仓库、华为 Maven 仓库等等，以求推广自由软件的价值，提升国内开发者的开发体验。腾讯软件源同时也提供了对常见的 Linux 发行版、Gradle、npm、Go、Flutter、Rust 等仓库的镜像服务，详见[腾讯软件源](https://mirrors.tencent.com/)官网。
+>**说明**：`maven-tencent` 仓库用于发布由腾讯开源且发布的产物；`maven-public` 仓库则代理了十多个常用的国内外 Maven 仓库，包括 Maven 中央仓库、Google Maven 仓库、JitPack Maven 仓库、华为 Maven 仓库等等，以求推广自由软件的价值，提升国内开发者的开发体验。腾讯软件源同时也提供了对常见的 Linux 发行版、Gradle、npm、Go、Flutter、Rust 等仓库的镜像服务，详见[腾讯软件源](https://mirrors.tencent.com/)官网。
 
 以 Gradle 为例：
 
@@ -48,6 +49,7 @@ https://mirrors.tencent.com/nexus/repository/maven-public/
 ```kotlin
 pluginManagement {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
@@ -55,6 +57,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
@@ -66,6 +69,7 @@ dependencyResolutionManagement {
 ```kotlin
 buildscript {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
@@ -73,6 +77,7 @@ buildscript {
 
 allprojects {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
