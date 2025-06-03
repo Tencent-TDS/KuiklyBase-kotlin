@@ -32,13 +32,14 @@ This is the most significant addition in **KuiklyBase-Kotlin**. By introducing H
 
 ### Repository Configuration
 
-To maintain consistency with the official Kotlin experience, **KuiklyBase-Kotlin** artifacts are published to Tencent's Maven repository in the same manner. Before using it, add the following repository to your project:
+To maintain consistency with the official Kotlin experience, **KuiklyBase-Kotlin** artifacts are published to Tencent's Maven repository in the same manner. Before using it, add the following repositories to your project:
 
 ```
+https://mirrors.tencent.com/nexus/repository/maven-tencent/
 https://mirrors.tencent.com/nexus/repository/maven-public/
 ```
 
-> **Note**: This repository also proxies over a dozen popular domestic and international Maven repositories, including Maven Central, Google Maven, JitPack, Huawei Maven, and more. It aims to promote free software and improve the developer experience in China. Tencent Mirror also provides mirror services for popular package managers and platforms such as Linux distributions, Gradle, npm, Go, Flutter, and Rust. For details, visit the [Tencent Software Mirror](https://mirrors.tencent.com/).
+> **Note**: The `maven-tencent` repository is used to publish artifacts open-sourced and maintained by Tencent. The `maven-public` repository proxies over a dozen popular domestic and international Maven repositories, including Maven Central, Google Maven, JitPack, Huawei Maven, and more. It aims to promote free software and improve the developer experience in China. Tencent Mirror also provides mirror services for popular package managers and platforms such as Linux distributions, Gradle, npm, Go, Flutter, and Rust. For details, visit the [Tencent Software Mirror](https://mirrors.tencent.com/).
 
 **Gradle Example:**
 
@@ -47,6 +48,7 @@ https://mirrors.tencent.com/nexus/repository/maven-public/
 ```kotlin
 pluginManagement {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
@@ -54,6 +56,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
@@ -65,6 +68,7 @@ dependencyResolutionManagement {
 ```kotlin
 buildscript {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
@@ -72,6 +76,7 @@ buildscript {
 
 allprojects {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-tencent/")
         maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         ...
     }
