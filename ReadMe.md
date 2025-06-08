@@ -6,7 +6,7 @@
 
 # KuiklyBase-Kotlin
 
-### Eglish
+### English
 **KuiklyBase-Kotlin** is an open-sourced project that is a secondary development based on [Kotlin](https://github.com/jetbrains/kotlin), which is open-sourced by [JetBrains](https://www.jetbrains.com/). It is developed and open-sourced by the Oteam of Tencent's large front-end. Tencent Video and the PCG Device-side technology team were deeply involved in its construction.
 
 You can navigate to the [introduction](ReadMe_KuiklyBase_kotlin.md) to get more details about this.
