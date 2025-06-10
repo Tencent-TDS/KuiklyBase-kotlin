@@ -1,3 +1,5 @@
+![](https://img.shields.io/badge/dynamic/xml?label=KuiklyBase-Kotlin&url=https%3A%2F%2Fmirrors.tencent.com%2Fnexus%2Frepository%2Fmaven-tencent%2Forg%2Fjetbrains%2Fkotlin%2Fkotlin-native-prebuilt%2Fmaven-metadata.xml&query=%2Fmetadata%2Fversioning%2Flatest%2Ftext())
+
 # KuiklyBase-Kotlin
 
 ## Project Overview
@@ -88,13 +90,12 @@ allprojects {
 **KuiklyBase-Kotlin** uses a distinct versioning scheme from the official Kotlin release, in the format:  
 `<Official-Version>-KBA-<Build-Number>`  
 Here, `KBA` stands for *KuiklyBase All Targets*.  
-The latest version is: **2.0.21-KBA-004**
 
 Example configuration:
 
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "2.0.21-KBA-004"
+    kotlin("multiplatform") version "<latestVersion>"
 }
 ```
 
