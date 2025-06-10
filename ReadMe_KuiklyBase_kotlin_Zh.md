@@ -1,3 +1,5 @@
+![](https://img.shields.io/badge/dynamic/xml?label=KuiklyBase-Kotlin&url=https%3A%2F%2Fmirrors.tencent.com%2Fnexus%2Frepository%2Fmaven-tencent%2Forg%2Fjetbrains%2Fkotlin%2Fkotlin-native-prebuilt%2Fmaven-metadata.xml&query=%2Fmetadata%2Fversioning%2Flatest%2Ftext())
+
 # KuiklyBase-Kotlin
 
 ## 项目简介
@@ -86,11 +88,11 @@ allprojects {
 
 ### 版本说明
 
-**KuiklyBase-Kotlin** 与官方 Kotlin 通过版本号区分，命名规则为：`<官方版本号>-KBA-<构建号>`，其中 `KBA` 表示 “KuiklyBase All Targets”。 当前最新版本为：**2.0.21-KBA-004**。 配置示例如下：
+**KuiklyBase-Kotlin** 与官方 Kotlin 通过版本号区分，命名规则为：`<官方版本号>-KBA-<构建号>`，其中 `KBA` 表示 “KuiklyBase All Targets”。 配置示例如下：
 
 ```kotlin
 plugins {
-    kotlin("multiplatform") version "2.0.21-KBA-004"
+    kotlin("multiplatform") version "<最新版本>"
 }
 ```
 
