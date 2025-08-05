@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.konan.properties.KonanPropertiesLoader
 import org.jetbrains.kotlin.konan.properties.Properties
 import org.jetbrains.kotlin.konan.util.ProgressCallback
 import java.io.File
-import java.lang.IllegalStateException
 
 class OhosConfigurablesImpl(
     target: KonanTarget,
@@ -44,22 +43,32 @@ class OhosConfigurablesImpl(
                 File(sdkRoot, "native/sysroot").path
             } else {
                 error(
-                    "OHOS SDK is not found. It is required to build platform libs for OHOS.\n" +
-                            "Set 'OHOS_SDK_HOME=/path/to/openharmony' or 'DEVECO_STUDIO_HOME=/path/to/DevEco-Studio' in the system properties" +
-                            "or install DevEco Studio in the default location '/Applications/DevEco-Studio.app'. "
+                    "OHOS SDK is not found in '$sdkRoot'. It is required to build platform libs for OHOS.\n" +
+                            "We will search the OHOS SDK from the default installation location of DevEco Studio. " +
+                            "You can also customize the location by configuring 'OHOS_SDK_HOME=/path/to/openharmony' or " +
+                            "'DEVECO_STUDIO_HOME=/path/to/DevEco-Studio' in the system environment."
                 )
             }
         }
     }
 
     private fun getLocalSdkPath(): String {
-        if (HostManager.host.family.isAppleFamily) {
-            return getSystemValue("OHOS_SDK_HOME") ?: File(
-                getSystemValue("DEVECO_STUDIO_HOME") ?: "/Applications/DevEco-Studio.app",
-                "Contents/sdk/default/openharmony"
-            ).path
-        } else {
-            throw IllegalStateException("Unsupported host: ${HostManager.host}")
+        return getSystemValue("OHOS_SDK_HOME") ?: getBundledSdkFromDevEcoStudio()
+    }
+    
+    private fun getBundledSdkFromDevEcoStudio(): String {
+        val devEcoStudioHome = getSystemValue("DEVECO_STUDIO_HOME")
+        return when (HostManager.host) {
+            KonanTarget.MINGW_X64 -> {
+                File(devEcoStudioHome ?: "C:\\Program Files\\Huawei\\DevEco Studio\\", "sdk\\default\\openharmony").path
+            }
+            KonanTarget.MACOS_X64, KonanTarget.MACOS_ARM64 -> {
+                File(devEcoStudioHome ?: "/Applications/DevEco-Studio.app", "Contents/sdk/default/openharmony").path
+            }
+            else -> {
+                // DevEco Studio does not support Linux. The path will be validated outside, don't worry about it. 
+                "/usr/local/lib/DevEco-Studio/sdk/default/openharmony"
+            }
         }
     }
 
