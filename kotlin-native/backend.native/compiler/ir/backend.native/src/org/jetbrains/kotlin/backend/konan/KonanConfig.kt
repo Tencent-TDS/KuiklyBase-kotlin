@@ -135,6 +135,9 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
         configuration.get(KonanConfigKeys.RUNTIME_LOGS) != null
     }
 
+    val splitBCfile: Boolean
+        get() = configuration.get(BinaryOptions.splitBCfile) ?: false
+
     val runtimeLogs: Map<LoggingTag, LoggingLevel> by lazy {
         val default = LoggingTag.entries.associateWith { LoggingLevel.None }
 

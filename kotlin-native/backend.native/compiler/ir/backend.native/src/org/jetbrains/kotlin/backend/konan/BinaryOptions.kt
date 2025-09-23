@@ -17,6 +17,8 @@ object BinaryOptions : BinaryOptionRegistry() {
 
     val checkStateAtExternalCalls by booleanOption()
 
+    val splitBCfile by booleanOption()
+
     val memoryModel by option<MemoryModel>()
 
     val freezing by option<Freezing>()
