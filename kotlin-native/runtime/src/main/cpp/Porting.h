@@ -50,6 +50,10 @@ uint64_t getSystemTimeNanos();
 // Endianness
 bool isLittleEndian();
 
+// region Tencent Code
+void startTrace(const char* utf8);
+void finishTrace();
+// endregion
 }  // namespace konan
 
 #endif  // RUNTIME_PORTING_H

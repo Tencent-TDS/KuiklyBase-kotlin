@@ -42,7 +42,9 @@ private fun shouldEnforceFramePointer(context: Context): Boolean {
 
     return when (context.config.target.family) {
         Family.OSX, Family.IOS, Family.WATCHOS, Family.TVOS -> context.shouldContainLocationDebugInfo()
-        Family.LINUX, Family.MINGW, Family.ANDROID -> false
+        // region Tencent Code
+        Family.LINUX, Family.OHOS, Family.MINGW, Family.ANDROID -> false
+        // endregion
     }
 }
 
@@ -99,4 +101,5 @@ sealed class LlvmFunctionAttribute(private val llvmAttributeName: String) : Llvm
     object NoInline : LlvmFunctionAttribute("noinline")
     object AlwaysInline : LlvmFunctionAttribute("alwaysinline")
     object SanitizeThread : LlvmFunctionAttribute("sanitize_thread")
+    object SanitizeAddress : LlvmFunctionAttribute("sanitize_address")
 }

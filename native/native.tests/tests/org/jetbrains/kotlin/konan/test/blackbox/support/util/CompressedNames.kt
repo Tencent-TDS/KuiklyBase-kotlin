@@ -30,6 +30,9 @@ internal val Family.compressedName: Char
         Family.LINUX -> 'l'
         Family.MINGW -> 'm'
         Family.ANDROID -> 'a'
+        // region Tencent Code
+        Family.OHOS -> 'h'
+        // endregion
     }
 
 internal val Architecture.compressedName: String

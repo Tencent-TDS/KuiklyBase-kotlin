@@ -27,7 +27,12 @@ sealed class ClangArgs(
 
     private val absoluteTargetToolchain = configurables.absoluteTargetToolchain
     private val absoluteTargetSysRoot = configurables.absoluteTargetSysRoot
-    private val absoluteLlvmHome = configurables.absoluteLlvmHome
+    // region Tencent Code
+    private val absoluteLlvmHome: String
+        get() {
+            return if (configurables.target.family == Family.OHOS) configurables.absoluteTargetToolchain else configurables.absoluteLlvmHome
+        }
+    // endregion
     private val target = configurables.target
     private val targetTriple = configurables.targetTriple
 
@@ -42,6 +47,9 @@ sealed class ClangArgs(
                     target.family.name.takeIf { target.family != Family.MINGW },
                     "WINDOWS".takeIf { target.family == Family.MINGW },
                     "MACOSX".takeIf { target.family == Family.OSX },
+                    // region Tencent Code
+                    "LINUX".takeIf { target.family == Family.OHOS },  // OHOS is also a variant of Linux.
+                    // endregion
                     "APPLE".takeIf { target.family.isAppleFamily },
 
                     "NO_64BIT_ATOMIC".takeUnless { target.supports64BitAtomics() },
@@ -172,14 +180,23 @@ sealed class ClangArgs(
     val clangArgsForKonanSources =
             clangXXArgs + clangArgsSpecificForKonanSources
 
-    private val libclangSpecificArgs =
-            // libclang works not exactly the same way as the clang binary and
-            // (in particular) uses different default header search path.
-            // See e.g. http://lists.llvm.org/pipermail/cfe-dev/2013-November/033680.html
-            // We workaround the problem with -isystem flag below.
-            // TODO: Revise after update to LLVM 10.
-            listOf("-isystem", "$absoluteLlvmHome/lib/clang/${configurables.llvmVersion}/include")
-
+    // region Tencent Code
+    private val libclangSpecificArgs = if (configurables.target.family == Family.OHOS) {
+        // Special case for parsing with the bundled clang.
+        // Note that the SDK clang would be used for most tasks.
+        listOf("-isystem", "${configurables.absoluteTargetToolchain}/include/libcxx-ohos/include/c++/v1",
+               "-isystem", "${configurables.absoluteTargetSysRoot}/usr/include/aarch64-linux-ohos",
+               "-isystem", "${configurables.absoluteTargetToolchain}/lib/clang/${configurables.llvmVersion}/include")
+    } else {
+        // libclang works not exactly the same way as the clang binary and
+        // (in particular) uses different default header search path.
+        // See e.g. http://lists.llvm.org/pipermail/cfe-dev/2013-November/033680.html
+        // We workaround the problem with -isystem flag below.
+        // TODO: Revise after update to LLVM 10.
+        listOf("-isystem", "$absoluteLlvmHome/lib/clang/${configurables.llvmVersion}/include")
+    }
+    // endregion
+    
     /**
      * libclang args for plain C and Objective-C.
      *

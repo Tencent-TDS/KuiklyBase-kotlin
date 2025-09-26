@@ -12,7 +12,9 @@ plugins {
 }
 
 nativeDependenciesDownloader {
-    repositoryURL.set("https://cache-redirector.jetbrains.com/download.jetbrains.com/kotlin/native")
+    // region Tencent Code
+    repositoryURL.set("https://kotlinnativeohos.online/download")
+    // endregion
     dependenciesDirectory.set(DependencyDirectories.getDependenciesRoot(kotlinBuildProperties.konanDataDir))
 
     allTargets {}

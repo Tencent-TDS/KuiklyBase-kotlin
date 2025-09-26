@@ -32,6 +32,9 @@ add_executable(runtime
 	src/main/cpp/KotlinMath.cpp
 	src/main/cpp/Memory.cpp
 	src/main/cpp/MemorySharedRefs.cpp
+    # region Tencent Code
+	src/main/cpp/NapiInteface.cpp
+    # endregion
 	src/main/cpp/Natives.cpp
 	src/main/cpp/ObjCExceptions.cpp
 	src/main/cpp/Operator.cpp

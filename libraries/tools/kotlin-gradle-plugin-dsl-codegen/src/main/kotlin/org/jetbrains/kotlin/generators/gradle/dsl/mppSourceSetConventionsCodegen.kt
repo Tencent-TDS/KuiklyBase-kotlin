@@ -92,6 +92,9 @@ private val commonSourceSetConventions = listOf(
     CommonSourceSetConvention("watchos", "all declared watchOS targets", "watchosX64", "watchosArm64"),
     CommonSourceSetConvention("macos", "all declared macOS targets", "macosX64", "macosArm64"),
     CommonSourceSetConvention("linux", "all declared Linux targets", "linuxX64", "linuxArm64"),
+    // region Tencent Code
+    CommonSourceSetConvention("ohos", "all declared OHOS targets", "ohosArm64", "ohosArm64"),
+    // endregion
     CommonSourceSetConvention("mingw", "all declared Mingw targets", "mingwX64", "mingwX86"),
     CommonSourceSetConvention("androidNative", "all declared Android Native targets", "androidNativeX64", "androidNativeArm64"),
 )

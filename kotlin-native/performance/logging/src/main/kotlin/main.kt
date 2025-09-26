@@ -28,9 +28,7 @@ fun main(args: Array<String>) {
     }
 
     BenchmarksRunner.runBenchmarks(args, { arguments: BenchmarkArguments ->
-        if (arguments is BaseBenchmarkArguments) {
-            launcher.launch(arguments.warmup, arguments.repeat, arguments.prefix,
-                    arguments.filter, arguments.filterRegex, arguments.verbose)
-        } else emptyList()
+        launcher.launch(arguments.warmup, arguments.repeat, arguments.prefix,
+                arguments.filter, arguments.filterRegex, arguments.verbose)
     }, benchmarksListAction = launcher::benchmarksListAction)
 }

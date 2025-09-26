@@ -18,6 +18,9 @@ fun KonanTarget.binaryFormat() = when (family) {
     Family.OSX -> BinaryFormat.MACH_O
     Family.ANDROID -> BinaryFormat.ELF
     Family.LINUX -> BinaryFormat.ELF
+    // region Tencent Code
+    Family.OHOS -> BinaryFormat.ELF
+    // endregion
     Family.MINGW -> BinaryFormat.PE_COFF
 }
 
@@ -41,7 +44,9 @@ fun KonanTarget.supportsCoreSymbolication(): Boolean =
                 KonanTarget.WATCHOS_X64, KonanTarget.WATCHOS_SIMULATOR_ARM64
         )
 
-fun KonanTarget.supportsGccUnwind(): Boolean = family == Family.ANDROID || family == Family.LINUX
+// region Tencent Code
+fun KonanTarget.supportsGccUnwind(): Boolean = family == Family.ANDROID || family == Family.LINUX || family == Family.OHOS
+// endregion
 // MINGW_X64 target does not support GCC unwind, since its sysroot contains libgcc version < 12 having misfeature, see KT-49240
 fun KonanTarget.supportsWinAPIUnwind(): Boolean = this is KonanTarget.MINGW_X64
 
@@ -92,6 +97,7 @@ fun KonanTarget.supportedSanitizers(): List<SanitizerKind> =
         is KonanTarget.LINUX_X64 -> listOf(SanitizerKind.ADDRESS, SanitizerKind.THREAD)
         is KonanTarget.MACOS_X64 -> listOf(SanitizerKind.THREAD)
         is KonanTarget.MACOS_ARM64 -> listOf(SanitizerKind.THREAD)
+        is KonanTarget.OHOS_ARM64 -> listOf(SanitizerKind.ADDRESS)
         // TODO: Enable ASAN on macOS. Currently there's an incompatibility between clang frontend version and clang_rt.asan version.
         // TODO: Consider supporting mingw.
         else -> listOf()

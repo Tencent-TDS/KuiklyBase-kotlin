@@ -146,6 +146,10 @@ private class KotlinHierarchyBuilderImpl(
 
     override fun withLinux() = withTargets { it is KotlinNativeTarget && it.konanTarget.family == Family.LINUX }
 
+    // region Tencent Code
+    override fun withOhos() = withTargets { it is KotlinNativeTarget && it.konanTarget.family == Family.OHOS }
+    // endregion
+
     override fun withAndroidNative() = withTargets { it is KotlinNativeTarget && it.konanTarget.family == Family.ANDROID }
 
     // Don't check for instance of [KotlinJsTargetDsl] or [KotlinWasmTargetDsl] because they are implemented by single target [KotlinJsIrTarget]
@@ -253,6 +257,12 @@ private class KotlinHierarchyBuilderImpl(
     override fun withLinuxArm64() = withTargets {
         it is KotlinNativeTarget && it.konanTarget == KonanTarget.LINUX_ARM64
     }
+
+    // region Tencent Code
+    override fun withOhosArm64() = withTargets {
+        it is KotlinNativeTarget && it.konanTarget == KonanTarget.OHOS_ARM64
+    }
+    // endregion
 
     override fun toString(): String {
         return "KotlinHierarchyBuilder($node)"

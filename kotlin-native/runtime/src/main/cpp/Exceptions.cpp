@@ -32,6 +32,45 @@
 #include "Utils.hpp"
 #include "ObjCExceptions.h"
 
+// region Tencent Code
+#ifdef KONAN_OHOS
+// TODO: When ohos dfx raises length limit on set_fatal_message, print the full kotlin stack trace instead
+// of just the addresses.
+
+#include "Natives.h"
+#include <dlfcn.h>
+
+extern "C" OBJ_GETTER(Kotlin_Throwable_getStackTrace, KRef throwable);
+extern "C" __attribute__((weak)) void set_fatal_message(const char* msg);
+
+void ReportBacktraceToOhosLog(KRef exception) {
+  if (set_fatal_message == nullptr) return;
+
+  ObjHolder stackTraceHolder;
+  ArrayHeader* stackTrace = Kotlin_Throwable_getStackTrace(exception, stackTraceHolder.slot())->array();
+  Dl_info info;
+  char fatalMessage[1024];
+  strcpy(fatalMessage, "\nUncaught Kotlin exception at following addresses:\n");
+  char* msgPtr = fatalMessage + strlen(fatalMessage);
+  size_t remainingSpace = sizeof(fatalMessage) - strlen(fatalMessage);
+
+  for (uint32_t index = 0; index < stackTrace->count_ && remainingSpace > 0; ++index) {
+      KNativePtr ptr = *PrimitiveArrayAddressOfElementAt<KNativePtr>(stackTrace, index);
+      if (dladdr(ptr, &info) != 0) {
+        uintptr_t offset = reinterpret_cast<uintptr_t>(ptr) - reinterpret_cast<uintptr_t>(info.dli_fbase) - 1;
+        int written = snprintf(msgPtr, remainingSpace, "0x%lx ", offset);
+        if (written > 0 && (size_t)written < remainingSpace) {
+          msgPtr += written;
+          remainingSpace -= written;
+        }
+      }
+    }
+  set_fatal_message(fatalMessage);
+}
+
+#endif
+// endregion
+
 // Defined in RuntimeUtils.kt
 extern "C" void Kotlin_runUnhandledExceptionHook(KRef exception);
 extern "C" void ReportUnhandledException(KRef exception);
@@ -81,6 +120,11 @@ void RUNTIME_NORETURN terminateWithUnhandledException(KRef exception) {
 #if KONAN_REPORT_BACKTRACE_TO_IOS_CRASH_LOG
         ReportBacktraceToIosCrashLog(exception);
 #endif
+// region Tencent Code
+#ifdef KONAN_OHOS
+        ReportBacktraceToOhosLog(exception);
+#endif
+// endregion
 
         // Best effort to make sure the reported exception gets actually printed:
         konan::consoleFlush();

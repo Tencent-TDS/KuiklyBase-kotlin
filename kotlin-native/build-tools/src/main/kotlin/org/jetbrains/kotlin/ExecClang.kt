@@ -106,18 +106,31 @@ abstract class ExecClang @Inject constructor(
     }
 
     fun execKonanClang(target: String, action: Action<in ExecSpec>): ExecResult {
-        return this.execClang(clangArgsForCppRuntime(target) + fixBrokenMacroExpansionInXcode15_3(target), action)
+        // region Tencent Code
+        val args = clangArgsForCppRuntime(target) + fixBrokenMacroExpansionInXcode15_3(target)
+        val konanTarget = platformManager.targetManager(target).target
+        return if (konanTarget.family == Family.OHOS) {
+            this.execToolchainClang(konanTarget, args, action)
+        } else {
+            this.execClang(args, action)
+        }
+        // endregion
     }
 
     // The toolchain ones execute clang from the toolchain.
 
-    fun execToolchainClang(target: KonanTarget, action: Action<in ExecSpec>): ExecResult {
+    // region Tencent Code
+    fun execToolchainClang(target: KonanTarget, defaultArgs: List<String>? = null, action: Action<in ExecSpec>): ExecResult {
         val extendedAction = Action<ExecSpec> {
             action.execute(this)
             executable = resolveToolchainExecutable(target, executable)
+            if (defaultArgs != null) {
+                args = args + defaultArgs
+            }
         }
         return execOperations.exec(extendedAction)
     }
+    // endregion
 
     private fun execClang(defaultArgs: List<String>, action: Action<in ExecSpec>): ExecResult {
         val extendedAction = Action<ExecSpec> {

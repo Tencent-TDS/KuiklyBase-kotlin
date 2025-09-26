@@ -1,0 +1,172 @@
+name: Test LLVM
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_version:
+        description: 'artifact version suffix (e.g., ohos-1, ohos-2)'
+        type: string
+      artifact_source:
+        description: 'How to get kn artifact. leave empty / online: online hosted artifact; latest_success: artifact from last successful run; current_run: artifact from this workflow run'
+        required: true
+        type: choice
+        options:
+          - latest_success
+          - online
+        default: latest_success
+  workflow_call:
+    inputs:
+      artifact_version:
+        required: true
+        type: string
+      artifact_source:
+        required: false
+        type: string
+        default: current_run
+  push:
+    paths:
+      - ".github/workflows/test-llvm.yaml"
+
+env:
+  artifact_version: ohos-2
+
+jobs:
+  compile:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos
+            arch: x64
+            runs-on: macos-13
+          - os: macos
+            arch: aarch64
+            runs-on: macos-15
+          - os: linux
+            arch: x64
+            runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
+    outputs:
+      artifact_version: ${{ steps.set_artifact_version.outputs.artifact_version }}
+    steps:
+      - name: Set artifact version
+        id: set_artifact_version
+        run: |
+          echo "Trigger type: ${{ github.event_name }}"
+          set -ex
+          echo ${{ inputs.artifact_version}}
+          echo ${{ env.artifact_version}}
+          artifact_version=${{ inputs.artifact_version && inputs.artifact_version || env.artifact_version }}
+          echo "artifact_version=$artifact_version" >> $GITHUB_ENV
+          echo "artifact_version=$artifact_version" >> $GITHUB_OUTPUT
+          echo "artifact_name=llvm-19.1.7-${{ matrix.arch }}-${{ matrix.os }}-$artifact_version" >> $GITHUB_ENV
+
+      - name: Download ${{ env.artifact_name }} artifact (from this run)
+        if: inputs.artifact_source == 'current_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: ./${{ env.artifact_name }}
+
+      - name: Download latest ${{ env.artifact_name }} artifact (from latest successful run)
+        if: inputs.artifact_source != 'current_run'
+        id: download_llvm_artifact
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: build-llvm.yaml
+          name: ${{ env.artifact_name }}
+          path: ./${{ env.artifact_name }}
+          workflow_conclusion: "success"
+          if_no_artifact_found: fail
+          allow_forks: false
+
+      - run: echo ${{ steps.download_llvm_artifact.outputs.artifacts }}
+
+      - name: Download sysroot
+        run: |
+          mv ${{ env.artifact_name }}/${{ env.artifact_name }}.tar.gz .
+          tar -xf ${{ env.artifact_name }}.tar.gz
+          wget -q https://kotlinnativeohos.online/download/sysroot-ohos-aarch64-5.0.11.110.tar.gz
+          tar -xf sysroot-ohos-aarch64-5.0.11.110.tar.gz
+
+      - name: Create test files
+        run: |
+          cat > hello.cpp << 'EOF'
+          #include <iostream>
+
+          int main() {
+              std::cout << "Hello, world cpp" << std::endl;
+              return 0;
+          }
+          EOF
+          cat hello.cpp
+
+          cat > hello.c << 'EOF'
+          #include <stdio.h>
+
+          int main() {
+              printf("Hello, world from c");
+              return 0;
+          }
+          EOF
+          cat hello.c
+
+      - name: Test LLVM compilation
+        run: |
+          LLVM_PATH=$(pwd)/${{ env.artifact_name }}
+          SYS_ROOT=$(pwd)/sysroot-ohos-aarch64-5.0.11.110
+
+          $LLVM_PATH/bin/clang --sysroot $SYS_ROOT -DEMBED_TEST_FONT_DATA=1 -DUSE_OPENSSL=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FORTIFY_SOURCE=2 -D_LIBCPP_DISABLE_AVAILABILITY=1 -D_LIBCPP_ENABLE_THREAD_SAFETY_ANNOTATIONS -D_DEBUG -DSK_GL -DSK_ENABLE_DUMP_GPU -DSK_SUPPORT_GPU=1 -DSK_CODEC_DECODES_JPEG -DSK_ENCODE_JPEG -DSK_CODEC_DECODES_PNG -DSK_ENCODE_PNG -DSK_CODEC_DECODES_WEBP -DSK_ENCODE_WEBP -DSK_HAS_WUFFS_LIBRARY -DSK_R32_SHIFT=16 -DTARGET_OS_OHOS -DSK_DISABLE_AAA -DSK_LEGACY_IGNORE_DRAW_VERTICES_BLEND_WITH_NO_SHADER -DSK_DISABLE_LEGACY_SHADERCONTEXT -DSK_DISABLE_LOWP_RASTER_PIPELINE -DSK_FORCE_RASTER_PIPELINE_BLITTER -DSK_METAL_WAIT_UNTIL_SCHEDULED -DSK_DISABLE_EFFECT_DESERIALIZATION -DSK_ENABLE_SKSL -DSK_ENABLE_PRECOMPILE -DSK_USE_PERFETTO -DSK_LEGACY_LAYER_BOUNDS_EXPANSION -I../.. -Igen -I$LLVM_PATH -I$LLVM_PATH/include/c++/v1 -fPIC -pipe -pthread --target=aarch64-linux-ohos -DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH -fcolor-diagnostics -Wall -Wextra -Wendif-labels -Werror -Wno-missing-field-initializers -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-deprecated-copy -Wno-psabi -Wno-unqualified-std-cast-call -Wno-non-c-typedef-for-linkage -Wno-range-loop-construct --sysroot=$SYS_ROOT -Wstring-conversion -Wnewline-eof -O0 -g2 -fvisibility-inlines-hidden -frtti -fvisibility=hidden -fno-exceptions -o helloc hello.c -v
+
+          $LLVM_PATH/bin/clang++ --target=aarch64-linux-ohos --gcc-toolchain=$LLVM_PATH --sysroot=$SYS_ROOT -DBOOST_CONTEXT_EXPORT=\"\" -DBOOST_CONTEXT_NO_LIB -DBOOST_CONTEXT_STATIC_LINK -DBOOST_LOCALE_NO_LIB -DBOOST_LOCALE_STATIC_LINK -DBOOST_STACKTRACE_NO_LIB -DBOOST_STACKTRACE_STATIC_LINK -DGOOGLE_GLOG_DLL_DECL=\"\" -DHERMES_ENABLE_DEBUGGER -DLOG_VERBOSITY_LEVEL=1 -DRAW_PROPS_ENABLED -DREACT_NATIVE__RENDER__GRAPHICS__FLOAT=double -DUNSET_FORMS_STACKING_CONTEXT -DUSE_HERMES=1 -DWITH_CUSTOM_SYSTRACE -DWITH_HITRACE_REACT_MARKER -Drnoh_app_EXPORTS -I$SYS_ROOT/usr/include -fstack-protector-strong -Wl,-z,relro,-z,now,-z,noexecstack -fPIE -pie -O0 -g -fno-limit-debug-info -std=gnu++20 -fPIC -DFOLLY_NO_CONFIG=1 -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_HAVE_RECVMMSG=1 -DFOLLY_HAVE_PTHREAD=1 -std=c++20 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation -faligned-new -flto -fwhole-program-vtables -mllvm --enable-partial-inlining -mllvm --tail-dup-placement -o hellocpp hello.cpp # -v
+
+      - name: Upload compiled binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-binary-${{ env.artifact_name }}
+          path: |
+            hellocpp
+            helloc
+          if-no-files-found: ignore
+
+  run:
+    needs: compile
+    strategy:
+      fail-fast: false
+      matrix:
+        arch_and_os:
+          - x64-macos
+          - aarch64-macos
+          - x64-linux
+
+    runs-on: [self-hosted, macOS, ARM64, deveco]
+    steps:
+      - name: Clean working dir
+        run: |
+          rm -rf ./*
+
+      - name: Download compiled binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-binary-llvm-19.1.7-${{ matrix.arch_and_os }}-${{ inputs.artifact_version || 'ohos-2' }}
+          path: ./
+
+      - run: ls
+
+      - name: Test helloc binary on OHOS device
+        run: |
+          hdc shell rm /data/helloc
+          hdc file send ./helloc /data/
+          hdc shell chmod u+x /data/helloc
+          output=$(hdc shell /data/helloc)
+          echo "Output: $output"
+          [[ "$output" == "Hello, world from c" ]] || exit 1
+
+      - name: Test hellocpp binary on OHOS device
+        run: |
+          hdc shell rm /data/hellocpp
+          hdc file send ./hellocpp /data/
+          hdc shell chmod u+x /data/hellocpp
+          output=$(hdc shell /data/hellocpp)
+          echo "Output: $output"
+          [[ "$output" == "Hello, world cpp" ]] || exit 1

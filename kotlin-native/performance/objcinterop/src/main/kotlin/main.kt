@@ -6,7 +6,6 @@
 
 import org.jetbrains.benchmarksLauncher.*
 import org.jetbrains.complexNumbers.*
-import kotlinx.cli.*
 
 class ObjCInteropLauncher: Launcher() {
     override val baseBenchmarksSet: MutableMap<String, AbstractBenchmarkEntry> = mutableMapOf(
@@ -30,9 +29,7 @@ class ObjCInteropLauncher: Launcher() {
 fun main(args: Array<String>) {
     val launcher = ObjCInteropLauncher()
     BenchmarksRunner.runBenchmarks(args, { arguments: BenchmarkArguments ->
-        if (arguments is BaseBenchmarkArguments) {
-            launcher.launch(arguments.warmup, arguments.repeat, arguments.prefix,
-                    arguments.filter, arguments.filterRegex, arguments.verbose)
-        } else emptyList()
+        launcher.launch(arguments.warmup, arguments.repeat, arguments.prefix,
+                arguments.filter, arguments.filterRegex, arguments.verbose)
     }, benchmarksListAction = launcher::benchmarksListAction)
 }

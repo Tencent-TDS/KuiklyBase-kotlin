@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.konan.target
 
 import org.jetbrains.kotlin.konan.properties.*
 import org.jetbrains.kotlin.konan.util.ProgressCallback
+import java.io.File
 
 class GccConfigurablesImpl(target: KonanTarget, properties: Properties, dependenciesRoot: String?, progressCallback: ProgressCallback) : GccConfigurables,
     KonanPropertiesLoader(target, properties, dependenciesRoot, progressCallback = progressCallback), ConfigurablesWithEmulator {
@@ -28,6 +29,15 @@ class GccConfigurablesImpl(target: KonanTarget, properties: Properties, dependen
 class AndroidConfigurablesImpl(target: KonanTarget, properties: Properties, dependenciesRoot: String?, progressCallback: ProgressCallback) : AndroidConfigurables,
     KonanPropertiesLoader(target, properties, dependenciesRoot, progressCallback = progressCallback)
 
+// region Tencent Code
+class OhosConfigurablesImpl(
+    target: KonanTarget,
+    properties: Properties,
+    dependenciesRoot: String?,
+    progressCallback: ProgressCallback,
+) : OhosConfigurables, KonanPropertiesLoader(target, properties, dependenciesRoot, progressCallback = progressCallback)
+// endregion
+
 fun loadConfigurables(
     target: KonanTarget,
     properties: Properties,
@@ -37,6 +47,10 @@ fun loadConfigurables(
     },
 ): Configurables = when (target.family) {
     Family.LINUX -> GccConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
+
+    // region Tencent Code
+    Family.OHOS -> OhosConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
+    // endregion
 
     Family.TVOS, Family.WATCHOS, Family.IOS, Family.OSX -> AppleConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
 

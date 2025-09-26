@@ -63,6 +63,15 @@ open class RunKotlinNativeTask @Inject constructor(private val linkTask: Task,
     @Internal
     val remoteHostFolder = project.findProperty("remoteHostFolder")?.toString()
 
+    // region Tencent Code
+    @Internal
+    val useHdc = project.findProperty("crossTarget")?.toString()?.contains("ohos") ?: false
+    @Internal
+    val execName = this.executable.split("/").last()
+    // HACK: kexe needs c++_shared to run on ohos. The location service comes bundled with the so, so this .so always exists
+    @Internal
+    val ohosPreload = "LD_PRELOAD=/data/app/el1/bundle/public/com.huawei.hmos.location/libs/arm64/libc++_shared.so"
+    // endregion
     private fun execBenchmarkOnce(benchmark: String, warmupCount: Int, repeatCount: Int) : String {
         val output = ByteArrayOutputStream()
         val useCset = project.findProperty("useCset")?.toString()?.toBoolean() ?: false
@@ -78,6 +87,12 @@ open class RunKotlinNativeTask @Inject constructor(private val linkTask: Task,
                     val remoteExecutable = this@RunKotlinNativeTask.executable.split("/").last()
                     args (remoteHost, "$remoteHostFolder/$remoteExecutable")
                 }
+                // region Tencent Code
+                useHdc -> {
+                    executable = "hdc"
+                    args("shell", ohosPreload, "/data/local/tmp/$execName")
+                }
+                // endregion
                 else -> executable = this@RunKotlinNativeTask.executable
             }
 
@@ -92,7 +107,9 @@ open class RunKotlinNativeTask @Inject constructor(private val linkTask: Task,
             args("-r", repeatCount.toString())
             standardOutput = output
         }
-        return output.toString().substringAfter("[").removeSuffix("]")
+        // region Tencent Code
+        return output.toString().substringAfterLast("[").removeSuffix("]")
+        // endregion
     }
 
     private fun execBenchmarkRepeatedly(benchmark: String, warmupCount: Int, repeatCount: Int) : List<String> {
@@ -126,11 +143,35 @@ open class RunKotlinNativeTask @Inject constructor(private val linkTask: Task,
                 args(this@RunKotlinNativeTask.executable, "$it:$remoteHostFolder")
             }
         }
+
+        // region Tencent Code
+        if (useHdc) {
+            // remove existing exe in case there's permission issue etc.
+            project.exec {
+                executable = "hdc"
+                args("shell", "rm", "/data/local/tmp/$execName")
+            }
+            project.exec {
+                executable = "hdc"
+                args("file", "send", this@RunKotlinNativeTask.executable.toString(), "/data/local/tmp/")
+            }
+            project.exec {
+                executable = "hdc"
+                args("shell", "chmod", "777", "/data/local/tmp/$execName")
+            }
+        }
+        // endregion
+
         project.exec {
             if (remoteHost != null) {
                 executable = "ssh"
                 val remoteExecutable = this@RunKotlinNativeTask.executable.split("/").last()
                 args (remoteHost, "$remoteHostFolder/$remoteExecutable")
+            // region Tencent Code
+            } else if (useHdc) {
+                executable = "hdc"
+                args("shell", ohosPreload, "/data/local/tmp/$execName")
+            // endregion
             } else {
                 executable = this@RunKotlinNativeTask.executable
             }
@@ -141,14 +182,15 @@ open class RunKotlinNativeTask @Inject constructor(private val linkTask: Task,
             }
             standardOutput = output
         }
-        val benchmarks = output.toString().lines()
         val filterArgs = filter.splitCommaSeparatedOption("-f")
         val filterRegexArgs = filterRegex.splitCommaSeparatedOption("-fr")
         val regexes = filterRegexArgs.map { it.toRegex() }
+        // region Tencent Code
+        val benchmarks = output.toString().lines().filter { it.isNotEmpty() }.filter { !it.contains("[logging]")}
         val benchmarksToRun = if (filterArgs.isNotEmpty() || regexes.isNotEmpty()) {
-            benchmarks.filter { benchmark -> benchmark in filterArgs || regexes.any { it.matches(benchmark) } }.filter { it.isNotEmpty() }
-        } else benchmarks.filter { !it.isEmpty() }
-
+            benchmarks.filter { benchmark -> benchmark in filterArgs || regexes.any { it.matches(benchmark) } }
+        } else benchmarks
+        // endregion
         val results = benchmarksToRun.flatMap { benchmark ->
             when (repeatingType) {
                 BenchmarkRepeatingType.INTERNAL -> listOf(execBenchmarkOnce(benchmark, warmupCount, repeatCount))

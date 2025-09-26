@@ -57,6 +57,9 @@ open class HostManager() {
         ANDROID_X64,
         ANDROID_ARM32,
         ANDROID_ARM64,
+        // region Tencent Code
+        OHOS_ARM64,
+        // endregion
     )
 
     private val appleTargets = setOf(

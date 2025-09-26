@@ -167,9 +167,6 @@ abstract class BenchmarkingPlugin: Plugin<Project> {
                 compileTaskProvider.configure {
                     compilerOptions.freeCompilerArgs.addAll(benchmark.compilerOpts + project.compilerArgs)
                 }
-                dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
-                }
             }
             configureNativeOutput(this@configureNativeTarget)
         }

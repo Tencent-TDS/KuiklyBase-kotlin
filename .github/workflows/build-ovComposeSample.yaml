@@ -1,0 +1,174 @@
+name: Build ovComposeSample
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_source:
+        description: "How to get kn artifact. leave empty / online: online hosted artifact, latest_success: artifact from last successful run, current_run: artifact from this workflow run"
+        required: true
+        type: choice
+        options:
+          - latest_success
+          - online
+        default: latest_success
+      kn_version:
+        description: "Kotlin version to use"
+        required: false
+        type: string
+
+  workflow_call:
+    inputs:
+      artifact_source:
+        description: "pass in current_run to use artifact from this workflow run only"
+        required: false
+        type: string
+        default: current_run
+      kn_version:
+        required: false
+        type: string
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-13, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Clean working dir
+        # in case running on self hosted runner
+        run: |
+          echo ${{ github.event_name }}
+          rm -rf ovCompose-sample
+          rm -rf cache
+
+      - name: Download freshest kn artifact
+        if: ${{ inputs.artifact_source == 'latest_success' }}
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: build-kn.yaml
+          name: kn-merged-${{ inputs.kn_version }}
+          path: ./repo
+          workflow_conclusion: ""
+          if_no_artifact_found: fail
+
+      - name: Download kn artifact from current run
+        if: ${{ inputs.artifact_source == 'current_run' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: kn-merged-${{ inputs.kn_version }}
+          path: ./repo
+
+      - name: Clone ovCompose-sample
+        run: |
+          git clone https://gitcode.com/RushC4/ovCompose-sample.git ovCompose-sample
+          cd ovCompose-sample
+          git log -1
+
+      - name: Switch to local maven repository
+        if: ${{ inputs.artifact_source != '' && inputs.artifact_source != 'online' }}
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            sed -i '' "s#maven(\"https://kotlinnativeohos.online/maven\")#maven { url = file(\"../repo\").toURI() }#g" ovCompose-sample/settings.gradle.kts
+          else
+            sed -i "s#maven(\"https://kotlinnativeohos.online/maven\")#maven { url = file(\"../repo\").toURI() }#g" ovCompose-sample/settings.gradle.kts
+          fi
+
+          cat ovCompose-sample/settings.gradle.kts
+
+      - name: Set Kotlin version
+        if: ${{ inputs.kn_version }}
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            sed -i '' "s|kotlin = .*|kotlin = \"${{ inputs.kn_version }}\"|g" ovCompose-sample/gradle/libs.versions.toml
+          else
+            sed -i "s|kotlin = .*|kotlin = \"${{ inputs.kn_version }}\"|g" ovCompose-sample/gradle/libs.versions.toml
+          fi
+          cat ovCompose-sample/gradle/libs.versions.toml
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build debug
+        run: |
+          mkdir -p ./cache/konan ./cache/gradle
+          export KONAN_DATA_DIR=$(cd ./cache/konan && pwd -P)
+          export GRADLE_USER_HOME=$(cd ./cache/gradle && pwd -P)
+
+          cd ovCompose-sample
+          ./gradlew clean publishDebugBinariesToHarmonyApp
+
+      - name: Upload debug artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ovComposeSample-harmony_project-${{ runner.os }}-${{ runner.arch }}-debug
+          path: ovCompose-sample/harmonyApp/
+
+      - name: Build release
+        run: |
+          export KONAN_DATA_DIR=$(cd ./cache/konan && pwd -P)
+          export GRADLE_USER_HOME=$(cd ./cache/gradle && pwd -P)
+
+          cd ovCompose-sample
+          ./gradlew clean publishReleaseBinariesToHarmonyApp
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ovComposeSample-harmony_project-${{ runner.os }}-${{ runner.arch }}-release
+          path: ovCompose-sample/harmonyApp/
+
+  build-test-harmony:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macOS-ARM64, macOS-X64, Windows-X64, Linux-X64]
+        build-mode: [debug, release]
+    runs-on: [self-hosted, macOS, ARM64, deveco]
+    steps:
+      - name: Clean working dir
+        run: |
+          rm -rf *
+          ls -lah
+
+      - name: Download ovComposeSample harmony project
+        uses: actions/download-artifact@v4
+        with:
+          name: ovComposeSample-harmony_project-${{ matrix.os }}-${{ matrix.build-mode }}
+          path: .
+
+      - name: Add signing configs
+        run: |
+          sed -i '' 's|"signingConfigs": \[\],|${{ secrets.OVCOMPOSE_SAMPLE_SIGNING_CONFIG }}|g' build-profile.json5
+
+      - name: Build ovComposeSample
+        run: |
+          ls
+
+          ohpm i
+
+          hvigorw --sync -p product=default --analyze=false --parallel --incremental --no-daemon
+
+          hvigorw --mode module -p module=entry@default -p isOhosTest=true -p product=default -p buildMode=${{ matrix.build-mode }} assembleHap --analyze=false --parallel --incremental --no-daemon
+          hvigorw --mode module -p module=entry@ohosTest -p isOhosTest=true -p buildMode=test assembleHap --analyze=false --parallel --incremental --no-daemon
+
+      - name: Install and test
+        run: |
+          hdc uninstall com.tencent.compose
+          hdc install entry/build/default/outputs/default/entry-default-signed.hap
+          hdc install entry/build/default/outputs/ohosTest/entry-ohosTest-signed.hap
+          hdc shell aa test -b com.tencent.compose -m entry_test -s unittest OpenHarmonyTestRunner -s class tester -s timeout 10000
+
+          cp entry/build/default/outputs/default/entry-default-signed.hap ./ovComposeSample-${{ matrix.os }}-${{ matrix.build-mode }}.hap
+
+      - name: Upload hap
+        uses: actions/upload-artifact@v4
+        with:
+          name: ovComposeSample-${{ matrix.os }}-${{ matrix.build-mode }}-hap
+          path: ./ovComposeSample-${{ matrix.os }}-${{ matrix.build-mode }}.hap

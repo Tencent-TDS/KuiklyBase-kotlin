@@ -331,6 +331,18 @@ class ThreadSanitizerPipeline(config: LlvmPipelineConfig, logger: LoggingContext
     }
 }
 
+class AddressSanitizerPipeline(config: LlvmPipelineConfig, logger: LoggingContext? = null) :
+        LlvmOptimizationPipeline(config, logger) {
+    override val pipelineName = "New PM address sanitizer"
+    override val passes = listOf("asan")
+
+    override fun executeCustomPreprocessing(config: LlvmPipelineConfig, module: LLVMModuleRef) {
+        getFunctions(module)
+                .filter { LLVMIsDeclaration(it) == 0 }
+                .forEach { addLlvmFunctionEnumAttribute(it, LlvmFunctionAttribute.SanitizeAddress) }
+    }
+}
+
 internal fun RelocationModeFlags.currentRelocationMode(context: PhaseContext): RelocationModeFlags.Mode =
         when (determineLinkerOutput(context)) {
             LinkerOutputKind.DYNAMIC_LIBRARY -> dynamicLibraryRelocationMode

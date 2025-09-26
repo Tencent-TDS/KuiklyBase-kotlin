@@ -176,6 +176,82 @@ class AndroidLinker(targetProperties: AndroidConfigurables)
     }
 }
 
+// region Tencent Code
+class OhosLinker(targetProperties: OhosConfigurables) : LinkerFlags(targetProperties), OhosConfigurables by targetProperties {
+
+    private val specificLibs = abiSpecificLibraries.map { "-L${absoluteTargetSysRoot}/$it" }
+    private val ar = if (HostManager.hostIsLinux) {
+        "$absoluteTargetToolchain/bin/ar"
+    } else {
+        "$absoluteTargetToolchain/bin/llvm-ar"
+    }
+
+    override val useCompilerDriverAsLinker: Boolean get() = true
+
+    override fun filterStaticLibraries(binaries: List<String>) = binaries.filter { it.isUnixStaticLib }
+
+    override fun LinkerArguments.finalLinkCommands(): List<Command> {
+        if (sanitizer != null && sanitizer !in listOf(SanitizerKind.ADDRESS)) {
+            require(false) {
+                "Only ADDRESS sanitizer is supported on OHOS, got: $sanitizer"
+            }
+        }
+
+        if (kind == LinkerOutputKind.STATIC_LIBRARY)
+            return staticGnuArCommands(ar, executable, objectFiles, libraries)
+
+        val dynamic = kind == LinkerOutputKind.DYNAMIC_LIBRARY
+        val targetToolchain = absoluteTargetToolchain
+        val crtPrefix = "$absoluteTargetSysRoot/$crtFilesLocation"
+        // TODO: support other ohos.arch
+        val targetLib = "$targetToolchain/lib/clang/19/lib/aarch64-linux-ohos"
+        // TODO: Can we extract more to the konan.configurables?
+        return listOf(Command(absoluteLinker).apply {
+            +"--sysroot=${absoluteTargetSysRoot}"
+            +"-export-dynamic"
+            +"-z"
+            +"relro"
+            +"--build-id"
+            +"--eh-frame-hdr"
+            +"-dynamic-linker"
+            +dynamicLinker
+            linkerHostSpecificFlags.forEach { +it }
+            +"-o"
+            +executable
+            +"$crtPrefix/Scrt1.o"
+            +"$crtPrefix/crti.o"
+            +"$crtPrefix/crtn.o"
+            +"--hash-style=gnu"
+            +"-L${targetToolchain}/lib/aarch64-linux-ohos"
+            +"-L${targetToolchain}/lib/aarch64-linux-ohos/c++"
+            +specificLibs
+            if (optimize) +linkerOptimizationFlags
+            if (!debug) +linkerNoDebugFlags
+            if (dynamic) +linkerDynamicFlags
+            if (dynamic) +"--soname=${File(executable).name}"
+            +objectFiles
+            +libraries
+            +linkerArgs
+            +linkerKonanFlags
+            when (sanitizer) {
+                null -> {}
+                SanitizerKind.ADDRESS -> {
+                    +"$targetLib/libclang_rt.asan.so"
+                    +"$targetLib/libclang_rt.asan-preinit.a"
+                    +"$targetLib/libclang_rt.builtins.a"
+                    +"$targetLib/clang_rt.crtend.o"
+                }
+                SanitizerKind.THREAD -> {
+                    require(false) {
+                        "Thread sanitizer is unsupported on OHOS yet."
+                    }
+                }
+            }
+        })
+    }
+}
+// endregion
+
 class MacOSBasedLinker(targetProperties: AppleConfigurables)
     : LinkerFlags(targetProperties), AppleConfigurables by targetProperties {
 
@@ -505,6 +581,9 @@ fun linker(configurables: Configurables): LinkerFlags =
             is GccConfigurables -> GccBasedLinker(configurables)
             is AppleConfigurables -> MacOSBasedLinker(configurables)
             is AndroidConfigurables-> AndroidLinker(configurables)
+            // region Tencent Code
+            is OhosConfigurables -> OhosLinker(configurables)
+            // endregion
             is MingwConfigurables -> MingwLinker(configurables)
             else -> error("Unexpected target: ${configurables.target}")
         }

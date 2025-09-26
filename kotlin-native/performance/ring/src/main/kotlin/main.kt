@@ -18,7 +18,6 @@
 import org.jetbrains.ring.*
 import octoTest
 import org.jetbrains.benchmarksLauncher.*
-import kotlinx.cli.*
 
 class RingLauncher : Launcher() {
     override val baseBenchmarksSet =
@@ -267,9 +266,7 @@ class RingLauncher : Launcher() {
 fun main(args: Array<String>) {
     val launcher = RingLauncher()
     BenchmarksRunner.runBenchmarks(args, { arguments: BenchmarkArguments ->
-        if (arguments is BaseBenchmarkArguments) {
-            launcher.launch(arguments.warmup, arguments.repeat, arguments.prefix,
-                    arguments.filter, arguments.filterRegex, arguments.verbose)
-        } else emptyList()
+        launcher.launch(arguments.warmup, arguments.repeat, arguments.prefix,
+                arguments.filter, arguments.filterRegex, arguments.verbose)
     }, benchmarksListAction = launcher::benchmarksListAction)
 }

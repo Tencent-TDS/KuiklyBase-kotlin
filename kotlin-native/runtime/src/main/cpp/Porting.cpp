@@ -18,6 +18,12 @@
 #ifdef KONAN_ANDROID
 #include <android/log.h>
 #endif
+// region Tencent Code
+#ifdef KONAN_OHOS
+#include <hilog/log.h>
+#include <hitrace/trace.h>
+#endif
+// endregion
 #include <cstdio>
 #include <cstdlib>
 #include <stdarg.h>
@@ -62,6 +68,10 @@ void consoleWriteUtf8(const char* utf8, uint32_t sizeBytes) {
   } else {
     ::write(STDOUT_FILENO, utf8, sizeBytes);
   }
+// region Tencent Code
+#elif KONAN_OHOS
+  OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
+// endregion
 #else
   ::write(STDOUT_FILENO, utf8, sizeBytes);
 #endif
@@ -75,6 +85,10 @@ void consoleErrorUtf8(const char* utf8, uint32_t sizeBytes) {
   } else {
     ::write(STDERR_FILENO, utf8, sizeBytes);
   }
+// region Tencent Code
+#elif KONAN_OHOS
+  OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
+// endregion
 #else
   ::write(STDERR_FILENO, utf8, sizeBytes);
 #endif
@@ -196,11 +210,15 @@ NO_EXTERNAL_CALLS_CHECK bool isOnThreadExitNotSetOrAlreadyStarted() {
     return terminationKey != 0 && pthread_getspecific(terminationKey) == nullptr;
 }
 
-#if KONAN_LINUX
+// region Tencent Code
+#if KONAN_LINUX || KONAN_OHOS
+// endregion
 static pthread_key_t dummyKey;
 #endif
 static void onThreadExitInit() {
-#if KONAN_LINUX
+// region Tencent Code
+#if KONAN_LINUX || KONAN_OHOS
+// endregion
   // Due to glibc bug we have to create first key as dummy, to avoid
   // conflicts with potentially uninitialized dlfcn error key.
   // https://code.woboq.org/userspace/glibc/dlfcn/dlerror.c.html#237
@@ -223,7 +241,9 @@ void onThreadExit(void (*destructor)(void*), void* destructorParameter) {
   pthread_setspecific(terminationKey, destructorRecord);
 }
 
-#if KONAN_LINUX
+// region Tencent Code
+#if KONAN_LINUX || KONAN_OHOS
+// endregion
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
@@ -247,6 +267,10 @@ NO_EXTERNAL_CALLS_CHECK uintptr_t currentThreadId() {
     return tid;
 #elif KONAN_ANDROID
     return gettid();
+// region Tencent Code
+#elif KONAN_OHOS
+    return gettid();
+// endregion
 #elif KONAN_LINUX
     return gettid();
 #elif KONAN_WINDOWS
@@ -281,5 +305,21 @@ uint64_t getSystemTimeNanos() {
 bool isLittleEndian() {
   return __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
 }
+
+// region Tencent Code
+// 标记一个同步任务的开始, 需成对使用 finishTrace
+void startTrace(const char* sectionName) {
+#ifdef KONAN_OHOS
+    OH_HiTrace_StartTrace(sectionName);
+#endif
+}
+
+// 标记一个同步任务的结束, 需成对使用 startTrace
+void finishTrace() {
+#ifdef KONAN_OHOS
+    OH_HiTrace_FinishTrace();
+#endif
+}
+// endregion
 
 }  // namespace konan

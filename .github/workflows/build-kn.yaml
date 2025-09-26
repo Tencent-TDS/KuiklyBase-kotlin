@@ -1,0 +1,167 @@
+name: Build Kotlin
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Kotlin version to build"
+        required: true
+        default: "2.2.0-ohos-03"
+        type: string
+      nuke-cache:
+        description: "Clean all caches we can think of"
+        required: false
+        default: false
+        type: boolean
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: [self-hosted, macOS, X64, kn-builder]
+          - runs-on: [self-hosted, macOS, ARM64, kn-builder]
+          - runs-on: [self-hosted, Linux, X64, kn-builder]
+            container: ubuntu:24.04
+          - runs-on: [self-hosted, Windows, X64, kn-builder]
+    runs-on: ${{ matrix.runs-on }}
+    container: ${{ matrix.container }}
+    steps:
+      - name: Check xcode
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          xcodebuild -version
+
+          # Extract Xcode version and check if it's at least 16.0
+          XCODE_VERSION=$(xcodebuild -version | head -n1 | sed 's/Xcode //')
+          REQUIRED_VERSION="16.0"
+
+          if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$XCODE_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+            echo "Error: Xcode version $XCODE_VERSION is less than required version $REQUIRED_VERSION"
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        id: setup-java-8
+        with:
+          distribution: "zulu"
+          java-version: "8"
+
+      - uses: actions/setup-java@v4
+        id: setup-java-21
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup env (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          apt update
+          apt install git -y
+
+      - name: Env info (macOS)
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          set -ex
+          uname -a
+          java --version
+          echo $JAVA_HOME
+          git --version
+          # /usr/libexec/java_home -v 1.8
+          # /usr/libexec/java_home -V
+
+      - name: Env info (non-mac)
+        if: ${{ runner.os != 'macOS' }}
+        run: |
+          set -ex
+          uname -a
+          java --version
+          echo $JAVA_HOME
+          git --version
+
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Nuke cache
+        if: ${{ inputs.nuke-cache }}
+        run: |
+          echo "Cleaning all caches..."
+          rm -rf ../cache/
+          git clean -dfx
+
+      - name: Clean build output
+        run: |
+          # spare ./build/cache which contains gradle and konan cache
+          if [ -d ./build/cache ]; then
+            mv ./build/cache ./build_cache_tmp
+          fi
+          rm -rf ./build/*
+          mkdir -p ./build
+          if [ -d ./build_cache_tmp ]; then
+            mv ./build_cache_tmp ./build/cache
+          fi
+
+      - name: Publish Kotlin Native
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 600
+          max_attempts: 8
+          shell: bash
+          command: |
+
+            export DEPLOY_VERSION=${{ inputs.version }}
+            if [ ${{ runner.os }} == "Windows" ]; then
+              export JDK_18=$(cygpath -u "${{ steps.setup-java-8.outputs.path }}")
+            else
+              export JDK_18=${{ steps.setup-java-8.outputs.path }}
+            fi
+            export KONAN_DATA_DIR=$(realpath ..)/cache/konan
+            export GRADLE_USER_HOME=$(realpath ..)/cache/gradle
+
+            bash ./scripts/build-ohos.sh
+
+      - name: Upload local repo
+        uses: actions/upload-artifact@v4
+        with:
+          name: kn-build-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}
+          path: build/repo
+  merge_artifacts:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare directories
+        run: |
+          mkdir -p merged_repo
+
+      - name: Download all platform artifacts (one runner)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: kn-build-*-*-${{ inputs.version }}
+          path: merged_repo
+          # Merge all matched artifacts directly into the same folder
+          merge-multiple: true
+
+      - name: List merged contents
+        run: |
+          find . -name 'kotlin-native-prebuilt-*.tar.gz'
+          find . -name 'kotlin-native-prebuilt-*.zip'
+
+      - name: Upload merged repo
+        uses: actions/upload-artifact@v4
+        with:
+          name: kn-merged-${{ inputs.version }}
+          path: merged_repo
+
+
+  test-ovcompose:
+    needs: merge_artifacts
+    uses: ./.github/workflows/build-ovComposeSample.yaml
+    with:
+      kn_version: ${{ inputs.version }}

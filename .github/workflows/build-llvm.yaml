@@ -1,0 +1,221 @@
+name: Build OH LLVM 19
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-llvm.yaml
+  workflow_dispatch:
+    inputs:
+      artifact_version:
+        description: 'artifact version suffix (e.g., ohos-1, ohos-2)'
+        required: false
+        type: string
+env:
+  artifact_version: ohos-2
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on:
+          - macos-13
+          - macos-14
+          - [self-hosted, Linux, X64]
+    runs-on: ${{ matrix.runs-on }}
+    container: ${{ contains(matrix.runs-on, 'Linux') && 'ubuntu:22.04' || '' }}
+    outputs:
+      artifact_version: ${{ steps.set-version.outputs.artifact_version }}
+    steps:
+      - name: Set artifact version
+        id: set-version
+        run: |
+          artifact_version=${{ inputs.artifact_version || env.artifact_version }}
+          echo "artifact_version=$artifact_version" >> $GITHUB_ENV
+          echo "artifact_version=$artifact_version" >> $GITHUB_OUTPUT
+          echo $artifact_version
+
+      - name: Set up Xcode
+        if: runner.os == 'macOS'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 15.0.1
+
+      - name: Install dependencies (mac)
+        if: runner.os == 'macOS'
+        run: |
+          brew install swig coreutils # git-lfs java wget
+
+      - name: Install dependencies (linux)
+        if: runner.os == 'linux'
+        run: |
+          apt update
+          apt install -y build-essential swig python3-dev libedit-dev libncurses5-dev binutils-dev gcc-multilib abigail-tools elfutils pkg-config autoconf autoconf-archive rsync git git-lfs python3-pip curl wget
+          [ -e /usr/bin/python ] || ln -s /usr/bin/python3 /usr/bin/python
+
+      - name: Check env
+        run: |
+          set -ex
+
+          uname -a
+          if [ "$(uname)" = "Darwin" ]; then
+            xcodebuild -version
+          fi
+          python --version
+          python3 --version
+          
+          echo "ARCH_NAME=${{ runner.arch == 'X64' && 'x64' || 'aarch64' }}" >> $GITHUB_ENV
+
+      - name: git setup
+        run: |
+          git config --global --add safe.directory '*'
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+
+      - name: Cache
+        uses: actions/cache@v4
+        # downloading cache from github is very slow for self hosted runner and self hosted runner's working directory isn't cleared after each run
+        # so we skip cache for the self hosted linux runner
+        if: runner.os != 'Linux'
+        with:
+          path: |
+            .
+            !download_packages
+            !packages
+            !prebuilt
+          key: llvm-19-${{ runner.os }}-${{ runner.arch }}-2
+          restore-keys: |
+            llvm-19-${{ runner.os }}-${{ runner.arch }}-1
+        
+      - name: Download gitee repo tool
+        if: ${{ ! hashFiles('./repo') }}
+        run: |
+          # this download is flaky because of network issue. cache it to avoid downloding it everytime
+          curl https://gitee.com/oschina/repo/raw/fork_flow/repo-py3 > ./repo
+          chmod u+x ./repo
+
+      - name: Pull latest llvm 19 code
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 1440
+          max_attempts: 3
+          command: |
+            pip install requests
+
+            ./repo init -u https://gitee.com/OpenHarmony/manifest.git -b master -m llvm-19.1.7-toolchain.xml
+            ./repo sync -c
+            ./repo forall -c 'git lfs pull'
+
+      - name: Prepare dependencies
+        run: |
+          bash ./toolchain/llvm-project/llvm-build/env_prepare.sh
+
+      - name: Build
+        run: |
+          python3 ./toolchain/llvm-project/llvm-build/build.py --no-build-riscv64 --no-build-mipsel --no-build-loongarch64 --no-build-arm --no-build windows
+          du -sh out
+
+      - name: Upload packages folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: llvm-19-${{ runner.os }}-${{ env.ARCH_NAME }}-packages
+          path: packages
+
+      - name: Prepare linux artifact
+        if: runner.os == 'Linux'
+        id: prepare-linux-artifact
+        run: |
+          cd packages
+          rm -rf llvm
+          tar -xf llvm-linux-x86_64.tar.gz
+          ARTIFACT_NAME=llvm-19.1.7-${{ env.ARCH_NAME }}-linux-${{ env.artifact_version }}
+          chmod a+x llvm
+          mv llvm $ARTIFACT_NAME
+          tar -czf $ARTIFACT_NAME.tar.gz $ARTIFACT_NAME
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+
+      - name: Upload linux artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepare-linux-artifact.outputs.artifact_name }}
+          path: ./packages/${{ steps.prepare-linux-artifact.outputs.artifact_name }}.tar.gz
+      - name: Clean up
+        if: always()
+        run: |
+          set -ex
+          if [ -d packages ]; then
+            rm -rf packages
+          fi
+
+  post-process:
+    needs: build
+    strategy:
+      matrix:
+        arch: [x64, aarch64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download macOS ${{ matrix.arch }} artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: llvm-19-macOS-${{ matrix.arch }}-packages
+          path: ./macos-packages
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: llvm-19-Linux-x64-packages
+          path: ./linux-packages
+
+      - name: Merge artifacts
+        id: merge-artifacts
+        run: |
+          set -ex
+
+          ls
+          ls ./macos-packages
+          ls ./linux-packages
+
+          cd linux-packages
+          tar -xf llvm-linux-x86_64.tar.gz
+          cd -
+
+          cd ./macos-packages
+          tar -xf llvm-darwin-${{ matrix.arch == 'x64' && 'x86_64' || 'arm64' }}.tar.gz
+          cd -
+
+          clang_linux_x86_64="./linux-packages/llvm"
+          clang_darwin="./macos-packages/llvm"
+
+          mkdir -p "${clang_darwin}/include" # ensure this folder exists, or else copy behavior is inconsistent
+          if [ ! -e ${clang_darwin}/bin/aarch64-unknown-linux-ohos-clang++ ]; then cp -f ${clang_linux_x86_64}/bin/aarch64-unknown-linux-ohos-clang++ ${clang_darwin}/bin/aarch64-unknown-linux-ohos-clang++; fi
+
+          cp -Lrf ${clang_linux_x86_64}/lib/aarch64-linux-ohos ${clang_darwin}/lib
+          cp -Lrf ${clang_linux_x86_64}/include/libcxx-ohos ${clang_darwin}/include
+          cp -Lrf ${clang_linux_x86_64}/lib/x86_64-linux-ohos ${clang_darwin}/lib
+          cp -Lrf ${clang_linux_x86_64}/lib/clang/19/bin ${clang_darwin}/lib/clang/19
+          cp -Lrf ${clang_linux_x86_64}/lib/clang/19/include/profile ${clang_darwin}/lib/clang/19/include
+          cp -Lrf ${clang_linux_x86_64}/lib/clang/19/include/fuzzer ${clang_darwin}/lib/clang/19/include
+          cp -Lrf ${clang_linux_x86_64}/lib/clang/19/share ${clang_darwin}/lib/clang/19
+          cp -Lrf ${clang_linux_x86_64}/lib/clang/19/include/sanitizer ${clang_darwin}/lib/clang/19/include
+          cp -Lrf ${clang_linux_x86_64}/lib/clang/19/lib ${clang_darwin}/lib/clang/19
+
+          cd ./macos-packages
+          artifact_name="llvm-19.1.7-${{ matrix.arch }}-macos-${{ env.artifact_version }}"
+          chmod a+x llvm
+          mv llvm "$artifact_name"
+          tar -czf ${artifact_name}.tar.gz ${artifact_name}
+          file ${artifact_name}.tar.gz
+          echo "artifact_name=${artifact_name}" >> $GITHUB_OUTPUT
+
+      - name: Upload processed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.merge-artifacts.outputs.artifact_name }}
+          path: ./macos-packages/${{ steps.merge-artifacts.outputs.artifact_name }}.tar.gz
+
+  test:
+    needs: [post-process, build]
+    uses: ./.github/workflows/test-llvm.yaml
+    with:
+      artifact_version: ${{ needs.build.outputs.artifact_version }}
