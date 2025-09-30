@@ -176,7 +176,12 @@ internal fun <C : PhaseContext> PhaseEngine<C>.runBitcodeBackend(context: Bitcod
         val bitcodeFile = tempFiles.create(context.config.shortModuleName ?: "out", ".bc").javaFile()
         val outputPath = context.config.outputPath
         val outputFiles = OutputFiles(outputPath, context.config.target, context.config.produce)
-        bitcodeEngine.runBitcodePostProcessing()
+        val splitBCfileEnabled = context.config.splitBCfile
+        if (splitBCfileEnabled) {
+            bitcodeEngine.runBitcodePostProcessingCoroutines(bitcodeFile)
+        } else {
+            bitcodeEngine.runBitcodePostProcessing()
+        }
         runPhase(WriteBitcodeFilePhase, WriteBitcodeFileInput(context.llvm.module, bitcodeFile))
         val moduleCompilationOutput = ModuleCompilationOutput(bitcodeFile, dependencies)
         compileAndLink(moduleCompilationOutput, outputFiles.mainFileName, outputFiles, tempFiles)
@@ -274,14 +279,28 @@ internal fun PhaseEngine<NativeGenerationState>.compileModule(module: IrModuleFr
     if (checkExternalCalls) {
         runPhase(CheckExternalCallsPhase)
     }
-    newEngine(context as BitcodePostProcessingContext) { it.runBitcodePostProcessing() }
+    val startTime = System.currentTimeMillis()
+    println("=== Starting BitcodePostProcessing ===")
+    val splitBCfileEnabled = context.config.splitBCfile
+    if (splitBCfileEnabled) {
+        newEngine(context as BitcodePostProcessingContext) { it.runBitcodePostProcessingCoroutines(bitcodeFile) }
+    } else {
+        newEngine(context as BitcodePostProcessingContext) { it.runBitcodePostProcessing() }
+    }
+    val endTime = System.currentTimeMillis()
+    val duration = endTime - startTime
+    println("=== BitcodePostProcessing completed in ${duration}ms (${duration/1000.0}s) ===")
     if (checkExternalCalls) {
         runPhase(RewriteExternalCallsCheckerGlobals)
     }
     if (context.config.produce.isFullCache) {
         runPhase(SaveAdditionalCacheInfoPhase)
     }
-    runPhase(WriteBitcodeFilePhase, WriteBitcodeFileInput(context.llvm.module, bitcodeFile))
+    if (!splitBCfileEnabled) {
+        runPhase(WriteBitcodeFilePhase, WriteBitcodeFileInput(context.llvm.module, bitcodeFile))
+    } else {
+        println("=== Skipping WriteBitcodeFilePhase because splitBCfile is enabled ===")
+    }  
 }
 
 

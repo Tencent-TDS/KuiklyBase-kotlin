@@ -78,13 +78,13 @@ function GRADLE_NATIVE() {
       "$@"
 }
 
-export JDK_18=$(/usr/libexec/java_home -v 1.8)
-if [ -z "$JDK_18" ]; then 
-  echo "JDK 1.8 is required. Please download and set JDK_18 to the home of JDK 1.8. Exiting."
-  exit 1
-fi 
+# export JDK_18=$(/usr/libexec/java_home -v 1.8)
+# if [ -z "$JDK_18" ]; then 
+#   echo "JDK 1.8 is required. Please download and set JDK_18 to the home of JDK 1.8. Exiting."
+#   exit 1
+# fi 
 
-readHostArch
+# readHostArch
 DEPLOY_VERSION=2.0.255-SNAPSHOT
 
 [[ -e "$ROOT_DIR/local.properties" ]] && mv $ROOT_DIR/local.properties $ROOT_DIR/local.properties.bk
@@ -95,15 +95,15 @@ stepBegin "Publish boostrap Kotlin libs to local dir: 'build/repo'."
 ./gradlew publish install -Pkotlin.native.enabled=false -PdeployVersion=$DEPLOY_VERSION -Pversions.kotlin-native=$DEPLOY_VERSION -PkonanVersion=$DEPLOY_VERSION -Pbootstrap.local=false
 stepEnd
 
-stepBegin "Build maven part and publish."
-$ROOT_DIR/libraries/mvnw -DnewVersion=$DEPLOY_VERSION -DgenerateBackupPoms=false -DprocessAllModules=true -f $ROOT_DIR/libraries/pom.xml versions:set
-$ROOT_DIR/libraries/mvnw \
-  -f $ROOT_DIR/libraries/pom.xml \
-  clean install -DskipTests \
-  -Ddeploy-url=file://$ROOT_DIR/build/repo \
-  -Ddeploy-snapshot-repo=local \
-  -Ddeploy-snapshot-url=file://$ROOT_DIR/build/repo
-stepEnd
+# stepBegin "Build maven part and publish."
+# $ROOT_DIR/libraries/mvnw -DnewVersion=$DEPLOY_VERSION -DgenerateBackupPoms=false -DprocessAllModules=true -f $ROOT_DIR/libraries/pom.xml versions:set
+# $ROOT_DIR/libraries/mvnw \
+#   -f $ROOT_DIR/libraries/pom.xml \
+#   clean install -DskipTests \
+#   -Ddeploy-url=file://$ROOT_DIR/build/repo \
+#   -Ddeploy-snapshot-repo=local \
+#   -Ddeploy-snapshot-url=file://$ROOT_DIR/build/repo
+# stepEnd
 
 stepBegin "Clean and build Kotlin Native compiler."
 rm -Rf ./kotlin-native/dist

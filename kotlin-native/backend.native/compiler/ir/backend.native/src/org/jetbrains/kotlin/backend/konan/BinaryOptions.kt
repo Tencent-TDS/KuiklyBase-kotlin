@@ -19,6 +19,14 @@ object BinaryOptions : BinaryOptionRegistry() {
 
     val splitBCfile by booleanOption()
 
+    val optPhase1 by booleanOption()
+
+    val optPhase2 by booleanOption()
+
+    val optPhase3 by booleanOption()
+
+    val preserveWeakSymbols by booleanOption()
+    
     val memoryModel by option<MemoryModel>()
 
     val freezing by option<Freezing>()

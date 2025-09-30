@@ -136,7 +136,19 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
     }
 
     val splitBCfile: Boolean
-        get() = configuration.get(BinaryOptions.splitBCfile) ?: false
+        get() = configuration.get(BinaryOptions.splitBCfile) ?: true
+
+    val optPhase1: Boolean
+        get() = configuration.get(BinaryOptions.optPhase1) ?: true
+
+    val optPhase2: Boolean
+        get() = configuration.get(BinaryOptions.optPhase2) ?: true
+
+    val optPhase3: Boolean
+        get() = configuration.get(BinaryOptions.optPhase3) ?: true
+
+    val preserveWeakSymbols: Boolean
+        get() = configuration.get(BinaryOptions.preserveWeakSymbols) ?: true   
 
     val runtimeLogs: Map<LoggingTag, LoggingLevel> by lazy {
         val default = LoggingTag.entries.associateWith { LoggingLevel.None }

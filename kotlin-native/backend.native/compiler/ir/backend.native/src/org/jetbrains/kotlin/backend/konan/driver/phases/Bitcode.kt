@@ -31,6 +31,7 @@ import java.io.IOException
 import llvm.*
 import org.jetbrains.kotlin.backend.konan.driver.utilities.createTempFiles
 import org.jetbrains.kotlin.backend.konan.llvm.parseBitcodeFile
+import kotlinx.cinterop.*
 
 internal data class WriteBitcodeFileInput(
         override val llvmModule: LLVMModuleRef,
@@ -151,7 +152,44 @@ internal val PrintBitcodePhase = createSimpleNamedCompilerPhase<PhaseContext, LL
         op = { _, llvmModule -> LLVMDumpModule(llvmModule) }
 )
 
-// lvm-link tool
+internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostProcessing() {
+    val optimizationConfig = createLTOFinalPipelineConfig(
+            context,
+            context.llvm.targetTriple,
+            closedWorld = context.config.isFinalBinary,
+            timePasses = context.config.flexiblePhaseConfig.needProfiling,
+    )
+    useContext(OptimizationState(context.config, optimizationConfig)) {
+        val module = this@runBitcodePostProcessing.context.llvmModule
+        // it.runPhase(MandatoryBitcodeLLVMPostprocessingPhase, module)
+        // it.runPhase(ModuleBitcodeOptimizationPhase, module)
+        // it.runPhase(LTOBitcodeOptimizationPhase, module)
+        val optPhase1 = context.config.optPhase1
+        if (optPhase1) {
+            it.runPhase(MandatoryBitcodeLLVMPostprocessingPhase, module)
+        }
+        val optPhase2 = context.config.optPhase2
+        if (optPhase2) {
+            it.runPhase(ModuleBitcodeOptimizationPhase, module)
+        }
+        val optPhase3 = context.config.optPhase3
+        if (optPhase3) {
+            it.runPhase(LTOBitcodeOptimizationPhase, module)
+        }
+        when (context.config.sanitizer) {
+            SanitizerKind.THREAD -> it.runPhase(ThreadSanitizerPhase, module)
+            SanitizerKind.ADDRESS -> context.reportCompilationError("Address sanitizer is not supported yet")
+            null -> {}
+        }
+    }
+    if (context.config.memoryModel == MemoryModel.EXPERIMENTAL) {
+        runPhase(RemoveRedundantSafepointsPhase)
+    }
+    if (context.config.optimizationsEnabled) {
+        runPhase(OptimizeTLSDataLoadsPhase)
+    }
+}
+
 internal fun linkBitcodeFilesWithLlvmLink(inputFiles: List<String>, outputFile: String) {
     val llvmLinkPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-link"
     
@@ -187,7 +225,6 @@ internal fun linkBitcodeFilesWithLlvmLink(inputFiles: List<String>, outputFile: 
         throw RuntimeException("llvm-link failed with exit code $exitCode: $output")
     }
     
-    // check output files
     val outputExists = File(outputFile).exists()
     val outputSize = if (outputExists) File(outputFile).length() else 0
     println("Linked output: $outputFile, exists=$outputExists, size=$outputSize bytes")
@@ -197,6 +234,31 @@ internal fun linkBitcodeFilesWithLlvmLink(inputFiles: List<String>, outputFile: 
     }
 }
 
+private fun preserveWeakSymbols(module: LLVMModuleRef) {
+    println("Preserving weak symbols before split...")
+    
+    var preservedCount = 0
+    var func = LLVMGetFirstFunction(module)
+    while (func != null) {
+        val linkage = LLVMGetLinkage(func)
+        if (linkage == LLVMLinkage.LLVMWeakAnyLinkage || linkage == LLVMLinkage.LLVMWeakODRLinkage) {
+            val funcName = LLVMGetValueName(func)?.toKString() ?: "unknown"
+            if (
+                funcName.contains("unordered_map") ||
+                funcName.contains("~") ||
+                funcName.contains("vector")
+            ) {
+                LLVMSetLinkage(func, LLVMLinkage.LLVMInternalLinkage)
+                preservedCount++
+                println("Preserved weak symbol: $funcName")
+            }
+        }
+        func = LLVMGetNextFunction(func)
+    }
+    
+    println("Preserved $preservedCount weak symbols")
+}
+
 internal fun splitBitcodeFile(context: BitcodePostProcessingContext, inputBitcodePath: String, numPartitions: UInt, outputPrefix: String) {
     val llvmSplitPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-split"
 
@@ -204,7 +266,7 @@ internal fun splitBitcodeFile(context: BitcodePostProcessingContext, inputBitcod
         llvmSplitPath,
         "-j=$numPartitions",
         "-o=$outputPrefix",
-        "--preserve-locals", // keep local symbol
+        "--preserve-locals",
         inputBitcodePath
     )
     
@@ -224,136 +286,129 @@ internal fun splitBitcodeFile(context: BitcodePostProcessingContext, inputBitcod
     }
 }
 
-internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostProcessing(bitcodeFileOri: java.io.File) {
-// internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostProcessing() {   
-   val optimizationConfig = createLTOFinalPipelineConfig(
-           context,
-           context.llvm.targetTriple,
-           closedWorld = context.config.isFinalBinary,
-           timePasses = context.config.flexiblePhaseConfig.needProfiling,
-   )
+internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostProcessingCoroutines(bitcodeFileOri: java.io.File) {  
+    val optimizationConfig = createLTOFinalPipelineConfig(
+            context,
+            context.llvm.targetTriple,
+            closedWorld = context.config.isFinalBinary,
+            timePasses = context.config.flexiblePhaseConfig.needProfiling,
+    )
+    
+    var bitcodeFile: File? = null
+    useContext(OptimizationState(context.config, optimizationConfig)) { bitcodeEngine ->
+        val tempFiles = createTempFiles(context.config, null)
+        val bitcodeFiletmp = tempFiles.create(context.config.shortModuleName ?: "tmp_ori", ".bc")
+        bitcodeFile = File(bitcodeFiletmp.toString())        
+        val module = this@runBitcodePostProcessingCoroutines.context.llvmModule
+        val preserveWeakEnabled = context.config.preserveWeakSymbols
+        val optPhase1 = context.config.optPhase1
+        if (optPhase1) {
+            bitcodeEngine.runPhase(MandatoryBitcodeLLVMPostprocessingPhase, partModule)
+        }
+        bitcodeEngine.runPhase(WriteBitcodeFilePhase, WriteBitcodeFileInput(module, bitcodeFile!!))
 
-   val splitBCfileEnabled = context.config.splitBCfile
-   if (splitBCfileEnabled) {
-       var bitcodeFile: File? = null
-       useContext(OptimizationState(context.config, optimizationConfig)) { bitcodeEngine ->
-           val tempFiles = createTempFiles(context.config, null)
-           val bitcodeFiletmp = tempFiles.create(context.config.shortModuleName ?: "tmp", ".bc")
-           bitcodeFile = File(bitcodeFiletmp.toString())
+        println("Created BC file: ${bitcodeFile!!.absolutePath} (${bitcodeFile!!.length()} bytes)")
 
-           val module = this@runBitcodePostProcessing.context.llvmModule
-           bitcodeEngine.runPhase(WriteBitcodeFilePhase, WriteBitcodeFileInput(module, bitcodeFile!!))
+        val outputPrefix = bitcodeFile!!.absolutePath.removeSuffix(".bc") + "_part_"
+        splitBitcodeFile(context, bitcodeFile!!.absolutePath, 2u, outputPrefix)
 
-           println("Created BC file: ${bitcodeFile!!.absolutePath} (${bitcodeFile!!.length()} bytes)")
-           val outputPrefix = bitcodeFile!!.absolutePath.removeSuffix(".bc") + "_part_"
-           splitBitcodeFile(context, bitcodeFile!!.absolutePath, 2u, outputPrefix)
+        println("Checking partition files:")
+        for (i in 0 until 2) {
+            val partFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_part_$i"
+            val exists = File(partFile).exists()
+            val length = if (exists) File(partFile).length() else 0
+            println("  - Partition $i: exists=$exists, size=$length bytes")
+        }
+    }
 
-           println("Checking partition files:")
-           for (i in 0 until 2) {
-               val partFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_part_$i"
-               val exists = File(partFile).exists()
-               val length = if (exists) File(partFile).length() else 0
-               println("  - Partition $i: exists=$exists, size=$length bytes")
-           }
-       }
+    val processedModules = runBlocking {
+        val jobs = (0 until 2).map { i ->
+            async(Dispatchers.Default) {
+                val partFile = "${bitcodeFile?.absolutePath?.removeSuffix(".bc") ?: "unknown"}_part_$i"
+                val independentContext = LLVMContextCreate()!!
+                try {
+                    val optimizationConfig = createLTOFinalPipelineConfig(
+                            context,
+                            context.llvm.targetTriple,
+                            closedWorld = context.config.isFinalBinary,
+                            timePasses = context.config.flexiblePhaseConfig.needProfiling,
+                    )
+                    useContext(OptimizationState(context.config, optimizationConfig)) { bitcodeEngine ->
+                        if (File(partFile).exists()) {
+                            val partModule = parseBitcodeFile(independentContext, partFile)
+                            val optPhase2 = context.config.optPhase2
+                            if (optPhase2) {
+                                bitcodeEngine.runPhase(ModuleBitcodeOptimizationPhase, partModule)
+                            }
+                            val optPhase3 = context.config.optPhase3
+                            if (optPhase3) {
+                                bitcodeEngine.runPhase(LTOBitcodeOptimizationPhase, partModule)
+                            }
+                            when (context.config.sanitizer) {
+                                SanitizerKind.THREAD -> bitcodeEngine.runPhase(ThreadSanitizerPhase, partModule)
+                                SanitizerKind.ADDRESS -> context.reportCompilationError("Address sanitizer is not supported yet")
+                                null -> {}
+                            }
 
-       val processedModules = runBlocking {
-           val jobs = (0 until 2).map { i ->
-               async(Dispatchers.Default) {
-                   val partFile = "${bitcodeFile?.absolutePath?.removeSuffix(".bc") ?: "unknown"}_part_$i"
-                   val independentContext = LLVMContextCreate()!!
-                   try {
-                       val optimizationConfig = createLTOFinalPipelineConfig(
-                               context,
-                               context.llvm.targetTriple,
-                               closedWorld = context.config.isFinalBinary,
-                               timePasses = context.config.flexiblePhaseConfig.needProfiling,
-                       )
-                       useContext(OptimizationState(context.config, optimizationConfig)) { bitcodeEngine ->
-                           if (File(partFile).exists()) {
-                               val partModule = parseBitcodeFile(independentContext, partFile)
-                               bitcodeEngine.runPhase(MandatoryBitcodeLLVMPostprocessingPhase, partModule)
-                               bitcodeEngine.runPhase(ModuleBitcodeOptimizationPhase, partModule)
-                               bitcodeEngine.runPhase(LTOBitcodeOptimizationPhase, partModule)
-                               when (context.config.sanitizer) {
-                                   SanitizerKind.THREAD -> bitcodeEngine.runPhase(ThreadSanitizerPhase, partModule)
-                                   SanitizerKind.ADDRESS -> context.reportCompilationError("Address sanitizer is not supported yet")
-                                   null -> {}
-                               }
+                            val tempFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_opt_temp_$i.bc"
+                            println("Writing processed module $i to: $tempFile")
+                            LLVMWriteBitcodeToFile(partModule, tempFile)
+                            tempFile
+                        } else {
+                            println("Partition file not found: $partFile")
+                            null
+                        }
+                    }
+                } finally {
+                    LLVMContextDispose(independentContext)
+                }
+            }
+        }
+        jobs.awaitAll().filterNotNull()
+    }
 
-                               val tempFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_link_temp_$i.bc"
-                               println("Writing processed module $i to: $tempFile")
-                               LLVMWriteBitcodeToFile(partModule, tempFile)
-                               tempFile
-                           } else {
-                               println("Partition file not found: $partFile")
-                               null
-                           }
-                       }
-                   } finally {
-                       LLVMContextDispose(independentContext)
-                   }
-               }
-           }
-           jobs.awaitAll().filterNotNull()
-       }
+    if (processedModules.isNotEmpty()) {
+        println("=== Using bitcode serialization linking approach ===")
 
-       if (processedModules.isNotEmpty()) {
-           println("=== Using bitcode serialization linking approach ===")
+        val tempBitcodeFiles = mutableListOf<String>()
+        processedModules.forEachIndexed { index, processedModule ->
+            val tempFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_opt_temp_$index.bc"
+            println("Writing processed module $index to: $tempFile")
+            tempBitcodeFiles.add(tempFile)
 
-           val tempBitcodeFiles = mutableListOf<String>()
-           processedModules.forEachIndexed { index, processedModule ->
-               val tempFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_link_temp_$index.bc"
-               println("Writing processed module $index to: $tempFile")
+            val exists = File(tempFile).exists()
+            val size = if (exists) File(tempFile).length() else 0
+            println("  Written: exists=$exists, size=$size bytes")
+        }
 
-               LLVMWriteBitcodeToFile(processedModule, tempFile)
-               tempBitcodeFiles.add(tempFile)
+        val linkedBitcodeFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_link.bc"
+        linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, linkedBitcodeFile)
+        var bitcodeFileOriFinal: File? = null
+        bitcodeFileOriFinal = File(bitcodeFileOri.toString())
+        linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, bitcodeFileOriFinal.absolutePath)
 
-               val exists = File(tempFile).exists()
-               val size = if (exists) File(tempFile).length() else 0
-               println("  Written: exists=$exists, size=$size bytes")
-           }
+        println("Reloading linked module from: $bitcodeFileOri")
 
-           val tempBitcodeFiles = processedModules
-           val linkedBitcodeFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}.bc"
-           linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, linkedBitcodeFile)
-           var bitcodeFileOriFinal: File? = null
-           bitcodeFileOriFinal = File(bitcodeFileOri.toString())
-           linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, bitcodeFileOriFinal.absolutePath)
-           println("Successfully reloaded linked module")
+        // // clear temp file
+        // tempBitcodeFiles.forEach { tempFile ->
+        //     try {
+        //         File(tempFile).delete()
+        //         println("Cleaned up temp file: $tempFile")
+        //     } catch (e: Exception) {
+        //         println("Warning: Failed to clean up $tempFile: ${e.message}")
+        //     }
+        // }
+        // File(linkedBitcodeFile).delete()
+        // bitcodeFile?.delete()
 
-           tempBitcodeFiles.forEach { tempFile ->
-               try {
-                   File(tempFile).delete()
-                   println("Cleaned up temp file: $tempFile")
-               } catch (e: Exception) {
-                   println("Warning: Failed to clean up $tempFile: ${e.message}")
-               }
-           }
-           File(linkedBitcodeFile).delete()
-           bitcodeFile?.delete()
+        // // clear
+        // for (i in 0 until 8) {
+        //     val partFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_part_$i"
+        //     File(partFile).delete()
+        // }
 
-           for (i in 0 until 2) {
-               val partFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_part_$i"
-               File(partFile).delete()
-           }
-
-           println("Cleaned up all temporary files")
-       } else {
-           println("No processed modules to link, using original module")
-       }
-   } else {
-       // ori pass
-       useContext(OptimizationState(context.config, optimizationConfig)) { bitcodeEngine ->
-           val module = this@runBitcodePostProcessing.context.llvmModule
-           bitcodeEngine.runPhase(MandatoryBitcodeLLVMPostprocessingPhase, module)
-           bitcodeEngine.runPhase(ModuleBitcodeOptimizationPhase, module)
-           bitcodeEngine.runPhase(LTOBitcodeOptimizationPhase, module)
-           when (context.config.sanitizer) {
-               SanitizerKind.THREAD -> bitcodeEngine.runPhase(ThreadSanitizerPhase, module)
-               SanitizerKind.ADDRESS -> context.reportCompilationError("Address sanitizer is not supported yet")
-               null -> {}
-           }
-       }
-   }
+        println("Cleaned up all temporary files")
+    } else {
+        println("No processed modules to link, using original module")
+    }
 }
