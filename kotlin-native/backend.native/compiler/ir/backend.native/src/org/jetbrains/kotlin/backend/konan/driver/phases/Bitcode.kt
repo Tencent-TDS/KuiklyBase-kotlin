@@ -303,7 +303,7 @@ internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostPro
         val preserveWeakEnabled = context.config.preserveWeakSymbols
         val optPhase1 = context.config.optPhase1
         if (optPhase1) {
-            bitcodeEngine.runPhase(MandatoryBitcodeLLVMPostprocessingPhase, partModule)
+            bitcodeEngine.runPhase(MandatoryBitcodeLLVMPostprocessingPhase, module)
         }
         bitcodeEngine.runPhase(WriteBitcodeFilePhase, WriteBitcodeFileInput(module, bitcodeFile!!))
 
