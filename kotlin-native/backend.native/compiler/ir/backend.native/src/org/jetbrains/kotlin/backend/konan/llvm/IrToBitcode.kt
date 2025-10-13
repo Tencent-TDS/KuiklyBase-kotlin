@@ -3014,7 +3014,7 @@ internal fun NativeGenerationState.generateRuntimeConstantsModule() : LLVMModule
     val static = StaticData(llvmModule, llvm)
 
     fun setRuntimeConstGlobal(name: String, value: ConstValue) {
-        val global = static.placeGlobal(name, value)
+        val global = static.placeGlobal(name, value, true)
         global.setConstant(true)
         global.setLinkage(LLVMLinkage.LLVMExternalLinkage)
     }

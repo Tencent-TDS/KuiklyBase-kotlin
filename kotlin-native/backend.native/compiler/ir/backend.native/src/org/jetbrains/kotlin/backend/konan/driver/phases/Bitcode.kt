@@ -191,8 +191,11 @@ internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostPro
 }
 
 internal fun linkBitcodeFilesWithLlvmLink(inputFiles: List<String>, outputFile: String) {
-    val llvmLinkPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-link"
-    
+    // val llvmLinkPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-link"
+    val config = context.config
+    val platform = config.platform 
+    val llvmLinkPath = "${platform.absolute(platform.hostString("llvm12"))}/bin/llvm-link"
+
     val command = mutableListOf<String>().apply {
         add(llvmLinkPath)
         add("-o")
@@ -260,7 +263,10 @@ private fun preserveWeakSymbols(module: LLVMModuleRef) {
 }
 
 internal fun splitBitcodeFile(context: BitcodePostProcessingContext, inputBitcodePath: String, numPartitions: UInt, outputPrefix: String) {
-    val llvmSplitPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-split"
+    // val llvmSplitPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-split"
+    val config = context.config
+    val platform = config.platform
+    val llvmSplitPath = "${platform.absolute(platform.hostString("llvm12"))}/bin/llvm-split"
 
     val command = listOf(  
         llvmSplitPath,
