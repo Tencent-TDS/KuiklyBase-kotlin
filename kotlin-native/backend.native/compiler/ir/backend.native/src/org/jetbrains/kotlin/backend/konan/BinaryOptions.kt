@@ -26,6 +26,8 @@ object BinaryOptions : BinaryOptionRegistry() {
     val optPhase3 by booleanOption()
 
     val preserveWeakSymbols by booleanOption()
+
+    val emitRuntime by booleanOption()
     
     val memoryModel by option<MemoryModel>()
 

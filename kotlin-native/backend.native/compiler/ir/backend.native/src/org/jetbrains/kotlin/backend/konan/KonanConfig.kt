@@ -149,6 +149,9 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
 
     val preserveWeakSymbols: Boolean
         get() = configuration.get(BinaryOptions.preserveWeakSymbols) ?: true   
+    
+    val emitRuntime: Boolean
+        get() = configuration.get(BinaryOptions.emitRuntime) ?: true
 
     val runtimeLogs: Map<LoggingTag, LoggingLevel> by lazy {
         val default = LoggingTag.entries.associateWith { LoggingLevel.None }
