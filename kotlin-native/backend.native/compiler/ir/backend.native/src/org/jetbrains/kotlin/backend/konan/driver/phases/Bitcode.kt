@@ -190,7 +190,7 @@ internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostPro
     }
 }
 
-internal fun linkBitcodeFilesWithLlvmLink(inputFiles: List<String>, outputFile: String) {
+internal fun linkBitcodeFilesWithLlvmLink(inputFiles: List<String>, outputFile: String, llvmLinkPath: String) {
     // val llvmLinkPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-link"
     val config = context.config
     val platform = config.platform 
@@ -262,7 +262,7 @@ private fun preserveWeakSymbols(module: LLVMModuleRef) {
     println("Preserved $preservedCount weak symbols")
 }
 
-internal fun splitBitcodeFile(context: BitcodePostProcessingContext, inputBitcodePath: String, numPartitions: UInt, outputPrefix: String) {
+internal fun splitBitcodeFile(context: BitcodePostProcessingContext, inputBitcodePath: String, numPartitions: UInt, outputPrefix: String, llvmSplitPath: String) {
     // val llvmSplitPath = "/home/user/.konan/dependencies/llvm-12.0.1-linux-x86_64-20250722/bin/llvm-split"
     val config = context.config
     val platform = config.platform
@@ -316,7 +316,10 @@ internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostPro
         println("Created BC file: ${bitcodeFile!!.absolutePath} (${bitcodeFile!!.length()} bytes)")
 
         val outputPrefix = bitcodeFile!!.absolutePath.removeSuffix(".bc") + "_part_"
-        splitBitcodeFile(context, bitcodeFile!!.absolutePath, 2u, outputPrefix)
+        val platform = context.config.platform
+        val llvmSplitPath = "${platform.absolute(platform.hostString("llvm12"))}/bin/llvm-split"
+
+        splitBitcodeFile(context, bitcodeFile!!.absolutePath, 2u, outputPrefix, llvmSplitPath)
 
         println("Checking partition files:")
         for (i in 0 until 2) {
@@ -388,10 +391,12 @@ internal fun <T : BitcodePostProcessingContext> PhaseEngine<T>.runBitcodePostPro
         }
 
         val linkedBitcodeFile = "${bitcodeFile!!.absolutePath.removeSuffix(".bc")}_link.bc"
-        linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, linkedBitcodeFile)
+        val platform = context.config.platform
+        val llvmLinkPath = "${platform.absolute(platform.hostString("llvm12"))}/bin/llvm-link"
+        linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, linkedBitcodeFile, llvmLinkPath)
         var bitcodeFileOriFinal: File? = null
         bitcodeFileOriFinal = File(bitcodeFileOri.toString())
-        linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, bitcodeFileOriFinal.absolutePath)
+        linkBitcodeFilesWithLlvmLink(tempBitcodeFiles, bitcodeFileOriFinal.absolutePath, llvmLinkPath)
 
         println("Reloading linked module from: $bitcodeFileOri")
 
