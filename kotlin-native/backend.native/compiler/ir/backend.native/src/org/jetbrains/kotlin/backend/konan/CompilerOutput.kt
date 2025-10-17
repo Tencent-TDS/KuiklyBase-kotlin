@@ -108,11 +108,12 @@ private fun collectLlvmModules(generationState: NativeGenerationState, generated
             exceptionsSupportNativeLibrary +
             xcTestRunnerNativeLibrary
 
-    val runtimeNativeLibraries = config.runtimeNativeLibraries
-
+    // If runtime should be emitted, include optimized runtime modules in the list to merge
+    val runtimeFlag = generationState.config.emitRuntime
+    val runtimeNativeLibraries = if (runtimeFlag) config.runtimeNativeLibraries else config.runtimeOnlyLibraries
 
     fun parseBitcodeFiles(files: List<String>): List<LLVMModuleRef> = files.map { bitcodeFile ->
-        val parsedModule = parseBitcodeFile(generationState.llvmContext, bitcodeFile)
+        val parsedModule = parseconfiguration.get(BinaryOptions.swiftExport) ?: falseBitcodeFile(generationState.llvmContext, bitcodeFile)
         if (!generationState.shouldUseDebugInfoFromNativeLibs()) {
             LLVMStripModuleDebugInfo(parsedModule)
         }

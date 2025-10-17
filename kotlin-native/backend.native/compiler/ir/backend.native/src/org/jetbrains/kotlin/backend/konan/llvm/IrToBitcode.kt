@@ -463,6 +463,106 @@ internal class CodeGeneratorVisitor(
     }
 
     //-------------------------------------------------------------------------//
+
+    private fun protectedSymbols() {
+        val symbolList = listOf(
+                "Kotlin_Internal_GC_GCInfoBuilder_setEpoch",
+                "Kotlin_Internal_GC_GCInfoBuilder_setStartTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setEndTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setFirstPauseRequestTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setFirstPauseStartTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setFirstPauseEndTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setSecondPauseRequestTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setSecondPauseStartTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setSecondPauseEndTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setPostGcCleanupTime",
+                "Kotlin_Internal_GC_GCInfoBuilder_setRootSet",
+                "Kotlin_Internal_GC_GCInfoBuilder_setMarkStats",
+                "Kotlin_Internal_GC_GCInfoBuilder_setSweepStats",
+                "Kotlin_Internal_GC_GCInfoBuilder_setMemoryUsageBefore",
+                "Kotlin_Internal_GC_GCInfoBuilder_setMemoryUsageAfter",
+                "ThrowIllegalArgumentException",
+                "ThrowNotImplementedError",
+                "ThrowInvalidMutabilityException",
+                "ThrowFreezingException",
+                "makePermanentWeakReferenceImpl",
+                "makeRegularWeakReferenceImpl",
+                "Kotlin_runUnhandledExceptionHook",
+                "ReportUnhandledException",
+                "Kotlin_CleanerImpl_shutdownCleanerWorker",
+                "Kotlin_CleanerImpl_createCleanerWorker",
+                "ThrowClassCastException",
+                "TheEmptyString",
+                "ThrowIllegalStateException",
+                "ThrowIllegalStateExceptionWithMessage",
+                "WorkerLaunchpad",
+                "ThrowCannotTransferOwnership",
+                "ThrowWorkerAlreadyTerminated",
+                "ThrowWrongWorkerOrAlreadyTerminated",
+                "ThrowFutureInvalidState",
+                "Kotlin_WorkerBoundReference_freezeHook",
+                "ThrowNumberFormatException",
+                "ThrowOutOfMemoryError",
+                "ThrowArrayIndexOutOfBoundsException",
+                "DescribeObjectForDebugging",
+                "checkRangeIndexes",
+                "ThrowFileFailedToInitializeException",
+                "ThrowCharacterCodingException",
+                "Kotlin_runtimeAssertsMode",
+                "Kotlin_runtimeLogs",
+                "Kotlin_disableMmap",
+                "Kotlin_freezingChecksEnabled",
+                "theArrayTypeInfo",
+                "Kotlin_concurrentWeakSweep",
+                "Kotlin_gcMarkSingleThreaded",
+                "BOOLEAN_CACHE",
+                "BOOLEAN_RANGE_FROM",
+                "BOOLEAN_RANGE_TO",
+                "BYTE_CACHE",
+                "BYTE_RANGE_FROM",
+                "BYTE_RANGE_TO",
+                "CHAR_CACHE",
+                "CHAR_RANGE_FROM",
+                "CHAR_RANGE_TO",
+                "INT_CACHE",
+                "INT_RANGE_FROM",
+                "INT_RANGE_TO",
+                "Kotlin_freezingEnabled",
+                "Kotlin_needDebugInfo",
+                "LONG_CACHE",
+                "LONG_RANGE_FROM",
+                "LONG_RANGE_TO",
+                "SHORT_CACHE",
+                "SHORT_RANGE_FROM",
+                "SHORT_RANGE_TO",
+                "theByteArrayTypeInfo",
+                "theCharArrayTypeInfo",
+                "theCleanerImplTypeInfo",
+                "theEmptyArray",
+                "theIntArrayTypeInfo",
+                "theNativePtrArrayTypeInfo",
+                "theRegularWeakReferenceImplTypeInfo",
+                "theStringTypeInfo",
+                "theThrowableTypeInfo",
+                "theWorkerBoundReferenceTypeInfo"
+        )
+        symbolList.forEach { symbolName ->
+            val symbol = LLVMGetNamedFunction(llvm.module, symbolName)
+            if (symbol != null) {
+                llvm.usedGlobals += symbol
+                context.log { "Protected function symbol: $symbolName" }
+            }else {
+                val globalSymbol = LLVMGetNamedGlobal(llvm.module, symbolName)
+                if (globalSymbol != null) {
+                    llvm.usedGlobals += globalSymbol
+                    context.log { "Protected global symbol: $symbolName" }
+                } else {
+                    context.log { "Symbol not found: $symbolName" }
+                }
+            }
+        }
+    }
+
     override fun visitModuleFragment(declaration: IrModuleFragment) {
         context.log{"visitModule                    : ${ir2string(declaration)}"}
 

@@ -401,6 +401,11 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
         configuration.get(BinaryOptions.swiftExport) ?: false
     }
 
+    internal val runtimeOnlyLibraries: List<String> = mutableListOf<String>().apply {
+        add("runtime.bc")
+    }.map {
+        File(distribution.defaultNatives(target)).child(it).absolutePath
+    }
     internal val runtimeNativeLibraries: List<String> = mutableListOf<String>().apply {
         if (debug) add("debug.bc")
         add("runtime.bc")
