@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.konan.test.blackbox.support.ClassLevelProperty
 import org.jetbrains.kotlin.native.executors.*
 import org.jetbrains.kotlin.test.services.JUnit5Assertions
 import java.util.concurrent.ConcurrentHashMap
-
+import org.jetbrains.kotlin.konan.target.Family
 private val executorCache: ConcurrentHashMap<KonanTarget, Executor> = ConcurrentHashMap()
 
 /**
@@ -46,6 +46,7 @@ val Settings.testProcessExecutor: Executor
                     }
                 }
                 configurables.target == hostTarget -> HostExecutor()
+                configurables.target.family == Family.OHOS -> OhosExecutor()
                 configurables is ConfigurablesWithEmulator -> EmulatorExecutor(configurables)
                 configurables is AppleConfigurables && configurables.targetTriple.isSimulator -> XcodeSimulatorExecutor(configurables)
                 configurables is AppleConfigurables && RosettaExecutor.availableFor(configurables) -> RosettaExecutor(configurables)

@@ -110,15 +110,15 @@ rm -Rf ./kotlin-native/dist
 GRADLE_NATIVE :kotlin-native:clean :kotlin-native:dist
 stepEnd
 
-stepBegin "Build OHOS target."
-./gradlew --stop
-GRADLE_NATIVE :kotlin-native:ohos_arm64PlatformLibs
-stepEnd
-
-stepBegin "Build Other targets and bundle Kotlin Native compiler."
-./gradlew --stop
-GRADLE_NATIVE :kotlin-native:bundle
-stepEnd
+#stepBegin "Build OHOS target."
+#./gradlew --stop
+#GRADLE_NATIVE :kotlin-native:ohos_arm64PlatformLibs
+#stepEnd
+#
+#stepBegin "Build Other targets and bundle Kotlin Native compiler."
+#./gradlew --stop
+#GRADLE_NATIVE :kotlin-native:bundle
+#stepEnd
 
 stepBegin "Publish Kotlin Native compiler to local."
 GRADLE_NATIVE :kotlin-native:publishBundlePrebuiltPublicationToMavenRepository

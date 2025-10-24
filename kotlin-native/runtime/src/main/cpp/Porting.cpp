@@ -66,8 +66,8 @@ void consoleWriteUtf8(const char* utf8, uint32_t sizeBytes) {
   } else {
     ::write(STDOUT_FILENO, utf8, sizeBytes);
   }
-#elif KONAN_OHOS
-  OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
+//#elif KONAN_OHOS
+//  OH_LOG_Print(LOG_APP, LOG_INFO, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
 #else
   ::write(STDOUT_FILENO, utf8, sizeBytes);
 #endif
@@ -81,8 +81,8 @@ void consoleErrorUtf8(const char* utf8, uint32_t sizeBytes) {
   } else {
     ::write(STDERR_FILENO, utf8, sizeBytes);
   }
-#elif KONAN_OHOS
-  OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
+//#elif KONAN_OHOS
+//  OH_LOG_Print(LOG_APP, LOG_ERROR, LOG_DOMAIN, "Konan_main", "%{public}s", utf8);
 #else
   ::write(STDERR_FILENO, utf8, sizeBytes);
 #endif
