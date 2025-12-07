@@ -224,6 +224,9 @@ class OhosLinker(targetProperties: OhosConfigurables) : LinkerFlags(targetProper
             +specificLibs
             if (optimize) +linkerOptimizationFlags
             if (!debug) +linkerNoDebugFlags
+            // region Tencent Code
+            if (debug) +linkerDebugFlags
+            // endregion
             if (dynamic) +linkerDynamicFlags
             if (dynamic) +"--soname=${File(executable).name}"
             +objectFiles

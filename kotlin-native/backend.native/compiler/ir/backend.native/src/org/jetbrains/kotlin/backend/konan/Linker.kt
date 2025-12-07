@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.konan.library.KonanLibrary
 import org.jetbrains.kotlin.konan.target.*
 import org.jetbrains.kotlin.library.metadata.isCInteropLibrary
 import org.jetbrains.kotlin.library.uniqueName
+import java.nio.file.Files
 
 internal fun determineLinkerOutput(context: PhaseContext): LinkerOutputKind =
         when (context.config.produce) {
@@ -134,13 +135,24 @@ internal class Linker(
         val linkerArgs = asLinkerArgs(config.configuration.getNotNull(KonanConfigKeys.LINKER_ARGS)) +
                 caches.dynamic +
                 libraryProvidedLinkerFlags + additionalLinkerArgs
-
+        // region Tencent Code
+        val staticCache: List<String> = if (target.family == Family.OHOS && caches.static.isNotEmpty()) {
+            val tempFile = Files.createTempFile("static_libs", ".txt").toFile()
+            tempFile.deleteOnExit()
+            tempFile.writeText(caches.static.joinToString("\n"))
+            listOf("@${tempFile.absolutePath}")
+        } else {
+            caches.static
+        }
+        // endregion
         return with(linker) {
             LinkerArguments(
                     tempFiles = tempFiles,
                     objectFiles = objectFiles,
                     executable = executable,
-                    libraries = linker.linkStaticLibraries(includedBinaries) + caches.static,
+                    // region Tencent Code
+                    libraries = linker.linkStaticLibraries(includedBinaries) + staticCache,
+                    // endregion
                     linkerArgs = linkerArgs,
                     optimize = optimize,
                     debug = debug,
