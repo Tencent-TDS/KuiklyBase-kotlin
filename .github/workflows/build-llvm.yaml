@@ -19,7 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         runs-on:
-          - macos-13
           - macos-14
           - [self-hosted, Linux, X64]
     runs-on: ${{ matrix.runs-on }}
