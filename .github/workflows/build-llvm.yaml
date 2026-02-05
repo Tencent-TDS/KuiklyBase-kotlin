@@ -20,9 +20,9 @@ jobs:
       matrix:
         runs-on:
           - macos-14
-          - [self-hosted, Linux, X64]
+          - ubuntu-22.04
     runs-on: ${{ matrix.runs-on }}
-    container: ${{ contains(matrix.runs-on, 'Linux') && 'ubuntu:22.04' || '' }}
+    container: ${{ matrix.runs-on == 'ubuntu-22.04' && 'ubuntu:22.04' || '' }}
     outputs:
       artifact_version: ${{ steps.set-version.outputs.artifact_version }}
     steps:
@@ -46,7 +46,7 @@ jobs:
           brew install swig coreutils # git-lfs java wget
 
       - name: Install dependencies (linux)
-        if: runner.os == 'linux'
+        if: runner.os == 'Linux'
         run: |
           apt update
           apt install -y build-essential swig python3-dev libedit-dev libncurses5-dev binutils-dev gcc-multilib abigail-tools elfutils pkg-config autoconf autoconf-archive rsync git git-lfs python3-pip curl wget
