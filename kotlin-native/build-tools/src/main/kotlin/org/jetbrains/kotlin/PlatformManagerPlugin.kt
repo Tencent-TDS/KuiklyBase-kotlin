@@ -10,6 +10,10 @@ import org.gradle.api.Project
 
 open class PlatformManagerPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.extensions.add("platformManager", project.objects.platformManagerProvider(project).platformManager.get())
+        val platformManager = project.objects.platformManagerProvider(project).platformManager.get()
+        // region @Tencent: Allow limiting the set of built targets via the `kuikly.targets` property.
+        platformManager.kuiklyTargetsFilter = project.kuiklyTargetsFilter()
+        // endregion
+        project.extensions.add("platformManager", platformManager)
     }
 }

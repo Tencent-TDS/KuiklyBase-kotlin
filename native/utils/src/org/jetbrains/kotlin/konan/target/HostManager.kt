@@ -82,8 +82,38 @@ open class HostManager() {
         MACOS_ARM64 to commonTargets + appleTargets
     )
 
+    // region @Tencent: Customizable target selection via the `kuikly.targets` property.
+    /**
+     * Controls which targets are enabled for the build.
+     *
+     * Parsed from the `kuikly.targets` Gradle property via [parseKuiklyTargetsFilter].
+     */
+    var kuiklyTargetsFilter: KuiklyTargetsFilter = KuiklyTargetsFilter.All
+
+    /** Tencent: Families that are skipped in the minimal (`mini`) set. */
+    private val nonMinimalFamilies = setOf(Family.WATCHOS, Family.TVOS, Family.ANDROID)
+
+    /** Tencent: Targets that are skipped in the minimal (`mini`) set. */
+    private val nonMinimalTargets = setOf(MACOS_X64, LINUX_ARM32_HFP, LINUX_ARM64)
+    // endregion
+
     val enabled: List<KonanTarget>
-        get() = enabledByHost[host]?.toList() ?: throw TargetSupportException("Unknown host platform: $host")
+        get() = filterTargets(
+            enabledByHost[host]?.toList() ?: throw TargetSupportException("Unknown host platform: $host")
+        )
+
+    // region @Tencent: Apply the `kuikly.targets` filter to the host-enabled targets.
+    private fun filterTargets(hostTargets: List<KonanTarget>): List<KonanTarget> {
+        return when (val filter = kuiklyTargetsFilter) {
+            KuiklyTargetsFilter.All -> hostTargets
+            KuiklyTargetsFilter.Mini -> hostTargets.filterNot { it.family in nonMinimalFamilies || it in nonMinimalTargets }
+            is KuiklyTargetsFilter.Families -> {
+                val minimal = hostTargets.filterNot { it.family in nonMinimalFamilies || it in nonMinimalTargets }
+                (minimal + hostTargets.filter { it.family in filter.families }).distinct()
+            }
+        }
+    }
+    // endregion
 
     fun isEnabled(target: KonanTarget) = enabled.contains(target)
 
