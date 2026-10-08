@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.gradle.plugin.konan.tasks.KonanCompileTask
 import org.jetbrains.kotlin.konan.target.*
 import org.jetbrains.kotlin.library.KOTLIN_NATIVE_STDLIB_NAME
 import org.jetbrains.kotlin.nativeDistribution.nativeDistribution
-import org.jetbrains.kotlin.nativeDistribution.registerNativeBootstrapDistribution
 import org.jetbrains.kotlin.platformManager
 import org.jetbrains.kotlin.konan.target.Architecture as TargetArchitecture
 
@@ -735,13 +734,15 @@ tasks.named("clean", Delete::class) {
 
 // region: Stdlib
 
-val nativeBootstrapDistribution = registerNativeBootstrapDistribution()
-
 val stdlibBuildTask by tasks.registering(KonanCompileTask::class) {
     group = BasePlugin.BUILD_GROUP
     description = "Build the Kotlin/Native standard library"
-
-    this.compilerDistributionRoot.set(nativeBootstrapDistribution.map { it.root })
+    
+    // region @Tencent: Build the stdlib against the native distribution instead of the bootstrap one.
+    // Requires Native distribution with compiler JARs and stdlib klib.
+    this.compilerDistributionRoot.set(nativeDistribution.map { it.root })
+    dependsOn(":kotlin-native:distCompiler")
+    // endregion
 
     this.outputDirectory.set(
             layout.buildDirectory.dir("stdlib/${HostManager.hostName}/stdlib")

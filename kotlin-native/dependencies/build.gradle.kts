@@ -5,6 +5,7 @@
 
 import org.jetbrains.kotlin.konan.target.allTargetsWithSanitizers
 import org.jetbrains.kotlin.konan.util.DependencyDirectories
+import org.jetbrains.kotlin.platformManager
 
 plugins {
     id("common-configuration")
@@ -15,7 +16,9 @@ plugins {
 }
 
 nativeDependenciesDownloader {
-    repositoryURL.set("https://cache-redirector.jetbrains.com/download.jetbrains.com/kotlin/native")
+    // region @Tencent: Use the dependenciesUrl configured in konan.properties.
+    repositoryURL.set(platformManager.hostPlatform.hostString("dependenciesUrl"))
+    // endregion
     // Keep this directory in sync with `NativeDependenciesPlugin.nativeDependenciesRoot`.
     dependenciesDirectory.set(DependencyDirectories.getDependenciesRoot(kotlinBuildProperties.konanDataDir))
 

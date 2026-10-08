@@ -69,7 +69,12 @@ abstract class KonanPropertiesLoader(
     )
 
     open val dependencies: List<String>
-        get() = hostTargetList("dependencies") + compilerDependencies()
+        get() {
+            val listed = hostTargetList("dependencies") + compilerDependencies()
+            // region @Tencent: Same list DependencyProcessor will accept, so resolve() is not called for omitted packages.
+            return properties.dependenciesToResolve(listed)
+            // endregion
+        }
 
     override fun downloadDependencies() {
         dependencyProcessor!!.run()

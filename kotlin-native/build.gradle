@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.nativeDistribution.PrepareDistributionFingerprint
 import org.jetbrains.kotlin.nativeDistribution.PrepareKonanProperties
 import org.jetbrains.kotlin.xcode.XcodeOverridePlugin
 import org.jetbrains.kotlin.UtilsKt
+import org.jetbrains.kotlin.KuiklyPropertiesKt
 import plugins.KotlinBuildPublishingPluginKt
 import java.security.MessageDigest
 
@@ -301,6 +302,9 @@ tasks.register("distKonanProperties", PrepareKonanProperties) {
     compilerVersion = kotlinBuildProperties.kotlinVersion.get()
     llvmVariants.put(HostManager.host, LLVMDistributionKind.ESSENTIALS)
     llvmProperties.set(LLVMDistributionSourceKt.getAsProperties(LLVMDistributionSourceKt.getLlvmDistributionSource(project)))
+    // region @Tencent: An internal distribution downloads internalOnlyDependencies.
+    internalDistribution = KuiklyPropertiesKt.isKuiklyInternal(project)
+    // endregion
 }
 
 tasks.register("crossDistRuntime") {

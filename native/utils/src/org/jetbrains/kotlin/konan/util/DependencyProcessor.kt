@@ -22,6 +22,9 @@ import org.jetbrains.kotlin.konan.properties.KonanPropertiesLoader
 import org.jetbrains.kotlin.konan.properties.Properties
 import java.io.File
 import java.io.FileNotFoundException
+// region @Tencent: Surface mirror and intranet download failures as IOException.
+import java.io.IOException
+// endregion
 import java.io.RandomAccessFile
 import java.net.InetAddress
 import java.net.URL
@@ -66,9 +69,21 @@ private fun Properties.findCandidates(dependencies: List<String>): Map<String, L
     }.toMap()
 }
 
+// region @Tencent: External distributions omit intranet-only packages from the dependency list.
+internal fun Properties.dependenciesToResolve(dependencies: List<String>): List<String> {
+    if (getProperty("distributionInternal") == "true") return dependencies
+    val internalOnly = propertyList("internalOnlyDependencies").toSet()
+    return if (internalOnly.isEmpty()) dependencies else dependencies.filter { it !in internalOnly }
+}
+// endregion
+
 private const val REMOTE_PUBLIC = "remote:public"
 private const val REMOTE_PUBLIC_SUBDIRECTORY = "$REMOTE_PUBLIC:"
 private const val REMOTE_INTERNAL = "remote:internal"
+
+// region @Tencent: Fall back to the JetBrains native repository when the mirror returns an HTTP error.
+private const val KOTLIN_NATIVE_DEFAULT_DEPENDENCIES_REPO = "https://download.jetbrains.com/kotlin/native"
+// endregion
 
 private val KonanPropertiesLoader.dependenciesUrl : String            get() = properties.dependenciesUrl
 
@@ -97,6 +112,10 @@ class DependencyProcessor(
     private val keepUnstable: Boolean = true,
     private val deleteArchives: Boolean = true,
     private val archiveType: ArchiveType = ArchiveType.systemDefault,
+    // region @Tencent: Accept the intranet-only package list and its download URL.
+    private val internalOnlyDependencies: Set<String> = emptySet(),
+    private val internalDependenciesUrl: String? = null,
+    // endregion
 ) {
 
     private val dependenciesDirectory by lazy {
@@ -139,13 +158,22 @@ class DependencyProcessor(
                 customProgressCallback: ProgressCallback) : this(
             dependenciesRoot,
             dependenciesUrl,
-            dependencyToCandidates = properties.findCandidates(dependencies),
+            dependencyToCandidates = properties.findCandidates(
+                    // region @Tencent: Skip intranet-only packages unless this is an internal distribution.
+                    properties.dependenciesToResolve(dependencies)
+                    // endregion
+            ),
             airplaneMode = properties.airplaneMode,
             maxAttempts = properties.downloadingAttempts,
             attemptIntervalMs = properties.downloadingAttemptIntervalMs,
             keepUnstable = keepUnstable,
             archiveType = archiveType,
-            customProgressCallback = customProgressCallback)
+            customProgressCallback = customProgressCallback,
+            // region @Tencent: Pass the intranet package list and its download URL into the processor.
+            internalOnlyDependencies = properties.propertyList("internalOnlyDependencies").toSet(),
+            internalDependenciesUrl = properties.getProperty("internalDependenciesUrl"),
+            // endregion
+    )
 
 
     class DependencyFile(directory: File, fileName: String) {
@@ -300,16 +328,38 @@ class DependencyProcessor(
             RandomAccessFile(lockFile, "rw").use {
                 it.channel.lock().use {
                     remoteDependencies.forEach { (dependency, candidate) ->
-                        val baseUrl = when (candidate) {
-                            is DependencySource.Remote.Public -> if (candidate.subDirectory != null) {
-                                "$dependenciesUrl/${candidate.subDirectory}"
-                            } else {
-                                dependenciesUrl
-                            }
-                            DependencySource.Remote.Internal -> InternalServer.url
+                        // region @Tencent: Try the Tencent mirror first, then JetBrains. Intranet-only packages use internalDependenciesUrl.
+                        // Names in internalOnlyDependencies are published only on the intranet.
+                        // Every other dependency uses the public Tencent mirror, then JetBrains.
+                        val repoUrls = if (dependency in internalOnlyDependencies) {
+                            listOf(internalDependenciesUrl ?: error("internalDependenciesUrl is not set"))
+                        } else if (dependenciesUrl == KOTLIN_NATIVE_DEFAULT_DEPENDENCIES_REPO) {
+                            listOf(dependenciesUrl)
+                        } else {
+                            listOf(dependenciesUrl, KOTLIN_NATIVE_DEFAULT_DEPENDENCIES_REPO)
                         }
-                        // TODO: consider using different caches for different remotes.
-                        downloadDependency(dependency, baseUrl, archiveExtractor)
+                        val errors = repoUrls.mapNotNull { repoUrl ->
+                            val baseUrl = when (candidate) {
+                                is DependencySource.Remote.Public -> if (candidate.subDirectory != null) {
+                                    "$repoUrl/${candidate.subDirectory}"
+                                } else {
+                                    repoUrl
+                                }
+                                DependencySource.Remote.Internal -> InternalServer.url
+                            }
+                            try {
+                                // TODO: consider using different caches for different remotes.
+                                downloadDependency(dependency, baseUrl, archiveExtractor)
+                                return@forEach
+                            } catch (e: DependencyDownloader.HTTPResponseException) {
+                                e
+                            }
+                        }
+                        throw IOException(
+                            "Server returned HTTP response code: ${errors.joinToString { "${it.responseCode} for URL: ${it.url}" }}",
+                            errors.firstOrNull()
+                        )
+                        // endregion
                     }
                 }
             }

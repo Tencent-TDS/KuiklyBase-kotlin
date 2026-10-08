@@ -23,6 +23,17 @@ import org.jetbrains.kotlin.konan.target.parseKuiklyTargetsFilter
 
 // region @Tencent: kuikly build configuration.
 /**
+ * Gradle property name that toggles an internal (kuikly) distribution.
+ */
+const val KUIKLY_INTERNAL_PROPERTY = "kuikly.internal"
+
+/**
+ * Reads the [KUIKLY_INTERNAL_PROPERTY] Gradle property as a boolean, defaulting to `false`.
+ */
+fun Project.isKuiklyInternal(): Boolean =
+        findProperty(KUIKLY_INTERNAL_PROPERTY)?.toString()?.toBoolean() ?: false
+
+/**
  * Gradle property name that limits the set of built targets.
  */
 const val KUIKLY_TARGETS_PROPERTY = "kuikly.targets"

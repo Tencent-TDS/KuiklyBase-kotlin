@@ -56,6 +56,14 @@ open class PrepareKonanProperties @Inject constructor(
     @get:Input
     val llvmProperties: MapProperty<String, String> = objectFactory.mapProperty(String::class.java, String::class.java)
 
+    // region @Tencent: An internal distribution downloads internalOnlyDependencies.
+    /**
+     * Whether to mark the distribution as internal, so it downloads internalOnlyDependencies.
+     */
+    @get:Input
+    val internalDistribution: Property<Boolean> = objectFactory.property(Boolean::class.java)
+    // endregion
+
     @TaskAction
     fun prepare() {
         val output = output.get()
@@ -78,5 +86,10 @@ open class PrepareKonanProperties @Inject constructor(
             |# LLVM Version configuration:
             |$llvmPropertiesString
         """.trimMargin())
+        // region @Tencent: An internal distribution downloads internalOnlyDependencies.
+        if (internalDistribution.get()) {
+            output.asFile.appendText("\ndistributionInternal=true\n")
+        }
+        // endregion
     }
 }

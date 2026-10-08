@@ -51,7 +51,14 @@ open class PlatformManagerProvider @Inject constructor(
         }.getOrDefault(false)
         if (isNativeProtoDistribution) {
             // For proto distribution, we must patch the llvm distribution.
-            project.llvmDistributionSource.asProperties
+            val overrides = project.llvmDistributionSource.asProperties
+            // region @Tencent: Source konan.properties keeps distributionInternal=false. An internal build must see true, or internalOnlyDependencies stay unresolved.
+            if (project.isKuiklyInternal()) {
+                overrides + ("distributionInternal" to "true")
+            } else {
+                overrides
+            }
+            // endregion
         } else {
             // For any other distribution, we shouldn't change anything.
             emptyMap()
