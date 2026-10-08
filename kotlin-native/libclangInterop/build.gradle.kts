@@ -21,8 +21,10 @@ dependencies {
 
 nativeInteropPlugin {
     defFileName.set("clang.def")
-    usePrebuiltSources.set(false)
-    useBootstrapNativeDistribution.set(true)
+    // region @Tencent: Use the prebuilt clangstubs sources instead of generating them from LLVM headers.
+    usePrebuiltSources.set(true)
+    useBootstrapNativeDistribution.set(false)
+    // endregion
     commonCompilerArgs.set(emptyList<String>())
     cCompilerArgs.set(listOf("-std=c99"))
     cppCompilerArgs.set(listOf("-std=c++11"))
