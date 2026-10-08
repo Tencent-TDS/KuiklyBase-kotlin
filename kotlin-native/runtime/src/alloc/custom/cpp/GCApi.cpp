@@ -33,6 +33,13 @@
 #include "GCStatistics.hpp"
 #include "KAssert.h"
 #include "Memory.h"
+// region @Tencent: Name OHOS heap mappings and allocate them without MAP_POPULATE.
+#ifdef KONAN_OHOS
+#include <sys/prctl.h>
+#include <unistd.h>
+#include <cstdio>
+#endif
+// endregion
 
 namespace {
 std::atomic<size_t> allocatedBytesCounter;
@@ -119,6 +126,16 @@ void* kotlin::alloc::SafeAlloc(uint64_t size) noexcept {
     } else {
 #if KONAN_WINDOWS
         RuntimeFail("mmap is not available on mingw");
+// region @Tencent: Allocate the OHOS heap without MAP_POPULATE and name the mapping.
+#elif KONAN_OHOS
+        memory = mmap(nullptr, size, PROT_WRITE | PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
+        error = memory == MAP_FAILED;
+
+        int tid = gettid();
+        char name[32];
+        snprintf(name, sizeof(name), "Kotlin Heap %d", tid);
+        prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, memory, size, name);
+// endregion
 #elif KONAN_LINUX
         memory = mmap(nullptr, size, PROT_WRITE | PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE | MAP_POPULATE, -1, 0);
         error = memory == MAP_FAILED;

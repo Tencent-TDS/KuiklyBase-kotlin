@@ -1,0 +1,51 @@
+# 
+# Tencent is pleased to support the open source community by making TDS-KuiklyBase available.
+# Copyright (C) 2025 THL A29 Limited, a Tencent company. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+depends = posix
+package = platform.zlib
+headers = zconf.h zlib.h
+headerFilter = zlib.h
+compilerOpts = -DByte=uByte -DBytef=uBytef -D_ANSI_SOURCE -D_POSIX_C_SOURCE=199309 -D_BSD_SOURCE -D_XOPEN_SOURCE=700
+linkerOpts = -lz
+
+---
+#undef deflateInit
+static inline int deflateInit(z_streamp strm, int level) {
+	return deflateInit_(strm, level, ZLIB_VERSION, (int)sizeof(z_stream));
+}
+
+#undef deflateInit2
+static inline int deflateInit2(z_streamp strm, int level, int method,
+                               int windowBits, int memLevel, int strategy) {
+	return deflateInit2_(strm, level, method, windowBits, memLevel,
+                         strategy, ZLIB_VERSION, (int)sizeof(z_stream));
+}
+
+#undef inflateInit
+static inline int inflateInit(z_streamp strm) {
+	return inflateInit_(strm, ZLIB_VERSION, (int)sizeof(z_stream));
+}
+
+#undef inflateInit2
+static inline int inflateInit2(z_streamp strm, int windowBits) {
+    return inflateInit2_(strm, windowBits, ZLIB_VERSION, (int)sizeof(z_stream));
+}
+
+#undef inflateBackInit
+static inline int inflateBackInit(z_streamp strm, int windowBits, unsigned char *window) {
+    return inflateBackInit_(strm, windowBits, window, ZLIB_VERSION, (int)sizeof(z_stream));
+}

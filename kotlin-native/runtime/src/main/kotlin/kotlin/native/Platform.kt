@@ -21,7 +21,10 @@ public enum class OsFamily {
     ANDROID,
     WASM,
     TVOS,
-    WATCHOS
+    WATCHOS,
+    // region @Tencent: Add OsFamily.OHOS.
+    OHOS
+    // endregion
 }
 
 /**

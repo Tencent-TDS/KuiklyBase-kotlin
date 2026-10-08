@@ -35,7 +35,9 @@ enum class LinkerOutputKind {
 // archives that every target's linker accepts, so it replaces the assortment of host/target-specific GNU `ar` versions
 // and the undocumented thin-archive flattening trick they relied on (which doesn't even work with llvm-ar).
 // See KT-84037; `llvmAr` is the bundled `<llvmHome>/bin/llvm-ar`, which is present for all hosts.
-private fun llvmArStaticLibraryCommands(
+// region @Tencent: Share llvm-ar static library commands with OhosLinker.
+internal fun llvmArStaticLibraryCommands(
+// endregion
     llvmAr: String,
     executable: ExecutableFile,
     objectFiles: List<ObjectFile>,
@@ -544,5 +546,8 @@ fun linker(configurables: Configurables): LinkerFlags =
             is AppleConfigurables -> MacOSBasedLinker(configurables)
             is AndroidConfigurables-> AndroidLinker(configurables)
             is MingwConfigurables -> MingwLinker(configurables)
+            // region @Tencent: Link Family.OHOS with OhosLinker.
+            is OhosConfigurables -> OhosLinker(configurables)
+            // endregion
             else -> error("Unexpected target: ${configurables.target}")
         }

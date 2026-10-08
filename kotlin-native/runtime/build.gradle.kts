@@ -243,7 +243,11 @@ bitcode {
                 TargetArchitecture.X86, TargetArchitecture.ARM32 -> 32
             }
             val useMachO = target.family.isAppleFamily
-            val useElf = target.family in listOf(Family.LINUX, Family.ANDROID)
+            val useElf = target.family in listOf(Family.LINUX, Family.ANDROID,
+                    // region @Tencent: Build libbacktrace against ELF on OHOS.
+                    Family.OHOS,
+                    // endregion
+            )
 
             sourceSets {
                 main {

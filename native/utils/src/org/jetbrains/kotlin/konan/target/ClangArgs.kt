@@ -159,6 +159,18 @@ sealed class ClangArgs(
             }
         }
 
+        // region @Tencent: Pass the OHOS CPU and the libcxx include path official clang does not search.
+        KonanTarget.OHOS_ARM64 -> {
+            val ohos = configurables as OhosConfigurables
+            listOf(
+                "-mcpu=${configurables.targetCpu}",
+                "-I${ohos.libcxxInclude}",
+                "-I$absoluteTargetSysRoot/usr/include",
+                "-I$absoluteTargetSysRoot/usr/include/$targetTriple",
+            )
+        }
+        // endregion
+
         else -> emptyList()
     }
 

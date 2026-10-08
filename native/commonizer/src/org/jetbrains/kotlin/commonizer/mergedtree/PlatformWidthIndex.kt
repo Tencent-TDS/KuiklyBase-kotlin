@@ -36,6 +36,9 @@ object PlatformWidthIndex {
         LeafCommonizerTarget(KonanTarget.MACOS_ARM64) to PlatformIntWidth.LONG,
         LeafCommonizerTarget(KonanTarget.LINUX_ARM64) to PlatformIntWidth.LONG,
         LeafCommonizerTarget(KonanTarget.LINUX_ARM32_HFP) to PlatformIntWidth.INT,
+        // region @Tencent: Treat ohos_arm64 as a 64-bit commonizer leaf.
+        LeafCommonizerTarget(KonanTarget.OHOS_ARM64) to PlatformIntWidth.LONG
+        // endregion
     )
 
     fun platformWidthOf(target: CommonizerTarget): PlatformIntWidth? {

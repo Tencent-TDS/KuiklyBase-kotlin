@@ -132,5 +132,8 @@ internal val konanTargetNameMapping = mapOf(
     "linux_arm32_hfp" to "linuxArm32Hfp",
     "mingw_x86" to "mingwX86",
     "wasm-wasi" to "wasmWasi",
-    "wasm-js" to "wasmJs"
+    "wasm-js" to "wasmJs",
+    // region @Tencent: Map ohos_arm64 to the ohosArm64 preset name.
+    "ohos_arm64" to "ohosArm64"
+    // endregion
 )

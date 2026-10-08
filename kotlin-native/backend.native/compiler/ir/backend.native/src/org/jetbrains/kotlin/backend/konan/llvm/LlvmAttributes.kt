@@ -42,6 +42,9 @@ private fun shouldEnforceFramePointer(context: Context): Boolean {
 
     return when (context.config.target.family) {
         Family.OSX, Family.IOS, Family.WATCHOS, Family.TVOS -> context.shouldContainLocationDebugInfo()
+        // region @Tencent: Do not sign returns on OHOS.
+        Family.OHOS,
+        // endregion
         Family.LINUX, Family.MINGW, Family.ANDROID -> false
     }
 }

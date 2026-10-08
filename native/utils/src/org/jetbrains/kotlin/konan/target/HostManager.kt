@@ -57,6 +57,9 @@ open class HostManager() {
         ANDROID_X64,
         ANDROID_ARM32,
         ANDROID_ARM64,
+        // region @Tencent: Cross-compile ohos_arm64 from every host.
+        OHOS_ARM64,
+        // endregion
     )
 
     private val appleTargets = setOf(

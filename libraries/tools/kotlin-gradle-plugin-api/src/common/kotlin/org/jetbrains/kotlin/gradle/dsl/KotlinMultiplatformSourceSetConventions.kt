@@ -405,6 +405,24 @@ interface KotlinMultiplatformSourceSetConventions {
      */
     val NamedDomainObjectContainer<KotlinSourceSet>.linuxTest: NamedDomainObjectProvider<KotlinSourceSet>
 
+    // region @Tencent: Declare ohosMain and ohosTest source sets.
+    /**
+     * Static accessor for shared kotlin Source Set between all declared OHOS targets.
+     * Declare at least one of the targets mentioned above to access this source set.
+     *
+     * @since 2.4.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.ohosMain: NamedDomainObjectProvider<KotlinSourceSet>
+
+    /**
+     * Static accessor for shared kotlin Source Set between all declared OHOS targets.
+     * Declare at least one of the targets mentioned above to access this source set.
+     *
+     * @since 2.4.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.ohosTest: NamedDomainObjectProvider<KotlinSourceSet>
+    // endregion
+
     /**
      * Static accessor for shared kotlin Source Set between all declared Mingw targets.
      * Declare at least one of the targets mentioned above to access this source set.
@@ -1164,6 +1182,24 @@ interface KotlinMultiplatformSourceSetConventions {
      * @since 2.0.20
      */
     val NamedDomainObjectContainer<KotlinSourceSet>.linuxArm64Test: NamedDomainObjectProvider<KotlinSourceSet>
+
+    // region @Tencent: Declare ohosArm64Main and ohosArm64Test source sets.
+    /**
+     * Static accessor for the main Kotlin Source Set of ohosArm64 target.
+     * Declare ohosArm64 target to access this source set.
+     *
+     * @since 2.4.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.ohosArm64Main: NamedDomainObjectProvider<KotlinSourceSet>
+
+    /**
+     * Static accessor for the test Kotlin Source Set of ohosArm64 target.
+     * Declare ohosArm64 target to access this source set.
+     *
+     * @since 2.4.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.ohosArm64Test: NamedDomainObjectProvider<KotlinSourceSet>
+    // endregion
 
     /**
      * Static accessor for the main Kotlin Source Set of linuxX64 target.

@@ -199,6 +199,9 @@ abstract class AbstractNativeCInteropTest : AbstractNativeCInteropBaseTest() {
             KonanTarget.LINUX_ARM32_HFP -> "ARM32"
             KonanTarget.LINUX_ARM64 -> "ARM64"
             KonanTarget.LINUX_X64 -> "X64"
+            // region @Tencent: Expect ARM64 pointer names for ohos_arm64 cinterop.
+            KonanTarget.OHOS_ARM64 -> "ARM64"
+            // endregion
             KonanTarget.MACOS_ARM64 -> "CPointerByteVar"
             KonanTarget.MACOS_X64 -> "X64"
             KonanTarget.MINGW_X64 -> "CPointerByteVar"

@@ -440,6 +440,24 @@ interface KotlinTargetContainerWithPresetFunctions : KotlinTargetsContainer {
 
     fun linuxArm64(configure: Action<KotlinNativeTarget>) = linuxArm64 { configure.execute(this) }
 
+    // region @Tencent: Register the ohosArm64 Kotlin/Native target.
+    fun ohosArm64(
+        name: String = "ohosArm64",
+        configure: KotlinNativeTarget.() -> Unit = { }
+    ): KotlinNativeTarget
+
+    fun ohosArm64() = ohosArm64("ohosArm64") { }
+
+    fun ohosArm64(name: String) = ohosArm64(name) { }
+
+    fun ohosArm64(
+        name: String,
+        configure: Action<KotlinNativeTarget>
+    ) = ohosArm64(name) { configure.execute(this) }
+
+    fun ohosArm64(configure: Action<KotlinNativeTarget>) = ohosArm64 { configure.execute(this) }
+    // endregion
+
     @Deprecated(DEPRECATED_TARGET_MESSAGE, level = DeprecationLevel.WARNING)
     fun linuxArm32Hfp(
         name: String = "linuxArm32Hfp",
@@ -732,6 +750,19 @@ internal abstract class DefaultKotlinTargetContainerWithPresetFunctions @Inject 
             project,
             configure
         )
+
+    // region @Tencent: Create the ohosArm64 target from its preset.
+    override fun ohosArm64(
+        name: String,
+        configure: KotlinNativeTarget.() -> Unit
+    ): KotlinNativeTarget =
+        configureOrCreate(
+            name,
+            presets.getByName("ohosArm64") as KotlinNativeTargetPreset,
+            project,
+            configure
+        )
+    // endregion
 
     @Deprecated(DEPRECATED_TARGET_MESSAGE, level = DeprecationLevel.WARNING)
     override fun linuxArm32Hfp(

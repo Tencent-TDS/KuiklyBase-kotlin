@@ -199,6 +199,15 @@ interface KotlinHierarchyBuilder {
      */
     fun withLinux()
 
+    // region @Tencent: Group declared OHOS targets.
+    /**
+     * Only includes Kotlin's OHOS targets in this [group].
+     *
+     * For more information, see [Native targets overview](https://kotlinlang.org/docs/native-target-support.html).
+     */
+    fun withOhos()
+    // endregion
+
     /**
      * Only includes Kotlin's Android/Native targets in this [group].
      *
@@ -370,4 +379,13 @@ interface KotlinHierarchyBuilder {
      * For more information, see [Native targets overview](https://kotlinlang.org/docs/native-target-support.html).
      */
     fun withLinuxArm64()
+
+    // region @Tencent: Include only the ohosArm64 target.
+    /**
+     * Only includes Kotlin's ohosArm64 target in this [group].
+     *
+     * For more information, see [Native targets overview](https://kotlinlang.org/docs/native-target-support.html).
+     */
+    fun withOhosArm64()
+    // endregion
 }

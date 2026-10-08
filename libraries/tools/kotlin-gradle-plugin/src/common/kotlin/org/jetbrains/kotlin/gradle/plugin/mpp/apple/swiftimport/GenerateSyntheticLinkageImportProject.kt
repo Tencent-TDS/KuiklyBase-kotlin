@@ -405,6 +405,9 @@ internal abstract class GenerateSyntheticLinkageImportProject : DefaultTask(), U
                 Family.LINUX,
                 Family.MINGW,
                 Family.ANDROID,
+                // region @Tencent: OHOS is not a SwiftPM import target.
+                Family.OHOS,
+                // endregion
                     -> error("Unexpected SwiftPM import family: $it")
             }
         }

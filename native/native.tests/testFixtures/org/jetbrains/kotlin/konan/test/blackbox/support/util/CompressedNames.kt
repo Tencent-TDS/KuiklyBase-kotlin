@@ -30,6 +30,9 @@ internal val Family.compressedName: Char
         Family.LINUX -> 'l'
         Family.MINGW -> 'm'
         Family.ANDROID -> 'a'
+        // region @Tencent: Use h as the compressed family name for OHOS.
+        Family.OHOS -> 'h'
+        // endregion
     }
 
 internal val Architecture.compressedName: String

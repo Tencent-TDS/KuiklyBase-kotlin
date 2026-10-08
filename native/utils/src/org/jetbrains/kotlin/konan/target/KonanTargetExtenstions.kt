@@ -18,6 +18,9 @@ fun KonanTarget.binaryFormat() = when (family) {
     Family.OSX -> BinaryFormat.MACH_O
     Family.ANDROID -> BinaryFormat.ELF
     Family.LINUX -> BinaryFormat.ELF
+    // region @Tencent: Use ELF for OHOS binaries.
+    Family.OHOS -> BinaryFormat.ELF
+    // endregion
     Family.MINGW -> BinaryFormat.PE_COFF
 }
 
@@ -32,6 +35,9 @@ fun KonanTarget.supportsLibBacktrace(): Boolean =
         this.family.isAppleFamily ||
                 this.family == Family.LINUX ||
                 this.family == Family.ANDROID
+                // region @Tencent: Allow libbacktrace source info on OHOS.
+                || this.family == Family.OHOS
+                // endregion
 
 // TODO: Add explicit WATCHOS_DEVICE_ARM64 after compiler update.
 fun KonanTarget.supportsCoreSymbolication(): Boolean =
@@ -41,7 +47,9 @@ fun KonanTarget.supportsCoreSymbolication(): Boolean =
                 KonanTarget.WATCHOS_X64, KonanTarget.WATCHOS_SIMULATOR_ARM64
         )
 
-fun KonanTarget.supportsGccUnwind(): Boolean = family == Family.ANDROID || family == Family.LINUX
+// region @Tencent: OHOS uses the GCC unwind personality.
+fun KonanTarget.supportsGccUnwind(): Boolean = family == Family.ANDROID || family == Family.LINUX || family == Family.OHOS
+// endregion
 // MINGW_X64 target does not support GCC unwind, since its sysroot contains libgcc version < 12 having misfeature, see KT-49240
 fun KonanTarget.supportsWinAPIUnwind(): Boolean = this is KonanTarget.MINGW_X64
 

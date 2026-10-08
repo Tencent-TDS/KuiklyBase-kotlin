@@ -50,6 +50,12 @@ internal object KotlinMultiplatformSourceSetConventionsImpl : KotlinMultiplatfor
 
     override val NamedDomainObjectContainer<KotlinSourceSet>.linuxTest by KotlinSourceSetConvention
 
+    // region @Tencent: Provide ohosMain and ohosTest source sets.
+    override val NamedDomainObjectContainer<KotlinSourceSet>.ohosMain by KotlinSourceSetConvention
+
+    override val NamedDomainObjectContainer<KotlinSourceSet>.ohosTest by KotlinSourceSetConvention
+    // endregion
+
     override val NamedDomainObjectContainer<KotlinSourceSet>.mingwMain by KotlinSourceSetConvention
 
     override val NamedDomainObjectContainer<KotlinSourceSet>.mingwTest by KotlinSourceSetConvention
@@ -131,6 +137,12 @@ internal object KotlinMultiplatformSourceSetConventionsImpl : KotlinMultiplatfor
     override val NamedDomainObjectContainer<KotlinSourceSet>.linuxArm64Main by KotlinSourceSetConvention
 
     override val NamedDomainObjectContainer<KotlinSourceSet>.linuxArm64Test by KotlinSourceSetConvention
+
+    // region @Tencent: Provide ohosArm64Main and ohosArm64Test source sets.
+    override val NamedDomainObjectContainer<KotlinSourceSet>.ohosArm64Main by KotlinSourceSetConvention
+
+    override val NamedDomainObjectContainer<KotlinSourceSet>.ohosArm64Test by KotlinSourceSetConvention
+    // endregion
 
     override val NamedDomainObjectContainer<KotlinSourceSet>.linuxX64Main by KotlinSourceSetConvention
 

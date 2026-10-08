@@ -17,6 +17,11 @@ enum class Family(
     TVOS("kexe", "lib", "dylib", "lib", "a"),
     WATCHOS("kexe", "lib", "dylib", "lib", "a"),
     LINUX("kexe", "lib", "so", "lib", "a"),
+
+    // region @Tencent: Add the OHOS family and its binary suffixes.
+    OHOS("kexe", "lib", "so", "lib", "a"),
+    // endregion
+
     MINGW("exe", "", "dll", "lib", "a"),
     ANDROID("kexe", "lib", "so", "lib", "a");
 

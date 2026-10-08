@@ -478,6 +478,10 @@ public abstract interface class org/jetbrains/kotlin/gradle/dsl/KotlinMultiplatf
 	public abstract fun getMingwX64Test (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
 	public abstract fun getNativeMain (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
 	public abstract fun getNativeTest (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
+	public abstract fun getOhosArm64Main (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
+	public abstract fun getOhosArm64Test (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
+	public abstract fun getOhosMain (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
+	public abstract fun getOhosTest (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
 	public abstract fun getTvosArm64Main (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
 	public abstract fun getTvosArm64Test (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
 	public abstract fun getTvosMain (Lorg/gradle/api/NamedDomainObjectContainer;)Lorg/gradle/api/NamedDomainObjectProvider;
@@ -1044,6 +1048,8 @@ public abstract interface class org/jetbrains/kotlin/gradle/plugin/KotlinHierarc
 	public abstract fun withMingw ()V
 	public abstract fun withMingwX64 ()V
 	public abstract fun withNative ()V
+	public abstract fun withOhos ()V
+	public abstract fun withOhosArm64 ()V
 	public abstract fun withTvos ()V
 	public abstract fun withTvosArm64 ()V
 	public abstract fun withTvosSimulatorArm64 ()V

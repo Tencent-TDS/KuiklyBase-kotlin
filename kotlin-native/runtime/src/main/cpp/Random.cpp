@@ -9,7 +9,9 @@
 
 #if KONAN_MACOSX || KONAN_IOS || KONAN_TVOS || KONAN_WATCHOS || KONAN_ANDROID
 #include <stdlib.h>
-#elif KONAN_LINUX
+// region @Tencent: Include the getrandom headers on OHOS.
+#elif KONAN_LINUX || KONAN_OHOS
+// endregion
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <errno.h>
@@ -27,7 +29,9 @@
 
 namespace {
 
-#if KONAN_LINUX || KONAN_WINDOWS
+// region @Tencent: Report getrandom failures on OHOS.
+#if KONAN_LINUX || KONAN_WINDOWS || KONAN_OHOS
+// endregion
 RUNTIME_NORETURN __attribute__((format(printf, 1, 2))) void throwReadingRandomBytesFailed(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -55,7 +59,9 @@ void Kotlin_Uuid_getRandomBytes(KRef byteArray, KInt size) {
 
 #if KONAN_MACOSX || KONAN_IOS || KONAN_TVOS || KONAN_WATCHOS || KONAN_ANDROID
     arc4random_buf(address, size);
-#elif KONAN_LINUX
+// region @Tencent: Read random bytes with getrandom on OHOS.
+#elif KONAN_LINUX || KONAN_OHOS
+// endregion
     long count = 0;
     while (count < size) {
         long ret = syscall(SYS_getrandom, address + count, size - count, 0); // blocking

@@ -38,6 +38,10 @@ fun loadConfigurables(
 ): Configurables = when (target.family) {
     Family.LINUX -> GccConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
 
+    // region @Tencent: Select OHOS configurables for Family.OHOS.
+    Family.OHOS -> OhosConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
+    // endregion
+
     Family.TVOS, Family.WATCHOS, Family.IOS, Family.OSX -> AppleConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)
 
     Family.ANDROID -> AndroidConfigurablesImpl(target, properties, dependenciesRoot, progressCallback)

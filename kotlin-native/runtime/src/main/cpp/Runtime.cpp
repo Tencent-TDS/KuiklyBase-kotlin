@@ -221,6 +221,10 @@ KInt Konan_Platform_getOsFamily() {
   return 1;
 #elif KONAN_IOS
   return 2;
+// region @Tencent: Report OsFamily.OHOS.
+#elif KONAN_OHOS
+  return 9;
+// endregion
 #elif KONAN_LINUX
   return 3;
 #elif KONAN_WINDOWS
