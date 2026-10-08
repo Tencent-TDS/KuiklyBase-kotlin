@@ -10,3 +10,5 @@ repository: monorepo
 ## Project Guidelines
 
 **CRITICAL: [guidelines.md](../.ai/guidelines.md) MUST be followed at all times.**
+
+**Fork edits: [fork.md](../.ai/fork.md) MUST be followed for every change on this tree.**

@@ -49,6 +49,10 @@ build/
 .idea/protoeditor.xml
 .idea/uiDesigner.xml
 .idea/copilot.data.migration.*.xml
+# region @Tencent: Ignore Copilot chat transcripts under .idea.
+.idea/CopilotChatHistory.xml
+.idea/CopilotChatTabs.xml
+# endregion
 .idea/junie.xml
 node_modules/
 .rpt2_cache/

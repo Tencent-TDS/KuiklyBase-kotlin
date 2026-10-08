@@ -11,6 +11,8 @@ repository: monorepo
 
 **CRITICAL: @./.ai/guidelines.md guidelines MUST be followed at all times.**
 
+**Fork edits: @./.ai/fork.md MUST be followed for every change on this tree.**
+
 ## Individual Preferences
 
 **Local Preferences:** @./.claude/local.md
