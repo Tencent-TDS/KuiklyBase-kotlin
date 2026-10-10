@@ -52,4 +52,51 @@ class StructRenderingTests : InteropTestsBase() {
                 tryRenderStructOrUnion(getUnionDef("SupportedValue"))
         )
     }
+
+    // region @Tencent: Test anonymous inner struct whose members are only bitfields.
+    @Test
+    fun anonymousInnerStructWithOnlyBitFields() {
+        val files = TempFiles("anonymousInnerStructWithOnlyBitFields")
+        val header = files.file("header.h", """
+            struct MemExtendedParameterLike {
+                struct {
+                    unsigned long long Type : 8;
+                    unsigned long long Reserved : 56;
+                };
+                union {
+                    unsigned long long ULong64;
+                    void* Pointer;
+                };
+            };
+
+            struct RegularAnonymousInner {
+                struct {
+                    int a;
+                    int b;
+                };
+                int c;
+            };
+        """.trimIndent())
+        val defFile = files.file("anonymousInnerStructWithOnlyBitFields.def", """
+            headers = ${header.name}
+        """.trimIndent())
+
+        val library = buildNativeLibraryFrom(defFile, files.directory)
+        val index = buildNativeIndex(library, verbose = false).index
+
+        fun getStructDef(name: String): StructDef {
+            return index.structs.find { it.spelling == "struct $name" }!!.def!!
+        }
+
+        assertEquals(
+                null,
+                tryRenderStructOrUnion(getStructDef("MemExtendedParameterLike"))
+        )
+
+        assertEquals(
+                "struct  { struct  { int a; int b; }; int c; }",
+                tryRenderStructOrUnion(getStructDef("RegularAnonymousInner"))
+        )
+    }
+    // endregion
 }

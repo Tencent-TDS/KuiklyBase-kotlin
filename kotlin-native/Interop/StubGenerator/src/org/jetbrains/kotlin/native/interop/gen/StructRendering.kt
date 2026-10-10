@@ -64,6 +64,10 @@ private fun tryRenderStruct(def: StructDef): String? {
                 is BitField, // TODO: tryRenderVar(it.type, name)?.plus(" : ${it.size}")
                 is IncompleteField -> null // e.g. flexible array member.
                 is AnonymousInnerRecord -> {
+                    // region @Tencent: Skip anonymous inner structs containing only bitfields.
+                    // offsetBytes ignores bitfields, so the old "null offset => empty record" assert would fail.
+                    if (it.isAnonymousStructWithOnlyBitFields()) return null
+                    // endregion
                     // No need to advance offset if offsetBytes is null 'cause it means that record is empty. Assert that.
                     assert(it.offsetBytes != null || it.typeSize == 0L)
                     it.offsetBytes?.let { offsetBytes ->
@@ -133,3 +137,12 @@ private val AnonymousInnerRecord.offsetBytes: Long?
     get() {
         return def.fields.firstOrNull()?.offsetBytes
     }
+
+// region @Tencent: Check whether an anonymous inner struct consists only of bitfields.
+private fun AnonymousInnerRecord.isAnonymousStructWithOnlyBitFields(): Boolean {
+    if (def.kind != StructDef.Kind.STRUCT) return false
+    if (offsetBytes != null || typeSize == 0L) return false
+    val members = def.members
+    return members.isNotEmpty() && members.all { it is BitField }
+}
+// endregion
