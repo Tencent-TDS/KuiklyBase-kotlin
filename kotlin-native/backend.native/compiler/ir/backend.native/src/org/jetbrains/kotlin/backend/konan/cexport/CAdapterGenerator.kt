@@ -58,6 +58,10 @@ private fun isExportedFunction(descriptor: FunctionDescriptor): Boolean {
         return false
     if (descriptor.contextReceiverParameters.any())
         return false
+    // region @Tencent: Exclude functions annotated with HiddenFromC from C export.
+    if (descriptor.isHiddenFromC())
+        return false
+    // endregion
     return !descriptor.typeParameters.any()
 }
 
@@ -72,6 +76,10 @@ private fun isExportedClass(descriptor: ClassDescriptor): Boolean {
     if (!descriptor.declaredTypeParameters.isEmpty()) return false
     // Do not export inline classes for now. TODO: add proper support.
     if (descriptor.isInlined()) return false
+    // region @Tencent: Exclude classes annotated with HiddenFromC from C export.
+    if (descriptor.isHiddenFromC())
+        return false
+    // endregion
 
     return true
 }

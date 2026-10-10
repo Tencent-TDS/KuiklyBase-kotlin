@@ -122,6 +122,17 @@ public annotation class NoInline
 @Retention(AnnotationRetention.BINARY)
 public actual annotation class CName(actual val externName: String = "", actual val shortName: String = "")
 
+// region @Tencent: Declare the actual HiddenFromC annotation.
+/**
+ * Instructs the Kotlin compiler to remove this class, function or property from the public C API.
+ */
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+@MustBeDocumented
+@SinceKotlin("2.0")
+public actual annotation class HiddenFromC
+// endregion
+
 /**
  * Instructs the Kotlin compiler to use a custom Objective-C and/or Swift name for this class, property, parameter or function.
  * @param exact specifies if the name of a class should be interpreted as the exact name.

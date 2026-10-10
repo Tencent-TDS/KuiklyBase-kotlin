@@ -96,6 +96,14 @@ public class LLReversedNativeDiagnosticsTestGenerated extends AbstractLLReversed
     run("forwardDeclarations.kt");
   }
 
+  // region @Tencent: Run the HiddenFromC native diagnostics test.
+  @Test
+  @TestMetadata("hiddenFromC.kt")
+  public void testHiddenFromC() {
+    run("hiddenFromC.kt");
+  }
+  // endregion
+
   @Test
   @TestMetadata("identifiers.kt")
   public void testIdentifiers() {

@@ -37,6 +37,9 @@ object KonanFqNames {
     val gcUnsafeCall = NativeRuntimeNames.Annotations.gcUnsafeCallClassId.asSingleFqName()
     val eagerInitialization = FqName("kotlin.native.EagerInitialization")
     val noReorderFields = FqName("kotlin.native.internal.NoReorderFields")
+    // region @Tencent: Add the HiddenFromC annotation FqName.
+    val hiddenFromC = FqName("kotlin.native.HiddenFromC")
+    // endregion
     val objCName = FqName("kotlin.native.ObjCName")
     val objCEnum = FqName("kotlin.native.ObjCEnum")
     val objCEnumEntryName = FqName("kotlin.native.ObjCEnum.EntryName")

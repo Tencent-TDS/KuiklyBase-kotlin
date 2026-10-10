@@ -23,6 +23,18 @@ import kotlin.experimental.ExperimentalObjCRefinement
 @OptionalExpectation
 public expect annotation class CName(val externName: String = "", val shortName: String = "")
 
+// region @Tencent: Declare the expect HiddenFromC annotation.
+/**
+ * Instructs the Kotlin compiler to remove this class, function or property from the public C API.
+ */
+@Target(AnnotationTarget.PROPERTY, AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+@MustBeDocumented
+@OptionalExpectation
+@SinceKotlin("2.0")
+public expect annotation class HiddenFromC()
+// endregion
+
 /**
  * Freezing API has been deprecated since Kotlin 1.7.20,
  * and support for the legacy memory manager was completely removed from the compiler in 1.9.20.

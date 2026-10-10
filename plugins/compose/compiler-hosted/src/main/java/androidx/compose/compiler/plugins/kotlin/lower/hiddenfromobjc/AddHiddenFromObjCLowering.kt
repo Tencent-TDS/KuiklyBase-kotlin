@@ -32,12 +32,16 @@ import org.jetbrains.kotlin.ir.expressions.impl.fromSymbolOwner
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.constructors
+import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isLocal
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.platform.konan.isNative
 
 val hiddenFromObjCClassId = ClassId.fromString("kotlin/native/HiddenFromObjC")
+// region @Tencent: Add the ClassId for HiddenFromC.
+val hiddenFromCClassId = ClassId.fromString("kotlin/native/HiddenFromC")
+// endregion
 
 /**
  *  AddHiddenFromObjCLowering looks for functions and properties with @Composable types and
@@ -59,6 +63,12 @@ class AddHiddenFromObjCLowering(
     private val hiddenFromObjCAnnotation: IrClassSymbol by lazy {
         getTopLevelClass(hiddenFromObjCClassId)
     }
+
+    // region @Tencent: Resolve the HiddenFromC annotation class when available.
+    private val hiddenFromCAnnotation: IrClassSymbol? by lazy {
+        getTopLevelClassOrNull(hiddenFromCClassId)
+    }
+    // endregion
 
     private var currentShouldAnnotateClass = false
 
@@ -84,6 +94,9 @@ class AddHiddenFromObjCLowering(
         // data classes can't be open, so it should work.
         if (currentShouldAnnotateClass && cls.isData) {
             cls.addHiddenFromObjCAnnotation()
+            // region @Tencent: Mark composable data classes with HiddenFromC.
+            cls.addHiddenFromCAnnotationIfPossible()
+            // endregion
         }
 
         currentShouldAnnotateClass = previousShouldAnnotateClass
@@ -104,6 +117,9 @@ class AddHiddenFromObjCLowering(
 
         if (f.hasComposableAnnotation() || f.needsComposableRemapping()) {
             f.addHiddenFromObjCAnnotation()
+            // region @Tencent: Mark composable functions with HiddenFromC.
+            f.addHiddenFromCAnnotationIfPossible()
+            // endregion
             currentShouldAnnotateClass = true
         }
 
@@ -120,6 +136,11 @@ class AddHiddenFromObjCLowering(
 
         if (shouldAdd) {
             p.addHiddenFromObjCAnnotation()
+            // region @Tencent: Mark composable properties and their accessors with HiddenFromC.
+            p.addHiddenFromCAnnotationIfPossible()
+            p.getter?.addHiddenFromCAnnotationIfPossible()
+            p.setter?.addHiddenFromCAnnotationIfPossible()
+            // endregion
             currentShouldAnnotateClass = true
         }
 
@@ -136,4 +157,22 @@ class AddHiddenFromObjCLowering(
         )
         pluginContext.metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(this, annotation)
     }
+
+    // region @Tencent: Add the HiddenFromC annotation to a declaration and its metadata.
+    /**
+     * We will add a new annotation class @HiddenFromC to Kotlin to prevent declarations to be exported to C API.
+     * hiddenFromCAnnotation may be null if compiled with older Kotlin versions.
+     */
+    private fun IrDeclaration.addHiddenFromCAnnotationIfPossible() {
+        if (!hasFirDeclaration() || hasAnnotation(hiddenFromCClassId)) {
+            return
+        }
+        val hiddenFromCAnnotation = hiddenFromCAnnotation ?: return
+        val annotation = IrAnnotationImpl.fromSymbolOwner(
+            type = hiddenFromCAnnotation.defaultType,
+            constructorSymbol = hiddenFromCAnnotation.constructors.first()
+        )
+        pluginContext.metadataDeclarationRegistrar.addMetadataVisibleAnnotationsToElement(this, annotation)
+    }
+    // endregion
 }
