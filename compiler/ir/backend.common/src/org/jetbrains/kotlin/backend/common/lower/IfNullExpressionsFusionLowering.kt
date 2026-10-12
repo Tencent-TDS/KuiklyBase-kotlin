@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getPrimitiveType
+import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.util.isNullable
 import org.jetbrains.kotlin.ir.util.isTrivial
 import org.jetbrains.kotlin.ir.util.shallowCopy
@@ -228,7 +229,16 @@ class IfNullExpressionsFusionLowering(val context: CommonBackendContext) : FileL
             val outer = matchIfNullExpr() ?: return this
             // We are going to erase 1st variable. Do so only if it is temporary (true for variables introduced for '?.' and '?:').
             if (outer.subjectVar.origin != IrDeclarationOrigin.IR_TEMPORARY_VARIABLE) return this
-            val inner = outer.subjectVar.initializer?.matchIfNullExpr() ?: return this
+            // region @Tencent: This change aims to simplify the case 'IfNull(a, T, b, f(T))' into 'val T = a; f(T)'
+            //            when 'a' is a nonnull primitive value. This is safe and guaranteed by the Kotlin type system.
+            val inner = outer.subjectVar.initializer?.matchIfNullExpr()
+                ?: return if (outer.subjectVar.type.isPrimitiveType(false)) {
+                    outer.createIrBuilder().irBlock {
+                        +outer.subjectVar
+                        +outer.ifNotNullExpr
+                    } as IrBlock
+                } else this
+            // endregion
 
             val innerKeepsNull = inner.ifNullExpr.isNull(inner.subjectVar.symbol, true)
             val innerDiscardsNonNull = inner.ifNotNullExpr.isNull(inner.subjectVar.symbol, false)
@@ -280,8 +290,25 @@ class IfNullExpressionsFusionLowering(val context: CommonBackendContext) : FileL
                     if (context.optimizeNullChecksUsingKotlinNullability && !type.isNullable()) false else null
                 is IrGetField ->
                     if (context.optimizeNullChecksUsingKotlinNullability && !type.isNullable()) false else null
+                // region @Tencent: This optimization happens after inline and inline function calls are transformed into
+                //          IrInlinedFunctionBlocks with several statements which will not match the condition of
+                //          the IrBlock branch below.
+                //          This change will make inline function calls adapted to the IfNull optimization, for example:
+                //          "X?.i?.let { it + 1 } ?: j" will be lowered into:
+                //            IfNull(X, T0, j, IfNull(T0.i.let { it + 1 }, T1, j, T1)) as before,
+                //          and IfNull(X, T0, j, T0.i.let { it + 1 })) now.
+                is IrInlinedFunctionBlock -> {
+                    val lastExpr = statements.lastOrNull()
+                    if (lastExpr is IrReturn && lastExpr.value.type == type)
+                        lastExpr.value.isNull(knownVariableSymbol, knownVariableIsNull)
+                    else
+                        null
+                }
+                // endregion
                 is IrBlock -> {
-                    val singleExpr = statements.singleOrNull()
+                    // region @Tencent: Also unwrap INLINE_ARGS_CONTAINER blocks produced by FunctionInlining in 2.4+.
+                    val singleExpr = if (origin == IrStatementOrigin.INLINE_ARGS_CONTAINER) statements.lastOrNull() else statements.singleOrNull()
+                    // endregion
                     if (singleExpr is IrExpression && singleExpr.type == type)
                         singleExpr.isNull(knownVariableSymbol, knownVariableIsNull)
                     else

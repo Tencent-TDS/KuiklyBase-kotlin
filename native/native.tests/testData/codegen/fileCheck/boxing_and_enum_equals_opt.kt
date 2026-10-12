@@ -82,6 +82,23 @@ fun testSafeCallEqeqSafeCall(a: Holder?, b: Holder?): Int {
     return if (a?.i == b?.i) 1 else 0
 }
 
+// CHECK-LABEL: define i32 @"kfun:#testIfNullOnNonnullPrimitive(kotlin.Int){}kotlin.Int"
+// CHECK-NOT: <Int-box>
+// CHECK-NOT: <Int-unbox>
+// CHECK-LABEL: epilogue:
+@Suppress("UNNECESSARY_SAFE_CALL", "USELESS_ELVIS")
+fun testIfNullOnNonnullPrimitive(x: Int): Int {
+    return x?.plus(1) ?: 0
+}
+
+// CHECK-LABEL: define i32 @"kfun:#testSafeCallInlineElvis(Holder?;kotlin.Int){}kotlin.Int"
+// CHECK-NOT: <Int-box>
+// CHECK-NOT: <Int-unbox>
+// CHECK-LABEL: epilogue:
+fun testSafeCallInlineElvis(a: Holder?, fallback: Int): Int {
+    return a?.i?.let { it + 1 } ?: fallback
+}
+
 // CHECK-LABEL: define ptr @"kfun:#box(){}kotlin.String"
 fun box(): String {
     if (!testEnumEquals(Color.RED, Color.RED)) return "FAIL enum =="
@@ -101,6 +118,11 @@ fun box(): String {
     if (testSafeCallEqeqSafeCall(Holder(10), null) != 0) return "FAIL safeCallEqeqSafeCall 3"
     if (testSafeCallEqeqSafeCall(null, Holder(10)) != 0) return "FAIL safeCallEqeqSafeCall 4"
     if (testSafeCallEqeqSafeCall(null, null) != 1) return "FAIL safeCallEqeqSafeCall 5"
+
+    if (testIfNullOnNonnullPrimitive(41) != 42) return "FAIL ifNullOnNonnullPrimitive"
+
+    if (testSafeCallInlineElvis(Holder(41), 0) != 42) return "FAIL safeCallInlineElvis 1"
+    if (testSafeCallInlineElvis(null, 99) != 99) return "FAIL safeCallInlineElvis 2"
 
     return "OK"
 }
