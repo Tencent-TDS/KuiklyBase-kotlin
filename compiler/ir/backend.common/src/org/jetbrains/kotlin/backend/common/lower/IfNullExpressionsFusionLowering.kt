@@ -7,15 +7,22 @@ package org.jetbrains.kotlin.backend.common.lower
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
+import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irBlock
+import org.jetbrains.kotlin.ir.builders.irBoolean
+import org.jetbrains.kotlin.ir.builders.irEquals
+import org.jetbrains.kotlin.ir.builders.irEqualsNull
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irIfNull
+import org.jetbrains.kotlin.ir.builders.irIfThenElse
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.getPrimitiveType
 import org.jetbrains.kotlin.ir.util.isNullable
 import org.jetbrains.kotlin.ir.util.isTrivial
 import org.jetbrains.kotlin.ir.util.shallowCopy
@@ -31,6 +38,137 @@ class IfNullExpressionsFusionLowering(val context: CommonBackendContext) : FileL
     }
 
     private inner class Transformer : IrElementTransformerVoid() {
+
+        // region @Tencent: Try to transform the safe call operands of EQEQ call to avoid boxing.
+        // Case 0
+        //      a?.i == j
+        //        =>
+        //      (if (a == null) null else a!!.i) == j
+        //        =>
+        //      val tmp_a = a
+        //      (tmp_a != null && tmp_a.i == j) || (a == null && false)
+        //
+        // Case 1
+        //      a?.i == b?.j
+        //        =>
+        //      (if (a == null) null else a!!.i) == (if (b == null) null else b!!.j)
+        //        =>
+        //      val tmp_a = a
+        //      val tmp_b = b
+        //      (tmp_a != null && tmp_b != null && tmp_a.i == tmp_b.j) || (a == null && b == null)
+        private val builtins = context.irBuiltIns
+
+        private fun IrBuilderWithScope.irNot2(expr: IrExpression): IrExpression {
+            return when {
+                expr is IrConstImpl && expr.value is Boolean -> irBoolean(!(expr.value as Boolean))
+                else -> irNot(expr)
+            }
+        }
+
+        private fun IrBuilderWithScope.irEqualsNull(expr: IrExpression, subjectVar: IrVariable?): IrExpression {
+            return if (expr.type.isNullable()) {
+                irEqualsNull(subjectVar?.let { irGet(it) } ?: expr)
+            } else {
+                irBoolean(false)
+            }
+        }
+
+        private fun IrExpression.isIrConst(value: Boolean): Boolean {
+            return this is IrConstImpl && this.value == value
+        }
+
+        private fun IrBuilderWithScope.irAndAnd(vararg args: IrExpression): IrExpression {
+            return when {
+                args.isEmpty() -> IrConstImpl.boolean(-1, -1, builtins.booleanType, true)
+                args.size == 1 -> args[0]
+                else -> {
+                    val lhs = args[0]
+                    val rhs = irAndAnd(*args.slice(1..<args.size).toTypedArray())
+                    when {
+                        lhs.isIrConst(false) || rhs.isIrConst(false) -> irBoolean(false)
+                        lhs.isIrConst(true) -> rhs
+                        rhs.isIrConst(true) -> lhs
+                        else -> irIfThenElse(builtins.booleanType, lhs, rhs, irBoolean(false))
+                    }
+                }
+            }
+        }
+
+        private fun IrBuilderWithScope.irOrOr(vararg args: IrExpression): IrExpression {
+            return when {
+                args.isEmpty() -> irBoolean(false)
+                args.size == 1 -> args[0]
+                else -> {
+                    val lhs = args[0]
+                    val rhs = irOrOr(*args.slice(1..<args.size).toTypedArray())
+                    when {
+                        lhs.isIrConst(true) || rhs.isIrConst(true) -> irBoolean(true)
+                        lhs.isIrConst(false) -> rhs
+                        rhs.isIrConst(false) -> lhs
+                        else -> irIfThenElse(builtins.booleanType, lhs, irBoolean(true), rhs)
+                    }
+                }
+            }
+        }
+
+        private fun IrExpression.matchIfNullExprFromSafeCall(): IfNullExpr? {
+            return if (this is IrBlock && origin == IrStatementOrigin.SAFE_CALL) matchIfNullExpr() else null
+        }
+
+        override fun visitCall(expression: IrCall): IrExpression {
+            if (expression.symbol == builtins.eqeqSymbol) {
+                val lhs = expression.arguments[0]!!
+                val rhs = expression.arguments[1]!!
+
+                if (lhs.type.getPrimitiveType() != null && lhs.type.getPrimitiveType() == rhs.type.getPrimitiveType()) {
+                    val leftIfNullExpr = lhs.matchIfNullExprFromSafeCall()
+                    val rightIfNullExpr = rhs.matchIfNullExprFromSafeCall()
+
+                    if (leftIfNullExpr != null || rightIfNullExpr != null) {
+                        val block = context.createIrBuilder(
+                            expression.symbol,
+                            expression.startOffset,
+                            expression.endOffset
+                        ).irBlock {
+                            val leftSubjectVar = when {
+                                leftIfNullExpr != null -> leftIfNullExpr.subjectVar.also { +it }
+                                lhs.type.isNullable() -> createTmpVariable(lhs)
+                                else -> null
+                            }
+                            val rightSubjectVar = when {
+                                rightIfNullExpr != null -> rightIfNullExpr.subjectVar.also { +it }
+                                rhs.type.isNullable() -> createTmpVariable(rhs)
+                                else -> null
+                            }
+
+                            // a == null
+                            fun lhsEqualsNull() = irEqualsNull(lhs, leftSubjectVar)
+                            // b == null
+                            fun rhsEqualsNull() = irEqualsNull(rhs, rightSubjectVar)
+
+                            // tmp_a.i == tmp_b.j
+                            val condition = irEquals(
+                                leftIfNullExpr?.ifNotNullExpr ?: leftSubjectVar?.let { irGet(it) } ?: lhs,
+                                rightIfNullExpr?.ifNotNullExpr ?: rightSubjectVar?.let { irGet(it) } ?: rhs
+                            )
+
+                            +irOrOr(
+                                irAndAnd(
+                                    irNot2(lhsEqualsNull()),
+                                    irNot2(rhsEqualsNull()),
+                                    condition
+                                ),
+                                irAndAnd(lhsEqualsNull(), rhsEqualsNull())
+                            )
+                        }
+                        return super.visitContainerExpression(block)
+                    }
+                }
+            }
+            return super.visitCall(expression)
+        }
+        // endregion
+
         override fun visitBlock(expression: IrBlock): IrExpression =
             visitExpression(expression.fuseIfNull())
 

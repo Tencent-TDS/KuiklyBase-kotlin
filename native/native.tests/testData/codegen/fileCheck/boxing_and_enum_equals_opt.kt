@@ -22,6 +22,8 @@ enum class Color {
     RED, GREEN, BLUE
 }
 
+class Holder(val i: Int)
+
 // CHECK-LABEL: define {{i1|zeroext i1}} @"kfun:#testEnumEquals(Color;Color){}kotlin.Boolean"
 // CHECK-NOT: kfun:kotlin.Enum#equals
 // CHECK: icmp eq ptr
@@ -64,6 +66,22 @@ fun testInlineNonnullPrimitiveTypeArg(x: Int): Int {
     return inlineWithTypeParam(x) { it + 1 }
 }
 
+// CHECK-LABEL: define i32 @"kfun:#testSafeCallEqeqValue(Holder?;kotlin.Int){}kotlin.Int"
+// CHECK-NOT: <Int-box>
+// CHECK-NOT: <Int-unbox>
+// CHECK-LABEL: epilogue:
+fun testSafeCallEqeqValue(a: Holder?, j: Int): Int {
+    return if (a?.i == j) 1 else 0
+}
+
+// CHECK-LABEL: define i32 @"kfun:#testSafeCallEqeqSafeCall(Holder?;Holder?){}kotlin.Int"
+// CHECK-NOT: <Int-box>
+// CHECK-NOT: <Int-unbox>
+// CHECK-LABEL: epilogue:
+fun testSafeCallEqeqSafeCall(a: Holder?, b: Holder?): Int {
+    return if (a?.i == b?.i) 1 else 0
+}
+
 // CHECK-LABEL: define ptr @"kfun:#box(){}kotlin.String"
 fun box(): String {
     if (!testEnumEquals(Color.RED, Color.RED)) return "FAIL enum =="
@@ -73,6 +91,16 @@ fun box(): String {
 
     if (testInlineReturnNonnullPrimitive(41) != 42) return "FAIL inlineReturnNonnullPrimitive"
     if (testInlineNonnullPrimitiveTypeArg(41) != 42) return "FAIL inlineNonnullPrimitiveTypeArg"
+
+    if (testSafeCallEqeqValue(Holder(10), 10) != 1) return "FAIL safeCallEqeqValue 1"
+    if (testSafeCallEqeqValue(Holder(10), 20) != 0) return "FAIL safeCallEqeqValue 2"
+    if (testSafeCallEqeqValue(null, 10) != 0) return "FAIL safeCallEqeqValue 3"
+
+    if (testSafeCallEqeqSafeCall(Holder(10), Holder(10)) != 1) return "FAIL safeCallEqeqSafeCall 1"
+    if (testSafeCallEqeqSafeCall(Holder(10), Holder(20)) != 0) return "FAIL safeCallEqeqSafeCall 2"
+    if (testSafeCallEqeqSafeCall(Holder(10), null) != 0) return "FAIL safeCallEqeqSafeCall 3"
+    if (testSafeCallEqeqSafeCall(null, Holder(10)) != 0) return "FAIL safeCallEqeqSafeCall 4"
+    if (testSafeCallEqeqSafeCall(null, null) != 1) return "FAIL safeCallEqeqSafeCall 5"
 
     return "OK"
 }
