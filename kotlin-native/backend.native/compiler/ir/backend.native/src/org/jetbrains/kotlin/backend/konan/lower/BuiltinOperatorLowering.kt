@@ -180,11 +180,21 @@ internal class BuiltinOperatorLowering(val context: Context) : FileLoweringPass,
         }
     }
 
-    private fun lowerCheckNotNull(expression: IrCall) = builder.at(expression).irBlock(resultType = expression.type) {
-        val temp = irTemporary(expression.arguments[0]!!)
-        +irIfThen(context.irBuiltIns.unitType, irEqeqNull(irGet(temp)), irCall(symbols.throwNullPointerException))
-        +irGet(temp)
+    // region @Tencent: No need to check nonnull primitives in the runtime.
+    private fun lowerCheckNotNull(expression: IrCall): IrExpression {
+        val argument = expression.arguments[0]!!
+        return if (argument.type.isPrimitiveType(false)) {
+            // return argument directly to avoid boxing.
+            argument
+        } else {
+            builder.at(expression).irBlock(resultType = expression.type) {
+                val temp = irTemporary(argument)
+                +irIfThen(context.irBuiltIns.unitType, irEqeqNull(irGet(temp)), irCall(symbols.throwNullPointerException))
+                +irGet(temp)
+            }
+        }
     }
+    // endregion
 
     private fun IrBuilderWithScope.irLogicalAnd(lhs: IrExpression, rhs: IrExpression) = context.andand(lhs, rhs)
     private fun IrBuilderWithScope.irIsNull(exp: IrExpression) = irEqeqeq(exp, irNull())

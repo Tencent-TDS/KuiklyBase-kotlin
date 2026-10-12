@@ -30,10 +30,21 @@ fun testEnumEquals(a: Color, b: Color): Boolean {
     return a == b
 }
 
+// CHECK-LABEL: define i32 @"kfun:#testCheckNotNullPrimitive(kotlin.Int){}kotlin.Int"
+// CHECK-NOT: <Int-box>
+// CHECK-NOT: <Int-unbox>
+// CHECK-LABEL: epilogue:
+@Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+fun testCheckNotNullPrimitive(x: Int): Int {
+    return x!! + 1
+}
+
 // CHECK-LABEL: define ptr @"kfun:#box(){}kotlin.String"
 fun box(): String {
     if (!testEnumEquals(Color.RED, Color.RED)) return "FAIL enum =="
     if (testEnumEquals(Color.RED, Color.BLUE)) return "FAIL enum !="
+
+    if (testCheckNotNullPrimitive(41) != 42) return "FAIL checkNotNull"
 
     return "OK"
 }
