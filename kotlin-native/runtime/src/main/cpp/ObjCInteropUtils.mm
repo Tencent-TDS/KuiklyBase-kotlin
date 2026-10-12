@@ -18,6 +18,9 @@
 #import "ObjCInterop.h"
 #import "ObjCExportPrivate.h"
 #import "WritableTypeInfo.hpp"
+#import "TmmConfig.h"
+#import "KStringProxy.h"
+#import "NSStringFromKString.h"
 
 namespace {
   Class nsStringClass = nullptr;
@@ -63,10 +66,29 @@ OBJ_GETTER(Kotlin_Interop_CreateKStringFromNSString, NSString* str) {
     RETURN_OBJ(nullptr);
   }
 
+  // region @Tencent: Return underlying KString directly if NSString is NSStringFromKString.
+  // See [Kotlin_ObjCExport_CreateRetainedNSStringFromKString].
+  if ([str isKindOfClass:[NSStringFromKString class]]) {
+    auto *stringFromKString = (NSStringFromKString *)str;
+    RETURN_OBJ(stringFromKString.kstring);
+  }
+  // endregion
+
   KRef result;
   auto immutableCopyOrSameStr = CFStringCreateCopy(nullptr, (CFStringRef)str);
   auto length = CFStringGetLength(immutableCopyOrSameStr);
-  if (length == 0) RETURN_RESULT_OF0(TheEmptyString);
+  // region @Tencent: Release immutableCopyOrSameStr on empty string to avoid memory leak.
+  if (length == 0) {
+    CFRelease(immutableCopyOrSameStr);
+    RETURN_RESULT_OF0(TheEmptyString);
+  }
+  // endregion
+
+  // region @Tencent: Create StringProxy for NSString instead of copying into a new KString.
+  if (Kotlin_TmmConfig_isStringProxyEnabledCreatingKStringFromNSString()) {
+    return Kotlin_Interop_CreateKStringProxyFromImmutableCFString(immutableCopyOrSameStr, OBJ_RESULT);
+  }
+  // endregion
 
   auto encoding = CFStringGetFastestEncoding(immutableCopyOrSameStr);
   switch (encoding) {

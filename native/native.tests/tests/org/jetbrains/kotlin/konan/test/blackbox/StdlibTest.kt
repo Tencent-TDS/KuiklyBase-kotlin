@@ -66,6 +66,43 @@ class StdlibTest : AbstractNativeBlackBoxTest() {
     fun default() = dynamicTestCase(TestCaseId.Named("default"))
 }
 
+// region @Tencent: Tests for StringProxy.
+@Tag("StringProxy")
+@PredefinedTestCases(
+    TC(
+        name = "default",
+        runnerType = TestRunnerType.DEFAULT,
+        freeCompilerArgs = [
+            ENABLE_MPP, ENABLE_NAME_BASED_DESTRUCTURING, STDLIB_IS_A_FRIEND, ENABLE_X_STDLIB_API, ENABLE_X_ENCODING_API,
+            ENABLE_X_FOREIGN_API, ENABLE_X_NATIVE_API, ENABLE_OBSOLETE_NATIVE_API, ENABLE_NATIVE_RUNTIME_API,
+            ENABLE_OBSOLETE_WORKERS_API, ENABLE_INTERNAL_FOR_KOTLIN_NATIVE, ENABLE_X_UUID_API, ENABLE_X_TIME,
+            "-Xcommon-sources=../../libraries/stdlib/common/test/testUtils.kt",
+            "-Xcommon-sources=../../libraries/stdlib/test/testUtils.kt",
+            "-Xcommon-sources=../../libraries/stdlib/test/text/StringEncodingTest.kt",
+            "-Xbinary=latin1Strings=true"
+        ],
+        sourceLocations = [
+            "../../libraries/stdlib/common/test/testUtils.kt",
+            "../../libraries/stdlib/test/collections/ComparisonDSL.kt",
+            "../../libraries/stdlib/test/collections/CollectionBehaviors.kt",
+            "../../libraries/stdlib/test/testUtils.kt",
+            "../../libraries/stdlib/test/text/**.kt",
+            "../../kotlin-native/runtime/test/utils.kt",
+            "../../kotlin-native/runtime/test/text/**.kt",
+            "../../kotlin-native/runtime/test-macos/text/**.kt"
+        ],
+        ignoredTests = [DISABLED_STDLIB_TEST]
+    )
+)
+@EnforcedProperty(property = ClassLevelProperty.EXECUTION_TIMEOUT, propertyValue = "2m")
+@EnforcedProperty(property = ClassLevelProperty.TEST_MODE, propertyValue = "TWO_STAGE_MULTI_MODULE")
+@UsePartialLinkage(UsePartialLinkage.Mode.ERROR)
+class StringProxyTest : AbstractNativeBlackBoxTest() {
+    @TestFactory
+    fun default() = dynamicTestCase(TestCaseId.Named("default"))
+}
+// endregion
+
 // region @Tencent: Tests for KClassImpl.
 @Tag("KClassImpl")
 @PredefinedTestCases(

@@ -107,8 +107,9 @@ projectTests {
     nativeTestTask("standaloneTest", "standalone")
     nativeTestTask("gcTest", "gc")
 
-    // region @Tencent: KClass tests are designed for macOS only.
+    // region @Tencent: StringProxy and KClass tests are designed for macOS only.
     if ("Mac OS X" in System.getProperty("os.name")) {
+        nativeTestTask("stringProxyTest", "StringProxy", requirePlatformLibs = true)
         nativeTestTask("kClassTest", "KClassImpl", requirePlatformLibs = true)
     }
     // endregion

@@ -7,6 +7,8 @@
 #import "Memory.h"
 #include "ObjCInterop.h"
 #include "KString.h"
+#include "TmmConfig.h"
+#include "NSStringFromKString.h"
 
 #if KONAN_OBJC_INTEROP
 
@@ -132,6 +134,12 @@ extern "C" id Kotlin_ObjCExport_CreateRetainedNSStringFromKString(ObjHeader* str
         encoding:Kotlin_StringEncoding_ToNSStringEncoding(header->encoding())
         freeWhenDone:NO];
   } else {
+    // region @Tencent: Return NSStringFromKString proxy when enabled instead of copying characters.
+    if (Kotlin_TmmConfig_isStringProxyEnabledCreatingNSStringFromKString()) {
+      return [[NSStringFromKString alloc] initWithKString:str];
+    }
+    // endregion
+
     // TODO: consider making NSString subclass to avoid copying here.
     NSString* candidate = [[NSString alloc] initWithBytes:header->data()
       length:header->size()

@@ -16,6 +16,14 @@ enum class StringEncoding : uint8_t {
     kLatin1 = 1,
 };
 
+// region @Tencent: Add StringType and StringProxy/External storage support to StringHeader.
+enum class StringType : uint8_t {
+    kDefault = 0,
+    kCFString = 1,
+    kExternal = 2,
+};
+// endregion
+
 // Strings are effectively this:
 //     class String {
 //         private val hashCode_: Int
@@ -29,8 +37,8 @@ struct StringHeader {
     ARRAY_HEADER_FIELDS
     int32_t hashCode_; // if ArrayHeader has padding, this will go into it instead of the array's data
     /**
-     * Layout:     | Encoding | <unused> | Ignore last byte | HC computed |
-     * bit number: | 15 .. 12 |          |                1 |           0 |
+     * Layout:     | Encoding | <unused> |  Type  | Ignore last byte | HC computed |
+     * bit number: | 15 .. 12 |  11 .. 4 | 3 .. 2 |                1 |           0 |
      */
     uint16_t flags_;
     alignas(KChar) char data_[];
@@ -42,13 +50,22 @@ struct StringHeader {
         // Set if the string's encoding has 1-byte characters and the string encodes to an odd-length
         // byte sequence (the byte sequence has to be padded to an even length to become a Char array).
         IGNORE_LAST_BYTE = 1 << 1,
+        // region @Tencent: Offset for StringType in StringHeader flags.
+        TYPE_OFFSET = 2,
+        // endregion
         ENCODING_OFFSET = 12,
     };
 
-    ALWAYS_INLINE StringEncoding encoding() const { return static_cast<StringEncoding>(flags_ >> ENCODING_OFFSET); }
+    // region @Tencent: Support StringType and proxy data lookup in StringHeader.
+    static constexpr int32_t StringTypeMask = 0x3;
 
-    ALWAYS_INLINE char *data() { return data_; }
-    ALWAYS_INLINE const char *data() const { return data_; }
+    ALWAYS_INLINE StringEncoding encoding() const { return static_cast<StringEncoding>(flags_ >> ENCODING_OFFSET); }
+    ALWAYS_INLINE StringType type() const { return static_cast<StringType>((flags_ >> TYPE_OFFSET) & StringTypeMask); }
+
+    ALWAYS_INLINE char *data() { return __builtin_expect(type() == StringType::kDefault, true) ? data_ : dataProxy(); }
+    ALWAYS_INLINE const char *data() const { return __builtin_expect(type() == StringType::kDefault, true) ? data_ : dataProxy(); }
+    char *dataProxy() const;
+    // endregion
     ALWAYS_INLINE size_t size() const { return count_ * sizeof(KChar) - extraLength(flags_); }
 
     ALWAYS_INLINE static StringHeader* of(KRef string) {
@@ -64,9 +81,20 @@ struct StringHeader {
     ALWAYS_INLINE constexpr static size_t extraLength(int flags) {
         return (offsetof(StringHeader, data_) - sizeof(ArrayHeader)) + !!(flags & IGNORE_LAST_BYTE);
     }
+
+    // region @Tencent: Adjust StringHeader count and flags for external/proxy strings.
+    ALWAYS_INLINE void adjustForExternal(uint32_t lengthInBytes) {
+        flags_ |= IGNORE_LAST_BYTE * (lengthInBytes % 2);
+        count_ = (lengthInBytes + extraLength(flags_)) / sizeof(KChar);
+    }
+    // endregion
 };
 
 static_assert(StringHeader::extraLength(0) % 2 == 0, "String's data is not aligned to Char");
+
+// region @Tencent: Declare allocateStringDefault for StringProxy allocation.
+OBJ_GETTER(allocateStringDefault, StringEncoding encoding, StringType type, uint32_t sizeInUnits);
+// endregion
 
 template <StringEncoding encoding>
 struct StringData;
@@ -140,6 +168,12 @@ KRef CreatePermanentStringFromCString(const char* nullTerminatedUTF8);
 // and don't need to be deallocated. To make address sanitizer not complain about "memory leaks" in hostRuntimeTests,
 // though, they should be deallocated using this function.
 void FreePermanentStringForTests(KConstRef header);
+
+// region @Tencent: Expose String accessors for NSStringFromKString.
+KChar Kotlin_String_get(KConstRef thiz, KInt index);
+KInt Kotlin_String_getStringLength(KConstRef thiz);
+void Kotlin_String_overwriteRawArray(KConstRef string, KChar* buffer, KInt start, KInt size);
+// endregion
 
 } // extern "C"
 

@@ -94,10 +94,12 @@ bool isInSurrogatePair(String&& string, It&& it) {
     return string.at(it.ptr()) != it;
 }
 
+// region @Tencent: Add StringType parameter to allocateString.
 template <typename Allocator /*= KRef(size_t sizeInChars) */>
-KRef allocateString(StringEncoding encoding, uint32_t sizeInUnits, Allocator&& allocate) {
+KRef allocateString(StringEncoding encoding, StringType type, uint32_t sizeInUnits, Allocator&& allocate) {
     auto sizeInBytes = sizeInUnits * encodingUnitSize(encoding);
     auto flags = (static_cast<uint32_t>(encoding) << StringHeader::ENCODING_OFFSET) |
+        (static_cast<uint32_t>(type) << StringHeader::TYPE_OFFSET) |
         (StringHeader::IGNORE_LAST_BYTE * (sizeInBytes % 2));
     // All strings are stored as KChar arrays regardless of the actual byte encoding
     auto result = allocate((sizeInBytes + StringHeader::extraLength(flags)) / sizeof(KChar));
@@ -106,13 +108,14 @@ KRef allocateString(StringEncoding encoding, uint32_t sizeInUnits, Allocator&& a
 }
 
 KRef allocatePermanentString(StringEncoding encoding, size_t sizeInUnits) {
-    return allocateString(encoding, sizeInUnits, [](size_t sizeInChars) {
+    return allocateString(encoding, StringType::kDefault, sizeInUnits, [](size_t sizeInChars) {
         auto result = reinterpret_cast<ObjHeader*>(std::calloc(sizeof(ArrayHeader) + sizeInChars * sizeof(KChar), 1));
         result->typeInfoOrMeta_ = setPointerBits((TypeInfo *)theStringTypeInfo, OBJECT_TAG_PERMANENT);
         result->array()->count_ = sizeInChars;
         return result;
     });
 }
+// endregion
 
 template <StringEncoding encoding, typename F /*= void(UnitType*) */>
 OBJ_GETTER(createString, uint32_t lengthUnits, F&& initializer) {
@@ -187,12 +190,18 @@ extern "C" OBJ_GETTER(CreateStringFromUtf16, const KChar* utf16, uint32_t length
     RETURN_RESULT_OF(createString<StringEncoding::kUTF16>, length, [=](KChar* out) { std::copy_n(utf16, length, out); });
 }
 
-extern "C" OBJ_GETTER(CreateUninitializedString, StringEncoding encoding, uint32_t length) {
-    if (length == 0) RETURN_RESULT_OF0(TheEmptyString);
-    return allocateString(encoding, length, [=](size_t sizeInChars) {
+// region @Tencent: Provide allocateStringDefault for StringProxy allocation.
+OBJ_GETTER(allocateStringDefault, StringEncoding encoding, StringType type, uint32_t sizeInUnits) {
+    return allocateString(encoding, type, sizeInUnits, [=](size_t sizeInChars) {
         RETURN_RESULT_OF(AllocArrayInstance, theStringTypeInfo, sizeInChars);
     });
 }
+
+extern "C" OBJ_GETTER(CreateUninitializedString, StringEncoding encoding, uint32_t length) {
+    if (length == 0) RETURN_RESULT_OF0(TheEmptyString);
+    RETURN_RESULT_OF(allocateStringDefault, encoding, StringType::kDefault, length);
+}
+// endregion
 
 extern "C" OBJ_GETTER(ConvertStringToUtf16, KRef kstringPtr) {
     return encodingAware(kstringPtr, [=](auto kstring) {
@@ -298,17 +307,26 @@ extern "C" OBJ_GETTER(Kotlin_String_unsafeStringFromCharArray, KConstRef thiz, K
         [=](KChar* out) { std::copy_n(CharArrayAddressOfElementAt(thiz->array(), start), size, out); });
 }
 
-static void Kotlin_String_overwriteArray(KConstRef string, KRef destination, KInt destinationOffset, KInt start, KInt size) {
+// region @Tencent: Extract Kotlin_String_overwriteRawArray for NSStringFromKString.
+extern "C" void Kotlin_String_overwriteRawArray(KConstRef string, KChar* buffer, KInt start, KInt size) {
     encodingAware(string, [=](auto string) {
+        if (static_cast<uint32_t>(start + size) > string.sizeInChars()) {
+            ThrowArrayIndexOutOfBoundsException();
+        }
         auto it = string.begin() + start;
-        auto out = CharArrayAddressOfElementAt(destination->array(), destinationOffset);
+
         if constexpr (string.encoding == StringEncoding::kUTF16) {
-            std::copy_n(it.ptr(), size, out);
+            std::copy_n(it.ptr(), size, buffer);
         } else {
-            std::copy_n(it, size, out);
+            std::copy_n(it, size, buffer);
         }
     });
 }
+
+ALWAYS_INLINE static void Kotlin_String_overwriteArray(KConstRef string, KRef destination, KInt destinationOffset, KInt start, KInt size) {
+    Kotlin_String_overwriteRawArray(string, CharArrayAddressOfElementAt(destination->array(), destinationOffset), start, size);
+}
+// endregion
 
 extern "C" OBJ_GETTER(Kotlin_String_toCharArray, KConstRef string, KRef destination, KInt destinationOffset, KInt start, KInt size) {
     Kotlin_String_overwriteArray(string, destination, destinationOffset, start, size);
