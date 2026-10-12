@@ -131,6 +131,41 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
         return this.useAs(type, forceSkipTypeCheck = false)
     }
 
+    // region @Tencent: Avoid unboxing the nonnull primitive return values of inline functions.
+    /**
+     *  Copied from [AbstractValueUsageTransformer.visitContainerExpression]
+     */
+    override fun visitInlinedFunctionBlock(inlinedBlock: IrInlinedFunctionBlock): IrExpression {
+        inlinedBlock.transformChildrenVoid(this)
+
+        if (inlinedBlock.statements.isEmpty()) {
+            return inlinedBlock
+        }
+
+        val lastIndex = inlinedBlock.statements.lastIndex
+        inlinedBlock.statements.forEachIndexed { i, irStatement ->
+            if (irStatement is IrExpression) {
+                inlinedBlock.statements[i] =
+                        if (i == lastIndex) {
+                            // Avoid unbox call if expression type is nonnull primitive.
+                            if (irStatement is IrReturn
+                                    && inlinedBlock.type.isPrimitiveType(false)
+                                    && irStatement.value.type == inlinedBlock.type) {
+                                val value = irStatement.value.useAsResult(inlinedBlock)
+                                irStatement.value = value
+                                irStatement
+                            } else {
+                                irStatement.useAsResult(inlinedBlock)
+                            }
+                        } else
+                            irStatement.useAsStatement()
+            }
+        }
+
+        return inlinedBlock
+    }
+    // endregion
+
     private fun IrExpression.useAs(type: IrType, forceSkipTypeCheck: Boolean): IrExpression {
         val skipTypeCheck = forceSkipTypeCheck || !insertSafeCasts || (this as? IrTypeOperatorCall)?.operator == IrTypeOperator.CAST
         val actualType = when (this) {

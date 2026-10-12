@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.erasedUpperBound
+import org.jetbrains.kotlin.ir.util.innerInlinedBlockOrThis
 import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isNullable
@@ -265,6 +266,9 @@ internal class ComputeTypesPass(val context: Context) : BodyLoweringPass {
                     visitElement(expression, data)
                     returnableBlockCFMPInfos.remove(irReturnableBlock.symbol)
                     cfmpInfo.variableWrites?.computeType()?.let { expression.type = it }
+                    // region @Tencent: Keep inner IrInlinedFunctionBlock type synchronized with enclosing IrReturnableBlock.
+                    expression.innerInlinedBlockOrThis.type = expression.type
+                    // endregion
                     cfmpInfo.variablesValues
                 }
             }

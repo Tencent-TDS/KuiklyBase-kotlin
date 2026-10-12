@@ -39,12 +39,26 @@ fun testCheckNotNullPrimitive(x: Int): Int {
     return x!! + 1
 }
 
+inline fun inlineReturnInt(x: Int): Int {
+    return x + 1
+}
+
+// CHECK-LABEL: define i32 @"kfun:#testInlineReturnNonnullPrimitive(kotlin.Int){}kotlin.Int"
+// CHECK-NOT: <Int-box>
+// CHECK-NOT: <Int-unbox>
+// CHECK-LABEL: epilogue:
+fun testInlineReturnNonnullPrimitive(x: Int): Int {
+    return inlineReturnInt(x)
+}
+
 // CHECK-LABEL: define ptr @"kfun:#box(){}kotlin.String"
 fun box(): String {
     if (!testEnumEquals(Color.RED, Color.RED)) return "FAIL enum =="
     if (testEnumEquals(Color.RED, Color.BLUE)) return "FAIL enum !="
 
     if (testCheckNotNullPrimitive(41) != 42) return "FAIL checkNotNull"
+
+    if (testInlineReturnNonnullPrimitive(41) != 42) return "FAIL inlineReturnNonnullPrimitive"
 
     return "OK"
 }
