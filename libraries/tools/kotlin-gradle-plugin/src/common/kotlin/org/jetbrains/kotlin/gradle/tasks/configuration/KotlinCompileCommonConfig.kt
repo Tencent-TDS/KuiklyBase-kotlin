@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.tasks.configuration
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilationInfo
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinCommonCompilation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon
+import org.jetbrains.kotlin.gradle.utils.moduleName
 
 internal class KotlinCompileCommonConfig(
     private val compilationInfo: KotlinCompilationInfo,
@@ -21,7 +22,9 @@ internal class KotlinCompileCommonConfig(
             ).disallowChanges()
             task.refinesMetadataPaths.from(compilationInfo.refinesPaths).disallowChanges()
             @Suppress("DEPRECATION")
-            task.moduleName.set(providers.provider { compilationInfo.moduleName })
+            // region @Tencent: Prepend group to the moduleName to avoid potential conflicts.
+            task.moduleName.set(providers.provider { project.moduleName(compilationInfo.moduleName) })
+            // endregion
             task.incrementalModuleInfoProvider.disallowChanges()
             task.runViaBuildToolsApi.convention(propertiesProvider.runKotlinMetadataCompilerViaBuildToolsApi)
             task.generateCompilerRefIndex.value(false).disallowChanges()

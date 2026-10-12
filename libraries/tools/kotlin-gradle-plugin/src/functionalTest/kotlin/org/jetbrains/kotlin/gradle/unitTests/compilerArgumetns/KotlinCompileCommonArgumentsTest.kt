@@ -71,4 +71,33 @@ class KotlinCompileCommonArgumentsTest {
             argumentsFromCompilerArgumentsProducer.targetPlatform.orEmpty().toList(),
         )
     }
+
+    // region @Tencent: Test that commonMain compilation moduleName prepends project group when non-empty.
+    @Test
+    fun `test - commonMain moduleName - prepends group when set`() {
+        val projectWithoutGroup = buildProjectWithMPP(projectBuilder = { withName("core") })
+        projectWithoutGroup.multiplatformExtension.apply {
+            jvm()
+            linuxX64()
+        }
+        projectWithoutGroup.evaluate()
+        val taskWithoutGroup = projectWithoutGroup.multiplatformExtension
+            .metadata().compilations.getByName("commonMain")
+            .compileTaskProvider.get() as KotlinCompileCommon
+        assertEquals("core_commonMain", taskWithoutGroup.createCompilerArguments(lenient).moduleName)
+
+        val projectWithGroup = buildProjectWithMPP(projectBuilder = { withName("core") }) {
+            group = "com.tencent.kuikly"
+        }
+        projectWithGroup.multiplatformExtension.apply {
+            jvm()
+            linuxX64()
+        }
+        projectWithGroup.evaluate()
+        val taskWithGroup = projectWithGroup.multiplatformExtension
+            .metadata().compilations.getByName("commonMain")
+            .compileTaskProvider.get() as KotlinCompileCommon
+        assertEquals("com.tencent.kuikly:core_commonMain", taskWithGroup.createCompilerArguments(lenient).moduleName)
+    }
+    // endregion
 }
