@@ -66,6 +66,32 @@ class StdlibTest : AbstractNativeBlackBoxTest() {
     fun default() = dynamicTestCase(TestCaseId.Named("default"))
 }
 
+// region @Tencent: Tests for KClassImpl.
+@Tag("KClassImpl")
+@PredefinedTestCases(
+    TC(
+        name = "default",
+        runnerType = TestRunnerType.DEFAULT,
+        freeCompilerArgs = [
+            ENABLE_MPP, STDLIB_IS_A_FRIEND, ENABLE_X_STDLIB_API, ENABLE_X_ENCODING_API,
+            ENABLE_X_FOREIGN_API, ENABLE_X_NATIVE_API, ENABLE_OBSOLETE_NATIVE_API, ENABLE_NATIVE_RUNTIME_API,
+            ENABLE_OBSOLETE_WORKERS_API, ENABLE_INTERNAL_FOR_KOTLIN_NATIVE, ENABLE_X_UUID_API, ENABLE_X_TIME,
+            "-Xbinary=genericSafeCasts=false",
+        ],
+        sourceLocations = [
+            "../../kotlin-native/runtime/test-macos/reflect/**.kt"
+        ],
+        ignoredTests = [DISABLED_STDLIB_TEST]
+    )
+)
+@EnforcedProperty(property = ClassLevelProperty.EXECUTION_TIMEOUT, propertyValue = "2m")
+@UsePartialLinkage(UsePartialLinkage.Mode.ERROR)
+class KClassTest : AbstractNativeBlackBoxTest() {
+    @TestFactory
+    fun default() = dynamicTestCase(TestCaseId.Named("default"))
+}
+// endregion
+
 private const val ENABLE_MPP = "-Xmulti-platform"
 private const val ENABLE_NAME_BASED_DESTRUCTURING = "-Xname-based-destructuring=complete"
 internal const val STDLIB_IS_A_FRIEND = "-friend-modules=$KOTLIN_NATIVE_DISTRIBUTION/klib/common/stdlib"

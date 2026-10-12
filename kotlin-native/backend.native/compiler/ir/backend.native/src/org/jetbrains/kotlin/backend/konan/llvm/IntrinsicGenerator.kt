@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.objcinterop.getExternalObjCClassBinaryName
+import org.jetbrains.kotlin.ir.objcinterop.getExternalObjCProtocolBinaryName
 import org.jetbrains.kotlin.ir.objcinterop.isExternalObjCClass
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.types.*
@@ -22,6 +23,10 @@ import org.jetbrains.kotlin.ir.util.isInterface
 
 internal enum class ConstantConstructorIntrinsicType {
     KCLASS_IMPL,
+    // region @Tencent: Constant constructor intrinsics for ObjC KClass implementations.
+    KCLASS_IMPL_OBJC,
+    KCLASS_IMPL_EXTERNAL_OBJC,
+    // endregion
     OBJC_KCLASS_IMPL,
 }
 
@@ -192,6 +197,36 @@ internal class IntrinsicGenerator(private val environment: IntrinsicGeneratorEnv
                 val typeInfo = codegen.typeInfoValue(typeArgumentClass)
                 listOf(constPointer(typeInfo))
             }
+            // region @Tencent: Initialize KClassImpl for ObjC classes.
+            ConstantConstructorIntrinsicType.KCLASS_IMPL_OBJC -> {
+                require(args.isEmpty())
+                val typeArgument = constant.typeArguments[0]
+                val typeArgumentClass = typeArgument.getClass()!!
+                // ObjCClassInfo is a global constant value can be used to initialize KClass value.
+                val classInfo = codegen.kotlinObjCClassInfo(typeArgumentClass)
+                listOf(constPointer(classInfo))
+            }
+            ConstantConstructorIntrinsicType.KCLASS_IMPL_EXTERNAL_OBJC -> {
+                require(args.isEmpty())
+                val typeArgument = constant.typeArguments[0]
+                val typeArgumentClass = typeArgument.getClass()!!
+
+                // ObjCClass is runtime value, so we can use its binary name.
+                val name = if (typeArgumentClass.isInterface) {
+                    typeArgumentClass.getExternalObjCProtocolBinaryName()
+                        ?: typeArgumentClass.name.asString().removeSuffix("Protocol")
+                } else {
+                    typeArgumentClass.getExternalObjCClassBinaryName()
+                }
+
+                with(environment.codegen.llvm) {
+                    listOf(
+                        staticData.kotlinStringLiteral(name),
+                        ConstInt1(this, typeArgumentClass.isInterface)
+                    )
+                }
+            }
+            // endregion
             ConstantConstructorIntrinsicType.OBJC_KCLASS_IMPL -> {
                 require(args.isEmpty())
                 val typeArgument = constant.typeArguments[0]

@@ -46,6 +46,12 @@ KBoolean IsArray(KConstRef obj) {
   return obj->type_info()->instanceSize_ < 0;
 }
 
+// region @Tencent: Check subtype relationship between two TypeInfo pointers for KClass.isSubclassOf.
+KBoolean Kotlin_TypeInfo_isSubTypeOf(KNativePtr subtype, KNativePtr supertype) {
+  return IsSubtype(reinterpret_cast<const TypeInfo*>(subtype), reinterpret_cast<const TypeInfo*>(supertype));
+}
+// endregion
+
 KBoolean Kotlin_TypeInfo_isInstance(KConstRef obj, KNativePtr typeInfo) {
   return IsInstanceInternal(obj, reinterpret_cast<const TypeInfo*>(typeInfo));
 }

@@ -62,6 +62,10 @@ private object ClassIds {
     val kLocalDelegatedPropertyImpl = "KLocalDelegatedPropertyImpl".internalClassId
     val kLocalDelegatedMutablePropertyImpl = "KLocalDelegatedMutablePropertyImpl".internalClassId
     val kClassImpl = "KClassImpl".internalClassId
+    // region @Tencent: KClassImpl for ObjC classes.
+    val kClassImplExternalObjC = "KClassImplExternalObjC".internalClassId
+    val kClassImplObjC = "KClassImplObjC".internalClassId
+    // endregion
     val kClassUnsupportedImpl = "KClassUnsupportedImpl".internalClassId
     val kTypeParameterImpl = "KTypeParameterImpl".internalClassId
     val kTypeImplForTypeParametersWithRecursiveBounds = "KTypeImplForTypeParametersWithRecursiveBounds".internalClassId
@@ -618,6 +622,12 @@ class BackendNativeSymbols(
     val kClassImpl = ClassIds.kClassImpl.classSymbol()
     val kClassImplConstructor by ClassIds.kClassImpl.primaryConstructorSymbol()
     val kClassImplIntrinsicConstructor by ClassIds.kClassImpl.noParametersConstructorSymbol()
+    // region @Tencent: KClassImpl for ObjC classes.
+    val kClassImplExternalObjC = ClassIds.kClassImplExternalObjC.classSymbol()
+    val kClassImplExternalObjCIntrinsicConstructor by ClassIds.kClassImplExternalObjC.noParametersConstructorSymbol()
+    val kClassImplObjC = ClassIds.kClassImplObjC.classSymbol()
+    val kClassImplObjCIntrinsicConstructor by ClassIds.kClassImplObjC.noParametersConstructorSymbol()
+    // endregion
     val kObjectiveCKClassImplIntrinsicConstructor by ClassIds.objectiveCKClassImpl.noParametersConstructorSymbol()
     val kClassUnsupportedImpl = ClassIds.kClassUnsupportedImpl.classSymbol()
     val kTypeParameterImpl = ClassIds.kTypeParameterImpl.classSymbol()

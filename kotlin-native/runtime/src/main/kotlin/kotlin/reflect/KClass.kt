@@ -32,6 +32,29 @@ public actual interface KClass<T : Any> : KDeclarationContainer, KAnnotatedEleme
     @SinceKotlin("1.1")
     public actual fun isInstance(value: Any?): Boolean
 
+    // region @Tencent: Check if this class is a subclass of another KClass in the runtime.
+    /**
+     * Checks if this class is a subclass of [other] or the same class as [other].
+     *
+     * Returns `true` if this class is the same as [other], or if this class directly or indirectly
+     * inherits from [other]. This includes interface implementation relationships.
+     *
+     * Example:
+     * ```
+     * open class Animal
+     * class Dog : Animal()
+     *
+     * Dog::class.isSubclassOf(Animal::class) // true
+     * Dog::class.isSubclassOf(Dog::class)    // true
+     * Animal::class.isSubclassOf(Dog::class) // false
+     * ```
+     *
+     * @param other the target class to check against
+     * @return `true` if this class is a subclass of [other] or the same as [other]; `false` otherwise
+     */
+    public fun isSubclassOf(other: KClass<*>): Boolean = false
+    // endregion
+
     /**
      * Returns `true` if this [KClass] instance represents the same Kotlin class as the class represented by [other].
      * On JVM this means that all of the following conditions are satisfied:

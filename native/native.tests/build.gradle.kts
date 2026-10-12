@@ -85,6 +85,14 @@ projectTests {
                     classpath.from(project(":kotlin-native:runtime").isolated.projectDirectory.dir("test"))
                 }
             )
+            // region @Tencent: Track test-macos directory as test input for macOS runtime tests.
+            jvmArgumentProviders.add(
+                objects.newInstance<SystemPropertyClasspathProvider>().apply {
+                    property = "kotlin.test.native.runtime.macos-tests.path"
+                    classpath.from(project(":kotlin-native:runtime").isolated.projectDirectory.dir("test-macos"))
+                }
+            )
+            // endregion
         }
     }
     // Tasks that run different sorts of tests. Most frequent use case: running specific tests at TeamCity.
@@ -98,6 +106,12 @@ projectTests {
     nativeTestTask("klibTest", "klib")
     nativeTestTask("standaloneTest", "standalone")
     nativeTestTask("gcTest", "gc")
+
+    // region @Tencent: KClass tests are designed for macOS only.
+    if ("Mac OS X" in System.getProperty("os.name")) {
+        nativeTestTask("kClassTest", "KClassImpl", requirePlatformLibs = true)
+    }
+    // endregion
 
     nativeTestTask(
         "test",
