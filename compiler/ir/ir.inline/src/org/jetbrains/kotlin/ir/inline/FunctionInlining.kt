@@ -145,7 +145,9 @@ private class CallInlining(
 
                 // Substitute reified type parameters with concrete type arguments
                 for ([index, typeArgument] in callSite.typeArguments.withIndex()) {
-                    if (!callee.typeParameters[index].isReified || typeArgument == null) continue
+                    // region @Tencent: Don't erase nonnull primitive types to avoid boxing.
+                    if (typeArgument == null || (!callee.typeParameters[index].isReified && !typeArgument.isPrimitiveType(false))) continue
+                    // endregion
                     put(callee.typeParameters[index].symbol, typeArgument)
                 }
 

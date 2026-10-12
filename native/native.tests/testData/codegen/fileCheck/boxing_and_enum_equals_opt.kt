@@ -51,6 +51,19 @@ fun testInlineReturnNonnullPrimitive(x: Int): Int {
     return inlineReturnInt(x)
 }
 
+inline fun <T> inlineWithTypeParam(x: T, block: (T) -> Int): Int {
+    val tmp: T = x
+    return block(tmp)
+}
+
+// CHECK-LABEL: define i32 @"kfun:#testInlineNonnullPrimitiveTypeArg(kotlin.Int){}kotlin.Int"
+// CHECK-NOT: <Int-box>
+// CHECK-NOT: <Int-unbox>
+// CHECK-LABEL: epilogue:
+fun testInlineNonnullPrimitiveTypeArg(x: Int): Int {
+    return inlineWithTypeParam(x) { it + 1 }
+}
+
 // CHECK-LABEL: define ptr @"kfun:#box(){}kotlin.String"
 fun box(): String {
     if (!testEnumEquals(Color.RED, Color.RED)) return "FAIL enum =="
@@ -59,6 +72,7 @@ fun box(): String {
     if (testCheckNotNullPrimitive(41) != 42) return "FAIL checkNotNull"
 
     if (testInlineReturnNonnullPrimitive(41) != 42) return "FAIL inlineReturnNonnullPrimitive"
+    if (testInlineNonnullPrimitiveTypeArg(41) != 42) return "FAIL inlineNonnullPrimitiveTypeArg"
 
     return "OK"
 }
