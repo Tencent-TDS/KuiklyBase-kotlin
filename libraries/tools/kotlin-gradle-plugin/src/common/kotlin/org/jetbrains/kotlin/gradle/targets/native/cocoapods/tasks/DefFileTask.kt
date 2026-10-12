@@ -46,11 +46,13 @@ abstract class DefFileTask : DefaultTask() {
                 when {
                     headers != null -> appendLine("headers = $headers")
                     else -> {
-                        appendLine("modules = $moduleName")
+                        // region @Tencent: Use the module name either provided by user or parsed from modulemap.
+                        appendLine("modules = $effectiveModuleName")
 
                         // Linker opt with framework name is added so produced cinterop klib would have this flag inside its manifest
                         // This way error will be more obvious when someone will try to depend on a library with this cinterop
-                        appendLine("linkerOpts = -framework $moduleName")
+                        appendLine("linkerOpts = -framework $effectiveModuleName")
+                        // endregion
                     }
                 }
             }

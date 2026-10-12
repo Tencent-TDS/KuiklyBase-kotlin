@@ -57,6 +57,36 @@ abstract class PodSetupBuildTask @Inject constructor(projectLayout: ProjectLayou
         buildSettingsFile.getFile().let { bsf ->
             buildSettingsProperties.writeSettings(bsf)
         }
+
+        // region @Tencent: Parse modulemap for module name when not explicitly provided.
+        pod.get().let { pod ->
+            if (pod.name == pod.moduleName) {
+                // moduleName may not be provided explicitly.
+                pod.resolvedModuleName = inferModuleNameFromInstalledPods(buildSettingsProperties.podsTargetSrcRoot)
+            }
+        }
+        // endregion
     }
+
+    // region @Tencent: Utilities to parse modulemap for module name.
+    internal fun inferModuleNameFromInstalledPods(podsTargetSrcRoot: String): String? {
+        if (podsTargetSrcRoot.isBlank()) return null
+        val startDir = File(podsTargetSrcRoot)
+        if (!startDir.exists()) return null
+
+        val modulemap = startDir.walkTopDown()
+            .firstOrNull { it.isFile && it.name == "module.modulemap" }
+            ?: return null
+
+        return parseModuleNameFromModuleMap(modulemap)
+    }
+
+    private fun parseModuleNameFromModuleMap(modulemapFile: File): String? {
+        val text = runCatching { modulemapFile.readText() }.getOrNull() ?: return null
+        // Very simple heuristic: first occurrence of `module <Name>`
+        val match = Regex("\\bmodule\\s+([A-Za-z_][A-Za-z0-9_]*)").find(text) ?: return null
+        return match.groupValues.getOrNull(1)
+    }
+    // endregion
 }
 

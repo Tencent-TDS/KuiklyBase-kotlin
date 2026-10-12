@@ -284,6 +284,18 @@ abstract class CocoapodsExtension @Inject constructor(private val project: Proje
         @get:Input
         val interopBindingDependencies: MutableList<String> = mutableListOf()
 
+        // region @Tencent: Detect module name from modulemap when it differs from the pod name.
+        /**
+         * Module name from modulemap.
+         */
+        @get:Internal
+        internal var resolvedModuleName: String? = null
+
+        @get:Internal
+        internal val effectiveModuleName: String
+            get() = resolvedModuleName ?: moduleName
+        // endregion
+
         /**
          * Specify that the pod depends on another pod **podName** and a Kotlin-binding for **podName** should be used while building
          * a binding for the pod. This is necessary if you need to operate entities from **podName** and from the pod together, for

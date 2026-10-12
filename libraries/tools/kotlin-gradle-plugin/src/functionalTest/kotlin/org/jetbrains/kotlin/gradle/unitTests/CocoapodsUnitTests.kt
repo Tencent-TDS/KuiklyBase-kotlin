@@ -17,13 +17,17 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.FrameworkCopy
 import org.jetbrains.kotlin.gradle.targets.native.cocoapods.CocoapodsPluginDiagnostics
+import org.jetbrains.kotlin.gradle.targets.native.tasks.PodSetupBuildTask
+import org.jetbrains.kotlin.gradle.tasks.DefFileTask
 import org.jetbrains.kotlin.gradle.tasks.FatFrameworkTask
 import org.jetbrains.kotlin.gradle.util.*
 import org.jetbrains.kotlin.gradle.util.assertContainsDiagnostic
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.junit.jupiter.api.Assumptions
+import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class CocoapodsUnitTests {
     @Test
@@ -151,4 +155,65 @@ class CocoapodsUnitTests {
 
         }
     }
+
+    // region @Tencent: Test modulemap module name detection and DefFileTask generation.
+    @Test
+    fun `def file uses resolved module name from modulemap when moduleName is not explicitly set`() {
+        val project = buildProjectWithCocoapods {
+            kotlin {
+                iosArm64()
+                cocoapods {
+                    pod("MyPod")
+                    pod("ExplicitPod") {
+                        moduleName = "CustomExplicitModule"
+                    }
+                }
+            }
+        }.evaluate()
+
+        val setupTask = assertIsInstance<PodSetupBuildTask>(project.tasks.getByName("podSetupBuildMyPodIos"))
+        val tempPodDir = createTempDirectory("pod-modulemap-test").toFile()
+        try {
+            val modulemapFile = tempPodDir.resolve("Headers/module.modulemap").apply {
+                parentFile.mkdirs()
+                writeText(
+                    """
+                    framework module ActualModuleFromMap {
+                        umbrella header "ActualModuleFromMap.h"
+                        export *
+                    }
+                    """.trimIndent()
+                )
+            }
+            assertTrue(modulemapFile.exists())
+
+            val inferred = setupTask.inferModuleNameFromInstalledPods(tempPodDir.absolutePath)
+            assertEquals("ActualModuleFromMap", inferred)
+
+            val defTask = assertIsInstance<DefFileTask>(project.tasks.getByName("generateDefMyPod"))
+            val depNames = defTask.taskDependencies.getDependencies(defTask).map { it.name }
+            assertTrue("podBuildMyPodIos" in depNames, "Expected generateDefMyPod to depend on podBuildMyPodIos, got $depNames")
+
+            val pod = defTask.pod.get()
+            assertEquals("MyPod", pod.name)
+            assertEquals("MyPod", pod.moduleName)
+            pod.resolvedModuleName = inferred
+            assertEquals("ActualModuleFromMap", pod.effectiveModuleName)
+
+            defTask.generate()
+            val defContent = defTask.defFile.get().asFile.readText()
+            assertTrue("modules = ActualModuleFromMap" in defContent, "Unexpected def content:\n$defContent")
+            assertTrue("linkerOpts = -framework ActualModuleFromMap" in defContent, "Unexpected def content:\n$defContent")
+
+            val explicitDefTask = assertIsInstance<DefFileTask>(project.tasks.getByName("generateDefCustomExplicitModule"))
+            val explicitPod = explicitDefTask.pod.get()
+            assertEquals("CustomExplicitModule", explicitPod.effectiveModuleName)
+            explicitDefTask.generate()
+            val explicitDefContent = explicitDefTask.defFile.get().asFile.readText()
+            assertTrue("modules = CustomExplicitModule" in explicitDefContent, "Unexpected def content:\n$explicitDefContent")
+        } finally {
+            tempPodDir.deleteRecursively()
+        }
+    }
+    // endregion
 }

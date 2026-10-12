@@ -333,6 +333,12 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                 lowerCamelCaseName("generateDef", pod.moduleName).asValidTaskName()
             ) { task ->
                 task.pod.set(pod)
+                // region @Tencent: Def task depends on the resolved module name from podBuildTask.
+                kotlinExtension.supportedAppleTargets().firstOrNull()?.let { anyTarget ->
+                    val podBuildTaskProvider = project.getPodBuildTaskProvider(anyTarget, pod)
+                    task.dependsOn(podBuildTaskProvider)
+                }
+                // endregion
                 val defFileAbsolutePath = project.layout.cocoapodsBuildDirs.defs.map {
                     it.asFile.resolve("${task.pod.get().moduleName}.def").absolutePath
                 }
