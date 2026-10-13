@@ -139,6 +139,9 @@ bitcode {
                     "__ANDROID__".takeIf { target.family == Family.ANDROID },
                     "USE_PE_COFF_SYMBOLS=1".takeIf { target.binaryFormat() == BinaryFormat.PE_COFF },
                     "UNICODE".takeIf { target.family == Family.MINGW },
+                    // region @Tencent: llvm-mingw ntdef.h defines min/max even in C++; NOMINMAX avoids clashing with numeric_limits::max().
+                    "NOMINMAX".takeIf { target == KonanTarget.MINGW_ARM64 },
+                    // endregion
                     "USE_WINAPI_UNWIND=1".takeIf { target.supportsWinAPIUnwind() },
                     "USE_GCC_UNWIND=1".takeIf { target.supportsGccUnwind() }
             )
@@ -150,7 +153,11 @@ bitcode {
                 "-std=c++17",
                 "-Werror",
                 "-O2",
-                "-fno-aligned-allocation", // TODO: Remove when all targets support aligned allocation in C++ runtime.
+                // region @Tencent: 32-bit Windows (mingw_x86) msvcrt malloc only guarantees 8-byte alignment;
+                // enable C++17 aligned allocation with 8-byte default new alignment so >=16B aligned types use _aligned_malloc.
+                "-fno-aligned-allocation".takeIf { target != KonanTarget.MINGW_X86 }, // TODO: Remove when all targets support aligned allocation in C++ runtime.
+                "-fnew-alignment=8".takeIf { target == KonanTarget.MINGW_X86 },
+                // endregion
                 "-Wall",
                 "-Wextra",
                 "-Wno-unused-parameter",  // False positives with polymorphic functions.

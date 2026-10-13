@@ -158,9 +158,21 @@ internal object KotlinMultiplatformSourceSetConventionsImpl : KotlinMultiplatfor
     @Deprecated(DEPRECATED_TARGET_MESSAGE, level = DeprecationLevel.WARNING)
     override val NamedDomainObjectContainer<KotlinSourceSet>.macosX64Test by KotlinSourceSetConvention
 
+    // region @Tencent: mingwArm64 source set conventions.
+    override val NamedDomainObjectContainer<KotlinSourceSet>.mingwArm64Main by KotlinSourceSetConvention
+
+    override val NamedDomainObjectContainer<KotlinSourceSet>.mingwArm64Test by KotlinSourceSetConvention
+    // endregion
+
     override val NamedDomainObjectContainer<KotlinSourceSet>.mingwX64Main by KotlinSourceSetConvention
 
     override val NamedDomainObjectContainer<KotlinSourceSet>.mingwX64Test by KotlinSourceSetConvention
+
+    // region @Tencent: mingwX86 source set conventions for old Windows devices.
+    override val NamedDomainObjectContainer<KotlinSourceSet>.mingwX86Main by KotlinSourceSetConvention
+
+    override val NamedDomainObjectContainer<KotlinSourceSet>.mingwX86Test by KotlinSourceSetConvention
+    // endregion
 
     override val NamedDomainObjectContainer<KotlinSourceSet>.tvosArm64Main by KotlinSourceSetConvention
 

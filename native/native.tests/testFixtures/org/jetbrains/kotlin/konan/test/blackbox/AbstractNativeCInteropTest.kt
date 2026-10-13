@@ -205,6 +205,10 @@ abstract class AbstractNativeCInteropTest : AbstractNativeCInteropBaseTest() {
             KonanTarget.MACOS_ARM64 -> "CPointerByteVar"
             KonanTarget.MACOS_X64 -> "X64"
             KonanTarget.MINGW_X64 -> "CPointerByteVar"
+            // region @Tencent: Extra mingw targets cinterop pointer representation.
+            KonanTarget.MINGW_X86 -> "CPointerByteVar"
+            KonanTarget.MINGW_ARM64 -> "CPointerByteVar"
+            // endregion
             KonanTarget.TVOS_ARM64 -> "CPointerByteVar"
             KonanTarget.TVOS_SIMULATOR_ARM64 -> "CPointerByteVar"
             KonanTarget.TVOS_X64 -> "X64"

@@ -52,6 +52,10 @@ open class HostManager() {
         LINUX_X64,
         LINUX_ARM32_HFP,
         LINUX_ARM64,
+        // region @Tencent: Extra mingw targets: x86 (old Windows) and arm64.
+        MINGW_X86,
+        MINGW_ARM64,
+        // endregion
         MINGW_X64,
         ANDROID_X86,
         ANDROID_X64,

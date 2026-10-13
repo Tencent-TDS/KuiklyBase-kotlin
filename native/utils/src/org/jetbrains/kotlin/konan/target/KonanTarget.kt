@@ -29,6 +29,10 @@ sealed class KonanTarget(override val name: String, val family: Family, val arch
     object TVOS_X64 : KonanTarget("tvos_x64", Family.TVOS, Architecture.X64)
     object TVOS_SIMULATOR_ARM64 : KonanTarget("tvos_simulator_arm64", Family.TVOS, Architecture.ARM64)
     object LINUX_X64 : KonanTarget("linux_x64", Family.LINUX, Architecture.X64)
+    // region @Tencent: Extra mingw targets: x86 (old Windows) and arm64.
+    object MINGW_X86 : KonanTarget("mingw_x86", Family.MINGW, Architecture.X86)
+    object MINGW_ARM64 : KonanTarget("mingw_arm64", Family.MINGW, Architecture.ARM64)
+    // endregion
     object MINGW_X64 : KonanTarget("mingw_x64", Family.MINGW, Architecture.X64)
     object MACOS_X64 : KonanTarget("macos_x64", Family.OSX, Architecture.X64)
     object MACOS_ARM64 : KonanTarget("macos_arm64", Family.OSX, Architecture.ARM64)
@@ -51,6 +55,9 @@ sealed class KonanTarget(override val name: String, val family: Family, val arch
                 WATCHOS_SIMULATOR_ARM64, WATCHOS_DEVICE_ARM64,
                 TVOS_ARM64, TVOS_X64, TVOS_SIMULATOR_ARM64,
                 LINUX_X64,
+                // region @Tencent: Extra mingw targets: x86 (old Windows) and arm64.
+                MINGW_X86, MINGW_ARM64,
+                // endregion
                 MINGW_X64,
                 MACOS_X64, MACOS_ARM64,
                 LINUX_ARM64, LINUX_ARM32_HFP,

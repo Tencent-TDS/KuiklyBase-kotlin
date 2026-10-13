@@ -434,6 +434,7 @@ interface KotlinMultiplatformSourceSetConventions {
      * kotlin {
      *    mingwX64()
      *    mingwX86()
+     *    mingwArm64()
      *
      *    sourceSets {
      *      mingwMain.dependencies {
@@ -458,6 +459,7 @@ interface KotlinMultiplatformSourceSetConventions {
      * kotlin {
      *    mingwX64()
      *    mingwX86()
+     *    mingwArm64()
      *
      *    sourceSets {
      *      mingwTest.dependencies {
@@ -1386,6 +1388,100 @@ interface KotlinMultiplatformSourceSetConventions {
      * @since 2.0.20
      */
     val NamedDomainObjectContainer<KotlinSourceSet>.mingwX64Test: NamedDomainObjectProvider<KotlinSourceSet>
+
+    // region @Tencent: mingwX86 and mingwArm64 source set conventions.
+    /**
+     * Static accessor for the main Kotlin Source Set of mingwX86 target.
+     * Declare mingwX86 target to access this source set.
+     * If mingwX86 target wasn't declared, accessing this source set will cause a runtime error during configuration time.
+     *
+     * Sample:
+     *
+     * ```kotlin
+     * kotlin {
+     *    mingwX86() // Target is declared, mingwX86Main source set is created
+     *
+     *    sourceSets {
+     *      mingwX86Main.dependencies {
+     *          // Add mingwX86Main dependencies here
+     *      }
+     *    }
+     * }
+     * ```
+     *
+     * @since 2.0.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.mingwX86Main: NamedDomainObjectProvider<KotlinSourceSet>
+
+    /**
+     * Static accessor for the test Kotlin Source Set of mingwX86 target.
+     * Declare mingwX86 target to access this source set.
+     * If mingwX86 target wasn't declared, accessing this source set will cause a runtime error during configuration time.
+     *
+     * Sample:
+     *
+     * ```kotlin
+     * kotlin {
+     *    mingwX86() // Target is declared, mingwX86Test source set is created
+     *
+     *    sourceSets {
+     *      mingwX86Test.dependencies {
+     *          // Add mingwX86Test dependencies here
+     *      }
+     *    }
+     * }
+     * ```
+     *
+     * @since 2.0.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.mingwX86Test: NamedDomainObjectProvider<KotlinSourceSet>
+
+    /**
+     * Static accessor for the main Kotlin Source Set of mingwArm64 target.
+     * Declare mingwArm64 target to access this source set.
+     * If mingwArm64 target wasn't declared, accessing this source set will cause a runtime error during configuration time.
+     *
+     * Sample:
+     *
+     * ```kotlin
+     * kotlin {
+     *    mingwArm64() // Target is declared, mingwArm64Main source set is created
+     *
+     *    sourceSets {
+     *      mingwArm64Main.dependencies {
+     *          // Add mingwArm64Main dependencies here
+     *      }
+     *    }
+     * }
+     * ```
+     *
+     * @since 2.0.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.mingwArm64Main: NamedDomainObjectProvider<KotlinSourceSet>
+
+    /**
+     * Static accessor for the test Kotlin Source Set of mingwArm64 target.
+     * Declare mingwArm64 target to access this source set.
+     * If mingwArm64 target wasn't declared, accessing this source set will cause a runtime error during configuration time.
+     *
+     * Sample:
+     *
+     * ```kotlin
+     * kotlin {
+     *    mingwArm64() // Target is declared, mingwArm64Test source set is created
+     *
+     *    sourceSets {
+     *      mingwArm64Test.dependencies {
+     *          // Add mingwArm64Test dependencies here
+     *      }
+     *    }
+     * }
+     * ```
+     *
+     * @since 2.0.20
+     */
+    val NamedDomainObjectContainer<KotlinSourceSet>.mingwArm64Test: NamedDomainObjectProvider<KotlinSourceSet>
+    // endregion
 
     /**
      * Static accessor for the main Kotlin Source Set of tvosArm64 target.

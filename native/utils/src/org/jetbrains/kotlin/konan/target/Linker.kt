@@ -488,6 +488,10 @@ class MingwLinker(targetProperties: MingwConfigurables)
         }
         val targetSuffix = when (target) {
             KonanTarget.MINGW_X64 -> "x86_64"
+            // region @Tencent: compiler-rt suffixes for extra mingw targets.
+            KonanTarget.MINGW_X86 -> "i386"
+            KonanTarget.MINGW_ARM64 -> "aarch64"
+            // endregion
             else -> error("$target is not supported.")
         }
         val dir = File("$absoluteLlvmHome/lib/clang/").listFiles.firstOrNull()?.absolutePath

@@ -63,6 +63,18 @@ TEST(StdSupportCStdlibTest, AlignedMalloc) {
         EXPECT_THAT(ptr->x, 123);
         std_support::aligned_free(ptr);
     }
+    // region @Tencent: Cover 1-byte alignment (e.g. ByteVar) where Clang mm_malloc.h mismatched malloc with __mingw_aligned_free.
+    {
+        uint8_t* ptr = static_cast<uint8_t*>(std_support::aligned_malloc(alignof(uint8_t), 25));
+        EXPECT_NE(ptr, nullptr);
+        EXPECT_TRUE(IsAligned(ptr, alignof(uint8_t)));
+        ptr[0] = 0x5A;
+        ptr[24] = 0xA5;
+        EXPECT_THAT(ptr[0], 0x5A);
+        EXPECT_THAT(ptr[24], 0xA5);
+        std_support::aligned_free(ptr);
+    }
+    // endregion
 }
 
 TEST(StdSupportCStdlibTest, AlignedFree) {

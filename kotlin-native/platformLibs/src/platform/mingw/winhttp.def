@@ -15,6 +15,8 @@ depends = posix windows
 
 // These WebSocket declarations are not present in our sysroots,
 // so we add them here.
+// region @Tencent: Guard WinHTTP WebSocket APIs; llvm-mingw sysroot already has them.
+#ifndef WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET
 #define WINHTTP_OPTION_UPGRADE_TO_WEB_SOCKET            114
 
 typedef enum _WINHTTP_WEB_SOCKET_OPERATION
@@ -133,3 +135,5 @@ WinHttpWebSocketQueryCloseStatus
     _In_range_(0, WINHTTP_WEB_SOCKET_MAX_CLOSE_REASON_LENGTH) DWORD dwReasonLength,
     _Out_range_(0, WINHTTP_WEB_SOCKET_MAX_CLOSE_REASON_LENGTH) DWORD *pdwReasonLengthConsumed
 );
+#endif
+// endregion

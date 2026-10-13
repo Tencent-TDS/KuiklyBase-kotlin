@@ -367,6 +367,40 @@ interface KotlinTargetContainerWithPresetFunctions : KotlinTargetsContainer {
 
     fun linuxX64(configure: Action<KotlinNativeTargetWithHostTests>) = linuxX64 { configure.execute(this) }
 
+    // region @Tencent: Extra mingw targets: x86 (old Windows) and arm64.
+    fun mingwX86(
+        name: String = "mingwX86",
+        configure: KotlinNativeTarget.() -> Unit = { }
+    ): KotlinNativeTarget
+
+    fun mingwX86() = mingwX86("mingwX86") { }
+
+    fun mingwX86(name: String) = mingwX86(name) { }
+
+    fun mingwX86(
+        name: String,
+        configure: Action<KotlinNativeTarget>
+    ) = mingwX86(name) { configure.execute(this) }
+
+    fun mingwX86(configure: Action<KotlinNativeTarget>) = mingwX86 { configure.execute(this) }
+
+    fun mingwArm64(
+        name: String = "mingwArm64",
+        configure: KotlinNativeTarget.() -> Unit = { }
+    ): KotlinNativeTarget
+
+    fun mingwArm64() = mingwArm64("mingwArm64") { }
+
+    fun mingwArm64(name: String) = mingwArm64(name) { }
+
+    fun mingwArm64(
+        name: String,
+        configure: Action<KotlinNativeTarget>
+    ) = mingwArm64(name) { configure.execute(this) }
+
+    fun mingwArm64(configure: Action<KotlinNativeTarget>) = mingwArm64 { configure.execute(this) }
+    // endregion
+
     fun mingwX64(
         name: String = "mingwX64",
         configure: KotlinNativeTargetWithHostTests.() -> Unit = { }
@@ -705,6 +739,30 @@ internal abstract class DefaultKotlinTargetContainerWithPresetFunctions @Inject 
             project,
             configure
         )
+
+    // region @Tencent: Create mingwX86 and mingwArm64 targets from their presets.
+    override fun mingwX86(
+        name: String,
+        configure: KotlinNativeTarget.() -> Unit
+    ): KotlinNativeTarget =
+        configureOrCreate(
+            name,
+            presets.getByName("mingwX86") as KotlinNativeTargetPreset,
+            project,
+            configure
+        )
+
+    override fun mingwArm64(
+        name: String,
+        configure: KotlinNativeTarget.() -> Unit
+    ): KotlinNativeTarget =
+        configureOrCreate(
+            name,
+            presets.getByName("mingwArm64") as KotlinNativeTargetPreset,
+            project,
+            configure
+        )
+    // endregion
 
     override fun mingwX64(
         name: String,

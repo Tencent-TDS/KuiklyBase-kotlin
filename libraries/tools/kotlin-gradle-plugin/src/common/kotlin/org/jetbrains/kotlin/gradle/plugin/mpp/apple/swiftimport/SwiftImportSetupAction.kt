@@ -820,7 +820,9 @@ private fun KonanTarget.swiftPMPlatform(): SwiftPMDependency.Platform = when (th
     KonanTarget.LINUX_ARM64,
     KonanTarget.LINUX_X64,
     KonanTarget.MINGW_X64,
-    // region @Tencent: OHOS is not a SwiftPM platform.
+    // region @Tencent: OHOS and extra mingw targets are not SwiftPM platforms.
+    KonanTarget.MINGW_X86,
+    KonanTarget.MINGW_ARM64,
     KonanTarget.OHOS_ARM64,
     // endregion
         -> error("unsupported targets")

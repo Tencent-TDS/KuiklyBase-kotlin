@@ -241,6 +241,16 @@ private class KotlinHierarchyBuilderImpl(
         it is KotlinNativeTarget && it.konanTarget == KonanTarget.MINGW_X64
     }
 
+    // region @Tencent: Extra mingw targets: x86 (old Windows) and arm64.
+    override fun withMingwX86() = withTargets {
+        it is KotlinNativeTarget && it.konanTarget == KonanTarget.MINGW_X86
+    }
+
+    override fun withMingwArm64() = withTargets {
+        it is KotlinNativeTarget && it.konanTarget == KonanTarget.MINGW_ARM64
+    }
+    // endregion
+
     override fun withMacosX64() = withTargets {
         it is KotlinNativeTarget && it.konanTarget == KonanTarget.MACOS_X64
     }

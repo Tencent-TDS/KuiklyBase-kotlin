@@ -133,7 +133,8 @@ internal val konanTargetNameMapping = mapOf(
     "mingw_x86" to "mingwX86",
     "wasm-wasi" to "wasmWasi",
     "wasm-js" to "wasmJs",
-    // region @Tencent: Map ohos_arm64 to the ohosArm64 preset name.
-    "ohos_arm64" to "ohosArm64"
+    // region @Tencent: Map ohos_arm64 and mingw_arm64 to their preset names.
+    "ohos_arm64" to "ohosArm64",
+    "mingw_arm64" to "mingwArm64"
     // endregion
 )

@@ -34,8 +34,17 @@ internal object TargetHierarchy {
             Node(
                 "mingw",
                 Node("mingwX64"),
-                Node("mingwX86")
+                Node("mingwX86"),
+                // region @Tencent: Add mingwArm64 to Klib target hierarchy.
+                Node("mingwArm64")
+                // endregion
             ),
+            // region @Tencent: Add ohos to Klib target hierarchy.
+            Node(
+                "ohos",
+                Node("ohosArm64")
+            ),
+            // endregion
             Node(
                 "linux",
                 Node("linuxArm64"),

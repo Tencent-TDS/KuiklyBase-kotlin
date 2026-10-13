@@ -32,6 +32,10 @@ object PlatformWidthIndex {
         LeafCommonizerTarget(KonanTarget.TVOS_SIMULATOR_ARM64) to PlatformIntWidth.LONG,
         LeafCommonizerTarget(KonanTarget.LINUX_X64) to PlatformIntWidth.LONG,
         LeafCommonizerTarget(KonanTarget.MINGW_X64) to PlatformIntWidth.LONG,
+        // region @Tencent: Extra mingw targets (x86 is 32-bit, arm64 is 64-bit).
+        LeafCommonizerTarget(KonanTarget.MINGW_X86) to PlatformIntWidth.INT,
+        LeafCommonizerTarget(KonanTarget.MINGW_ARM64) to PlatformIntWidth.LONG,
+        // endregion
         LeafCommonizerTarget(KonanTarget.MACOS_X64) to PlatformIntWidth.LONG,
         LeafCommonizerTarget(KonanTarget.MACOS_ARM64) to PlatformIntWidth.LONG,
         LeafCommonizerTarget(KonanTarget.LINUX_ARM64) to PlatformIntWidth.LONG,

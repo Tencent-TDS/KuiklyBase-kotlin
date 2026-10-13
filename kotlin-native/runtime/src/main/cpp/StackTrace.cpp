@@ -83,6 +83,9 @@ _Unwind_Reason_Code unwindCallback(struct _Unwind_Context* context, void* arg) {
 // winAPIUnwind() does:
 // - if `result` is not empty -> stores IPs of stacktrace(ignoring first `skipCount` entries) into `result`, and returns amount of stored IPs
 // - if `result` is empty  -> returns depth of stacktrace(ignoring first `skipCount` entries)
+// region @Tencent: Split WinAPI unwind into x64 (RtlVirtualUnwind) and x86 (RtlCaptureStackBackTrace).
+#if defined(_M_X64) || defined(__x86_64__)
+// x86-64 uses RtlLookupFunctionEntry / RtlVirtualUnwind (Win64 SEH).
 NO_INLINE size_t winAPIUnwind(size_t skipCount, std_support::span<void*> result)
 {
     size_t resultSize = result.size();
@@ -112,6 +115,49 @@ NO_INLINE size_t winAPIUnwind(size_t skipCount, std_support::span<void*> result)
 
     return currentSize;
 }
+#else
+// 32-bit x86 Windows has neither RtlLookupFunctionEntry nor RtlVirtualUnwind
+// (those are part of the x64 SEH API). Use RtlCaptureStackBackTrace instead:
+// it is available on both Win32 and Win64, and directly returns an array of IPs.
+//
+// Note: RtlCaptureStackBackTrace can capture at most 63 frames on pre-Windows 8
+// systems (per MSDN). We cap requested frames to a sane maximum and, when the
+// caller only asks for depth (empty `result`), probe with a fixed-size buffer.
+NO_INLINE size_t winAPIUnwind(size_t skipCount, std_support::span<void*> result)
+{
+    // The topmost frame here is winAPIUnwind itself; skip it in addition to the
+    // frames requested by the caller so that behavior matches the x64 variant
+    // (which discards its own frame implicitly via RtlVirtualUnwind).
+    constexpr ULONG kSelfFrames = 1;
+    // Windows limit for RtlCaptureStackBackTrace's FramesToCapture argument
+    // on older systems. Keep well below MAXUSHORT to be safe.
+    constexpr ULONG kMaxCaptureFrames = 62;
+
+    const bool doStoreIPs = !result.empty();
+
+    if (doStoreIPs) {
+        // Capture directly into the caller-provided buffer when possible.
+        ULONG toCapture = static_cast<ULONG>(std::min<size_t>(result.size(), kMaxCaptureFrames));
+        // Skip our own frame plus what the caller requested.
+        ULONG framesToSkip = static_cast<ULONG>(skipCount) + kSelfFrames;
+        USHORT captured = RtlCaptureStackBackTrace(framesToSkip, toCapture, result.data(), nullptr);
+        return static_cast<size_t>(captured);
+    }
+
+    // Depth-only query: walk the stack in chunks using a temporary buffer.
+    void* tmp[kMaxCaptureFrames];
+    size_t total = 0;
+    ULONG framesToSkip = static_cast<ULONG>(skipCount) + kSelfFrames;
+    while (true) {
+        USHORT captured = RtlCaptureStackBackTrace(framesToSkip, kMaxCaptureFrames, tmp, nullptr);
+        total += captured;
+        if (captured < kMaxCaptureFrames) break;
+        framesToSkip += captured;
+    }
+    return total;
+}
+#endif
+// endregion
 #endif
 
 THREAD_LOCAL_VARIABLE bool disallowSourceInfo = false;

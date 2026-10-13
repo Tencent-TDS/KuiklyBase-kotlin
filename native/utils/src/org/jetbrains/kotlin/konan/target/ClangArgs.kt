@@ -63,6 +63,9 @@ sealed class ClangArgs(
                     "__ANDROID__".takeIf { target.family == Family.ANDROID },
                     "USE_PE_COFF_SYMBOLS=1".takeIf { target.binaryFormat() == BinaryFormat.PE_COFF },
                     "UNICODE".takeIf { target.family == Family.MINGW },
+                    // region @Tencent: llvm-mingw ntdef.h defines min/max even in C++; NOMINMAX avoids clashing with numeric_limits::max().
+                    "NOMINMAX".takeIf { target == KonanTarget.MINGW_ARM64 },
+                    // endregion
                     "USE_WINAPI_UNWIND=1".takeIf { target.supportsWinAPIUnwind() },
                     "USE_GCC_UNWIND=1".takeIf { target.supportsGccUnwind() }
             )
@@ -184,12 +187,15 @@ sealed class ClangArgs(
     /**
      * Clang args for C++ compilation.
      */
-    val clangXXArgs: Array<String> = clangArgs + when (configurables) {
-        is AppleConfigurables -> arrayOf(
+    // region @Tencent: llvm-mingw ARM64 uses libc++ (include/c++/v1), not libstdc++.
+    val clangXXArgs: Array<String> = clangArgs + when {
+        configurables is AppleConfigurables -> arrayOf(
                 "-stdlib=libc++"
         )
+        target == KonanTarget.MINGW_ARM64 -> arrayOf("-stdlib=libc++")
         else -> emptyArray()
     }
+    // endregion
 
     // Kept for compatibility, remove later.
     @Deprecated("args for building runtime moved to runtime building code")

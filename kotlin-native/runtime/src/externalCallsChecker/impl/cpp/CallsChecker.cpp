@@ -56,10 +56,16 @@ extern "C" const char* Kotlin_callsCheckerGoodFunctionNames[] = {
         "_ZSt17rethrow_exceptionNSt15__exception_ptr13exception_ptrE", // std::rethrow_exception(std::__exception_ptr::exception_ptr)
         "_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_", // std::_Rb_tree_rebalance_for_erase(std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
         "_ZN9__gnu_cxx27__verbose_terminate_handlerEv", // __gnu_cxx::__verbose_terminate_handler()
+        "_Znwj", // operator new(unsigned int)
+        "_ZnwjSt11align_val_t", // operator new(unsigned int, std::align_val_t)
         "_Znwm", // new
         "_Znwy", // operator new(unsigned long long)
         "_ZdlPv", // delete
+        "_ZdlPvj", // operator delete(void*, unsigned int)
+        "_ZdlPvSt11align_val_t", // operator delete(void*, std::align_val_t)
+        "_ZdlPvjSt11align_val_t", // operator delete(void*, unsigned int, std::align_val_t)
         "_ZdlPvm", // operator delete(void*, unsigned long)
+        "_ZdlPvy", // operator delete(void*, unsigned long long)
         "_ZNSt3__16thread20hardware_concurrencyEv", // std::__1::thread::hardware_concurrency()
         "_ZNSt6thread20hardware_concurrencyEv", // std::thread::hardware_concurrency()
         "__mingw_vsnprintf",

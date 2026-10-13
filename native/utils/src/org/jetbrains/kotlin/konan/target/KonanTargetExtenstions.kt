@@ -52,6 +52,9 @@ fun KonanTarget.supportsGccUnwind(): Boolean = family == Family.ANDROID || famil
 // endregion
 // MINGW_X64 target does not support GCC unwind, since its sysroot contains libgcc version < 12 having misfeature, see KT-49240
 fun KonanTarget.supportsWinAPIUnwind(): Boolean = this is KonanTarget.MINGW_X64
+        // region @Tencent: Enable WinAPI unwind for mingw_x86 and mingw_arm64.
+        || this is KonanTarget.MINGW_X86 || this is KonanTarget.MINGW_ARM64
+        // endregion
 
 fun KonanTarget.supportsObjcInterop(): Boolean = family.isAppleFamily
 fun KonanTarget.hasFoundationFramework(): Boolean = family.isAppleFamily
@@ -60,6 +63,9 @@ fun KonanTarget.supports64BitMulOverflow(): Boolean = when (this) {
     is KonanTarget.LINUX_ARM32_HFP -> false
     is KonanTarget.ANDROID_ARM32 -> false
     is KonanTarget.ANDROID_X86 -> false
+    // region @Tencent: i686 clang emits compiler-rt `__mulodi4`; mingw-w64 libgcc does not provide it.
+    is KonanTarget.MINGW_X86 -> false
+    // endregion
     else -> true
 }
 

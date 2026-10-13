@@ -594,7 +594,9 @@ internal class CodegenLlvmHelpers(private val generationState: NativeGenerationS
     }
 
     private val personalityFunctionName = when (target) {
-        KonanTarget.MINGW_X64 -> "__gxx_personality_seh0"
+        // region @Tencent: mingw_arm64 uses SEH personality like x64.
+        KonanTarget.MINGW_X64, KonanTarget.MINGW_ARM64 -> "__gxx_personality_seh0"
+        // endregion
         else -> "__gxx_personality_v0"
     }
 

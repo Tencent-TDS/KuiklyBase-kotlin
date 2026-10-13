@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.konan.test.blackbox.support.util
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.konan.target.ClangArgs
 import org.jetbrains.kotlin.konan.target.Family
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.MingwConfigurables
 import org.jetbrains.kotlin.konan.test.blackbox.AbstractNativeSimpleTest
 import org.jetbrains.kotlin.konan.test.blackbox.support.LoggedData
@@ -122,7 +123,13 @@ fun compileWithClang(
         if (configurables.target.family == Family.LINUX)
             add("-lpthread") // libpthread.so.0: error adding symbols: DSO missing from command line. Maybe because of old llvm.
         if (configurables is MingwConfigurables) {
-            add("-femulated-tls") // https://youtrack.jetbrains.com/issue/KT-46612
+            // region @Tencent: x64/x86 msys2 libstdc++ is emutls; llvm-mingw ARM64 libc++ is native TLS.
+            if (configurables.target == KonanTarget.MINGW_ARM64) {
+                add("-fno-emulated-tls")
+            } else {
+                add("-femulated-tls") // https://youtrack.jetbrains.com/issue/KT-46612
+            }
+            // endregion
             // error: argument unused during compilation: '-static-libstdc++'
             add("-Wno-unused-command-line-argument")
             addAll(configurables.linkerKonanFlags)

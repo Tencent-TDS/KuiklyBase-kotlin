@@ -359,6 +359,22 @@ interface KotlinHierarchyBuilder {
      */
     fun withMingwX64()
 
+    // region @Tencent: Extra mingw targets: x86 (old Windows) and arm64.
+    /**
+     * Only includes Kotlin's mingwX86 target in this [group].
+     *
+     * For more information, see [Native targets overview](https://kotlinlang.org/docs/native-target-support.html).
+     */
+    fun withMingwX86()
+
+    /**
+     * Only includes Kotlin's mingwArm64 target in this [group].
+     *
+     * For more information, see [Native targets overview](https://kotlinlang.org/docs/native-target-support.html).
+     */
+    fun withMingwArm64()
+    // endregion
+
     /**
      * Only includes Kotlin's Apple/macosX64 target in this [group].
      *
