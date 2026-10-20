@@ -1,6 +1,8 @@
 buildscript {
     repositories {
-        maven("https://plugins.gradle.org/m2")
+        // region @Tencent: Use the Tencent mirror for Gradle Plugin Portal.
+        maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
+        // endregion
     }
 }
 

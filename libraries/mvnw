@@ -222,7 +222,9 @@ else
   if [ -n "$MVNW_REPOURL" ]; then
     wrapperUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.3.4/maven-wrapper-3.3.4.jar"
   else
-    wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.4/maven-wrapper-3.3.4.jar"
+    # region @Tencent: Use the Tencent mirror for Maven Central.
+    wrapperUrl="https://mirrors.tencent.com/nexus/repository/maven-public/org/apache/maven/wrapper/maven-wrapper/3.3.4/maven-wrapper-3.3.4.jar"
+    # endregion
   fi
   while IFS="=" read -r key value; do
     case "$key" in wrapperUrl)

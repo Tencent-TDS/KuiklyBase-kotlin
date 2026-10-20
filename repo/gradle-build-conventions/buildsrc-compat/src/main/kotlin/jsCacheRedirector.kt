@@ -12,7 +12,9 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 
 const val DEFAULT_YARN_REGISTRY = "https://registry.yarnpkg.com"
-const val NPM_REGISTRY_CACHE = "https://cache-redirector.jetbrains.com/registry.npmjs.org"
+// region @Tencent: Use the Tencent NPM mirror.
+const val NPM_REGISTRY_CACHE = "https://mirrors.tencent.com/npm"
+// endregion
 
 fun Project.configureJsCacheRedirector() {
     pluginManager.withPlugin("com.github.node-gradle.node") {

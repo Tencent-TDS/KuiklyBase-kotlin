@@ -7,6 +7,10 @@ pluginManagement {
     includeBuild("../../repo/gradle-settings-conventions")
 
     repositories {
+        // region @Tencent: Prioritize Tencent mirrors for Maven Central and Gradle Plugin Portal.
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+        maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
+        // endregion
         maven("https://redirector.kotlinlang.org/maven/kotlin-dependencies")
         mavenCentral { setUrl("https://cache-redirector.jetbrains.com/maven-central") }
         gradlePluginPortal()
@@ -35,7 +39,9 @@ val knownGroups = buildList {
 
 dependencyResolutionManagement {
     repositories {
-        mavenCentral { setUrl("https://cache-redirector.jetbrains.com/maven-central") }
+        // region @Tencent: Use the Tencent mirror for Maven Central.
+        mavenCentral { setUrl("https://mirrors.tencent.com/nexus/repository/maven-public") }
+        // endregion
     }
 }
 gradle.beforeProject {

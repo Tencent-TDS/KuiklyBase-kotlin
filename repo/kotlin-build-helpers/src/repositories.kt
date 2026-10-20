@@ -140,7 +140,11 @@ fun RepositoryHandler.teamcityRepository() {
 fun RepositoryHandler.googleAndroidRepository() {
     exclusiveContent { exclusive ->
         exclusive.forRepository {
-            google()
+            // region @Tencent: Use the Tencent mirror for Google Maven.
+            google { repository ->
+                repository.setUrl("https://mirrors.tencent.com/nexus/repository/maven-public")
+            }
+            // endregion
         }
         exclusive.filter { content ->
             content.includeGroupByRegex("""com\.android(\..*)?""")
@@ -167,7 +171,12 @@ fun RepositoryHandler.gradleLibsReleases() {
 fun RepositoryHandler.gradlePluginPortalRepository() {
     exclusiveContent { exclusive ->
         exclusive.forRepository {
-            gradlePluginPortal()
+            // region @Tencent: Use the Tencent mirror for Gradle Plugin Portal.
+            maven { repository ->
+                repository.name = "Gradle Plugin Portal"
+                repository.setUrl("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
+            }
+            // endregion
         }
         exclusive.filter { content ->
             content.includeGroup("com.gradle")
@@ -247,7 +256,9 @@ fun RepositoryHandler.nodeJs() {
         exclusive.forRepository {
             ivy { repository ->
                 repository.name = "Node.js"
-                repository.setUrl("https://cache-redirector.jetbrains.com/nodejs.org/dist")
+                // region @Tencent: Use the Tencent mirror for Node.js distributions.
+                repository.setUrl("https://mirrors.tencent.com/nodejs-release")
+                // endregion
                 repository.patternLayout { layout ->
                     layout.artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]")
                 }

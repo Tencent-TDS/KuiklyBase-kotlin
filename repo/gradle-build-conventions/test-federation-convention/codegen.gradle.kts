@@ -17,7 +17,9 @@ Code generation, parsing 'domains.yaml', generating the
 
 buildscript {
     repositories {
-        mavenCentral { setUrl("https://cache-redirector.jetbrains.com/maven-central") }
+        // region @Tencent: Use the Tencent mirror for Maven Central.
+        mavenCentral { setUrl("https://mirrors.tencent.com/nexus/repository/maven-public") }
+        // endregion
     }
 
     dependencies {

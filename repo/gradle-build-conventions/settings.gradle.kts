@@ -21,7 +21,11 @@ pluginManagement {
         }
         exclusiveContent {
             forRepository {
-                google()
+                // region @Tencent: Use the Tencent mirror for Google Maven.
+                google {
+                    setUrl("https://mirrors.tencent.com/nexus/repository/maven-public")
+                }
+                // endregion
             }
             filter {
                 includeGroupByRegex("""com\.android(\..*)?""")
@@ -29,6 +33,10 @@ pluginManagement {
                 includeGroup("com.google.testing.platform")
             }
         }
+        // region @Tencent: Prioritize Tencent mirrors for Maven Central and Gradle Plugin Portal.
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+        maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
+        // endregion
         gradlePluginPortal()
         mavenCentral()
     }
@@ -51,6 +59,10 @@ dependencyResolutionManagement {
     repositories {
         intellijDependencies()
         googleAndroidRepository()
+        // region @Tencent: Prioritize Tencent mirrors for Maven Central and Gradle Plugin Portal.
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+        maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
+        // endregion
         mavenCentral()
         gradlePluginPortal()
     }

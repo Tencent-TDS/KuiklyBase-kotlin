@@ -13,6 +13,10 @@ pluginManagement {
                 includeGroupByRegex("org.jetbrains.jps.*")
             }
         }
+        // region @Tencent: Prioritize Tencent mirrors for Maven Central, Google, and Gradle Plugin Portal.
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+        maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
+        // endregion
         maven {
             url = uri("https://redirector.kotlinlang.org/maven/kotlin-dependencies")
             content {
@@ -23,14 +27,18 @@ pluginManagement {
             }
         }
         google {
-            url = uri("https://cache-redirector.jetbrains.com/dl.google.com/dl/android/maven2")
+            // region @Tencent: Use the Tencent mirror for Google Maven.
+            url = uri("https://mirrors.tencent.com/nexus/repository/maven-public")
+            // endregion
             content {
                 includeGroup("com.android.tools")
             }
         }
 
         mavenCentral {
-            url = uri("https://cache-redirector.jetbrains.com/maven-central")
+            // region @Tencent: Use the Tencent mirror for Maven Central.
+            url = uri("https://mirrors.tencent.com/nexus/repository/maven-public")
+            // endregion
         }
         gradlePluginPortal()
     }
@@ -129,6 +137,9 @@ dependencyResolutionManagement {
         androidSystemImages()
         val mirrorRepo: String? = settings.providers.systemProperty("maven.repository.mirror").orNull
         mirrorRepo?.let(::maven)
+        // region @Tencent: Use the Tencent mirror for Maven Central.
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+        // endregion
         mavenCentral()
     }
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS

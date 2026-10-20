@@ -36,13 +36,13 @@
             <pluginRepositories>
                 <pluginRepository>
                     <id>MavenCentral-JBCached</id>
-                    <url>https://cache-redirector.jetbrains.com/maven-central</url>
+                    <url>https://mirrors.tencent.com/nexus/repository/maven-public/</url>
                 </pluginRepository>
             </pluginRepositories>
             <repositories>
                 <repository>
                     <id>MavenCentral-JBCached</id>
-                    <url>https://cache-redirector.jetbrains.com/maven-central</url>
+                    <url>https://mirrors.tencent.com/nexus/repository/maven-public/</url>
                 </repository>
             </repositories>
         </profile>
@@ -68,7 +68,7 @@
     <mirrors>
         <mirror>
             <id>MavenCentral-JBCached</id>
-            <url>https://cache-redirector.jetbrains.com/maven-central</url>
+            <url>https://mirrors.tencent.com/nexus/repository/maven-public/</url>
             <mirrorOf>central</mirrorOf>
         </mirror>
     </mirrors>

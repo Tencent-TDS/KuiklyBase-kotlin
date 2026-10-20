@@ -7,6 +7,10 @@ plugins {
 }
 
 repositories {
+    // region @Tencent: Prioritize Tencent mirrors for Maven Central and Gradle Plugin Portal.
+    maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+    maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
+    // endregion
     maven("https://redirector.kotlinlang.org/maven/kotlin-dependencies")
     mavenCentral { setUrl("https://cache-redirector.jetbrains.com/maven-central") }
     gradlePluginPortal()

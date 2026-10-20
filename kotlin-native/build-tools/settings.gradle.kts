@@ -8,9 +8,9 @@ pluginManagement {
     includeBuild("../../repo/gradle-settings-conventions")
 
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+        maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
         maven("https://redirector.kotlinlang.org/maven/kotlin-dependencies")
-        mavenCentral { setUrl("https://cache-redirector.jetbrains.com/maven-central") }
-        gradlePluginPortal()
     }
 }
 
@@ -30,11 +30,11 @@ dependencyResolutionManagement {
         }
     }
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public")
+        maven("https://mirrors.tencent.com/nexus/repository/gradle-plugins")
         maven("https://redirector.kotlinlang.org/maven/kotlin-dependencies") {
             name = "kotlin-dependencies"
         }
-        mavenCentral()
-        gradlePluginPortal()
     }
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
 

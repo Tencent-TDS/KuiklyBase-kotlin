@@ -117,14 +117,19 @@ val cacheMap: Map<String, String> = mapOf(
     "https://dl.bintray.com/kotlin/kotlin-eap" to "https://cache-redirector.jetbrains.com/kotlin-eap",
     "https://dl.bintray.com/kotlin/kotlin-dev" to "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev",
     "https://corretto.aws/downloads/resources" to "https://cache-redirector.jetbrains.com/corretto.aws/downloads/resources",
-    "https://dl.google.com/dl/android/maven2" to "https://cache-redirector.jetbrains.com/dl.google.com/dl/android/maven2",
-    "https://dl.google.com/dl/android/maven2" to "https://cache-redirector.jetbrains.com/dl.google.com.android.maven2",
+    // region @Tencent: Redirect Google Maven to the Tencent mirror.
+    "https://dl.google.com/dl/android/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/dl.google.com/dl/android/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/dl.google.com.android.maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    // endregion
     "https://dl.bintray.com/cy6ergn0m/maven" to "https://cache-redirector.jetbrains.com/dl.bintray.com/cy6ergn0m/maven",
     "https://cdn.azul.com/zulu-embedded/bin" to "https://cache-redirector.jetbrains.com/cdn.azul.com/zulu-embedded/bin",
     "https://dl.bintray.com/kotlin/kotlinx" to "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlinx",
     "https://dl.bintray.com/kotlin/exposed" to "https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/exposed",
     "https://archive.apache.org/dist/maven" to "https://cache-redirector.jetbrains.com/archive.apache.org/dist/maven",
-    "https://repo.maven.apache.org/maven2" to "https://cache-redirector.jetbrains.com/repo.maven.apache.org/maven2",
+    // region @Tencent: Redirect Maven Central to the Tencent mirror.
+    "https://repo.maven.apache.org/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    // endregion
     "https://repo.jenkins-ci.org/releases" to "https://cache-redirector.jetbrains.com/repo.jenkins-ci.org/releases",
     "https://repo.jenkins-ci.org/releases" to "https://cache-redirector.jetbrains.com/repo.jenkins-ci.org.releases",
     "https://packages.confluent.io/maven/" to "https://cache-redirector.jetbrains.com/packages.confluent.io/maven/",
@@ -140,25 +145,41 @@ val cacheMap: Map<String, String> = mapOf(
     "https://repo.spring.io/milestone" to "https://cache-redirector.jetbrains.com/repo.spring.io/milestone",
     "https://repo.spring.io/milestone" to "https://cache-redirector.jetbrains.com/repo.spring.io.milestone",
     "https://kotlin.bintray.com/dukat" to "https://cache-redirector.jetbrains.com/kotlin.bintray.com/dukat",
-    "https://repo1.maven.org/maven2" to "https://cache-redirector.jetbrains.com/repo1.maven.org/maven2",
-    "https://repo1.maven.org/maven2" to "https://cache-redirector.jetbrains.com/maven-central",
+    // region @Tencent: Redirect Maven Central and Gradle Plugin Portal to Tencent mirrors.
+    "https://repo1.maven.org/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://plugins.gradle.org/m2" to "https://mirrors.tencent.com/nexus/repository/gradle-plugins",
+    "https://plugins.gradle.org" to "https://mirrors.tencent.com/nexus/repository/gradle-plugins",
+    "https://cache-redirector.jetbrains.com/maven-central" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/repo1.maven.org/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/repo.maven.apache.org/maven2" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/plugins.gradle.org/m2" to "https://mirrors.tencent.com/nexus/repository/gradle-plugins",
+    "https://cache-redirector.jetbrains.com/plugins.gradle.org" to "https://mirrors.tencent.com/nexus/repository/gradle-plugins",
+    // endregion
     "https://maven.fabric.io/public" to "https://cache-redirector.jetbrains.com/maven.fabric.io/public",
-    "https://plugins.gradle.org/m2" to "https://cache-redirector.jetbrains.com/plugins.gradle.org/m2",
-    "https://plugins.gradle.org/m2" to "https://cache-redirector.jetbrains.com/plugins.gradle.org",
     "https://cdn.azul.com/zulu/bin" to "https://cache-redirector.jetbrains.com/cdn.azul.com/zulu/bin",
+    // region @Tencent: Redirect Gradle distributions, JCenter, NPM, Google Maven, and Node.js to Tencent mirrors.
+    "https://downloads.gradle.org/distributions" to "https://mirrors.tencent.com/gradle",
+    "https://cache-redirector.jetbrains.com/downloads.gradle.org/distributions" to "https://mirrors.tencent.com/gradle",
     "https://downloads.gradle.org" to "https://cache-redirector.jetbrains.com/downloads.gradle.org",
     "https://downloads.apache.org" to "https://cache-redirector.jetbrains.com/downloads.apache.org",
     "https://download.eclipse.org" to "https://cache-redirector.jetbrains.com/download.eclipse.org",
+    "https://services.gradle.org/distributions" to "https://mirrors.tencent.com/gradle",
+    "https://cache-redirector.jetbrains.com/services.gradle.org/distributions" to "https://mirrors.tencent.com/gradle",
     "https://services.gradle.org" to "https://cache-redirector.jetbrains.com/services.gradle.org",
-    "https://jcenter.bintray.com" to "https://cache-redirector.jetbrains.com/jcenter.bintray.com",
-    "https://jcenter.bintray.com" to "https://cache-redirector.jetbrains.com/jcenter",
+    "https://jcenter.bintray.com" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/jcenter.bintray.com" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/jcenter" to "https://mirrors.tencent.com/nexus/repository/maven-public",
     "https://www.python.org/ftp" to "https://cache-redirector.jetbrains.com/www.python.org/ftp",
-    "https://registry.npmjs.org" to "https://cache-redirector.jetbrains.com/registry.npmjs.org",
-    "https://maven.google.com" to "https://cache-redirector.jetbrains.com/maven.google.com",
+    "https://registry.npmjs.org" to "https://mirrors.tencent.com/npm",
+    "https://cache-redirector.jetbrains.com/registry.npmjs.org" to "https://mirrors.tencent.com/npm",
+    "https://maven.google.com" to "https://mirrors.tencent.com/nexus/repository/maven-public",
+    "https://cache-redirector.jetbrains.com/maven.google.com" to "https://mirrors.tencent.com/nexus/repository/maven-public",
     "https://dl.google.com/go" to "https://cache-redirector.jetbrains.com/dl.google.com/go",
     "https://dl.google.com/go" to "https://cache-redirector.jetbrains.com/dl.google.com.go",
     "https://clojars.org/repo" to "https://cache-redirector.jetbrains.com/clojars.org/repo",
-    "https://nodejs.org/dist" to "https://cache-redirector.jetbrains.com/nodejs.org/dist",
+    "https://nodejs.org/dist" to "https://mirrors.tencent.com/nodejs-release",
+    "https://cache-redirector.jetbrains.com/nodejs.org/dist" to "https://mirrors.tencent.com/nodejs-release",
+    // endregion
     "https://github.com/WebAssembly/binaryen/releases/download" to "https://cache-redirector.jetbrains.com/github.com/WebAssembly/binaryen/releases/download",
     "https://jitpack.io" to "https://cache-redirector.jetbrains.com/jitpack.io",
     "https://repo.labs.intellij.net/intellij-nightly-sdk" to "https://cache-redirector.jetbrains.com/www.jetbrains.com/intellij-repository/nightly",
@@ -278,7 +299,10 @@ abstract class CheckRepositoriesTask : DefaultTask() {
     private fun URI.isCachedOrLocal() = scheme == "file" ||
             host == "cache-redirector.jetbrains.com" ||
             host == "teamcity.jetbrains.com" ||
-            host == "buildserver.labs.intellij.net"
+            host == "buildserver.labs.intellij.net" ||
+            // region @Tencent: Recognize the Tencent mirror host as cached.
+            host == "mirrors.tencent.com"
+            // endregion
 
     private fun RepositoryHandler.findNonCachedRepositories(): List<String> {
         val mavenNonCachedRepos = filterIsInstance<MavenArtifactRepository>()
