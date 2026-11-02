@@ -20,7 +20,10 @@ class KonanTargetTest {
     @Test
     fun allPredefinedTargetsRegistered() {
         assertEquals(
-            KonanTarget::class.sealedSubclasses.mapNotNull { it.objectInstance }.toSet(),
+            // region @Tencent: IOS_ARM32 is kept only for compatibility and is not a predefined target.
+            @Suppress("DEPRECATION")
+            (KonanTarget::class.sealedSubclasses.mapNotNull { it.objectInstance }.toSet() - KonanTarget.IOS_ARM32),
+            // endregion
             KonanTarget.predefinedTargets.values.toSet(),
             "Some of predefined KonanTarget instances are not listed in 'KonanTarget.predefinedTargets'",
         )

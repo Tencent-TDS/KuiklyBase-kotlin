@@ -793,7 +793,7 @@ private fun KotlinTarget.supportsSwiftPMImport() = this is KotlinNativeTarget &&
 private fun KotlinMultiplatformExtension.swiftPMImportTargets() =
     targets.matching { it.supportsSwiftPMImport() }
 
-private fun KonanTarget.swiftPMPlatform(): SwiftPMDependency.Platform = when (this) {
+private fun KonanTarget.swiftPMPlatform(): SwiftPMDependency.Platform = @Suppress("DEPRECATION") when (this) {
     KonanTarget.IOS_ARM64,
     KonanTarget.IOS_SIMULATOR_ARM64,
     KonanTarget.IOS_X64,
@@ -820,7 +820,8 @@ private fun KonanTarget.swiftPMPlatform(): SwiftPMDependency.Platform = when (th
     KonanTarget.LINUX_ARM64,
     KonanTarget.LINUX_X64,
     KonanTarget.MINGW_X64,
-    // region @Tencent: OHOS and extra mingw targets are not SwiftPM platforms.
+    // region @Tencent: OHOS, extra mingw targets, and deprecated IOS_ARM32 are not SwiftPM platforms.
+    KonanTarget.IOS_ARM32,
     KonanTarget.MINGW_X86,
     KonanTarget.MINGW_ARM64,
     KonanTarget.OHOS_ARM64,

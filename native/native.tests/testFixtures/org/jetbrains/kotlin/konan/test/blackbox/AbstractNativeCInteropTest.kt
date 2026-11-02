@@ -193,6 +193,10 @@ abstract class AbstractNativeCInteropTest : AbstractNativeCInteropBaseTest() {
             KonanTarget.ANDROID_ARM64 -> "ARM64"
             KonanTarget.ANDROID_X64 -> "X64"
             KonanTarget.ANDROID_X86 -> "CPointerByteVar"
+            // region @Tencent: Keep IOS_ARM32 for compatibility with older projects and plugins.
+            @Suppress("DEPRECATION")
+            KonanTarget.IOS_ARM32 -> "CPointerByteVar"
+            // endregion
             KonanTarget.IOS_ARM64 -> "CPointerByteVar"
             KonanTarget.IOS_SIMULATOR_ARM64 -> "CPointerByteVar"
             KonanTarget.IOS_X64 -> "X64"

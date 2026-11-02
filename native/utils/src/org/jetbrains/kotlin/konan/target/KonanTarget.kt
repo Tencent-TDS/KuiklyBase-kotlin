@@ -17,6 +17,10 @@ sealed class KonanTarget(override val name: String, val family: Family, val arch
     object ANDROID_X86 : KonanTarget("android_x86", Family.ANDROID, Architecture.X86)
     object ANDROID_ARM32 : KonanTarget("android_arm32", Family.ANDROID, Architecture.ARM32)
     object ANDROID_ARM64 : KonanTarget("android_arm64", Family.ANDROID, Architecture.ARM64)
+    // region @Tencent: Keep IOS_ARM32 for compatibility with older projects and plugins.
+    @Deprecated(DEPRECATED_TARGET_MESSAGE)
+    object IOS_ARM32 : KonanTarget("ios_arm32", Family.IOS, Architecture.ARM32)
+    // endregion
     object IOS_ARM64 : KonanTarget("ios_arm64", Family.IOS, Architecture.ARM64)
     object IOS_X64 : KonanTarget("ios_x64", Family.IOS, Architecture.X64)
     object IOS_SIMULATOR_ARM64 : KonanTarget("ios_simulator_arm64", Family.IOS, Architecture.ARM64)
