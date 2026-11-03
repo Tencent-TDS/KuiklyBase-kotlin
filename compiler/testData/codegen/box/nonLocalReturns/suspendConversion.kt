@@ -1,7 +1,10 @@
-// ISSUE: KT-72464
+// ISSUE: KT-72464, KT-91139
 // IGNORE_KLIB_BACKEND_ERRORS_WITH_CUSTOM_FIRST_STAGE: Native:1.9,2.0,2.1,2.2
 // IGNORE_KLIB_RUNTIME_ERRORS_WITH_CUSTOM_FIRST_STAGE: JS,Wasm-JS,Wasm-WASI:1.9,2.0,2.1,2.2
-// KT-72464: Supported in 2.2.20-Beta1
+// KT-91139: KLIBs built by compilers up to 2.2 store the suspend conversion of `f` in `bar` under the legacy
+// SUSPEND_CONVERSION origin name, which the current compiler doesn't recognize, so the non-local return is lost
+// (JS, Wasm) or the compilation crashes (Native).
+// See also compiler/testData/codegen/box/suspendConversion/legacyKlibSuspendConversionOfLambda.kt
 
 // WITH_STDLIB
 // WITH_COROUTINES
