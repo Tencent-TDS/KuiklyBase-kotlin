@@ -1,6 +1,5 @@
 // ISSUE: KT-91139
 // TARGET_BACKEND: JS_IR, JS_IR_ES6, WASM, NATIVE
-// IGNORE_KLIB_RUNTIME_ERRORS_WITH_CUSTOM_FIRST_STAGE: ANY:1.9,2.0,2.1,2.2
 // KLIBs built by compilers up to 2.2 store a suspend conversion of a function-typed expression as a block with the
 // legacy SUSPEND_CONVERSION origin, renamed to FUNCTION_TYPE_EXPRESSION_CONVERSION in 2.4.20. A consumer which doesn't
 // recognize the legacy name lowers the block as a plain reference to the synthetic `suspendConversion0` adapter: the
