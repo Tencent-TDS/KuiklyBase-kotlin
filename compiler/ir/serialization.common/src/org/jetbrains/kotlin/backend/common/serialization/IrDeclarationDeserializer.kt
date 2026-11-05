@@ -819,6 +819,9 @@ class IrDeclarationDeserializer(
                 .declaredMemberProperties
                 .mapNotNull { it.get(IrDeclarationOrigin.Companion) as? IrDeclarationOriginImpl }
                 .associateBy { it.name }
+                // region @Tencent: Recognize legacy GENERATED_SINGLE_FIELD_VALUE_CLASS_MEMBER origin from older Klibs (KT-90675)
+                .plus("GENERATED_SINGLE_FIELD_VALUE_CLASS_MEMBER" to IrDeclarationOrigin.GENERATED_INLINE_CLASS_MEMBER)
+                // endregion
         }
         private val unknownDeclarationOriginCache = mutableMapOf<String, IrDeclarationOrigin>()
     }
