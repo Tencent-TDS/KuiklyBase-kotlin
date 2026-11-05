@@ -364,4 +364,46 @@ class KotlinMultiplatformSourceSetConventionsTest {
 
         project.assertNoDiagnostics()
     }
+
+    // region @Tencent: Verify ohosMain and ohosArm64Main convention accessors work without diagnostics.
+    @Test
+    fun `test - ohosMain and ohosArm64Main conventions`() = buildProjectWithMPP().runLifecycleAwareTest {
+        multiplatformExtension.apply {
+            ohosArm64()
+
+            sourceSets.ohosMain {
+                dependencies {
+                    implementation("my:ohosMain:library")
+                }
+            }
+
+            sourceSets.ohosArm64Main {
+                dependencies {
+                    implementation("my:ohosArm64Main:library")
+                }
+            }
+
+            sourceSets.ohosTest {
+                dependencies {
+                    implementation("my:ohosTest:library")
+                }
+            }
+
+            sourceSets.ohosArm64Test {
+                dependencies {
+                    implementation("my:ohosArm64Test:library")
+                }
+            }
+
+            configurationResult.await()
+            assertNoDiagnostics()
+            assertEquals(setOf("ohosMain"), sourceSets.ohosArm64Main.get().dependsOn.map { it.name }.toSet())
+            assertEquals(setOf("ohosTest"), sourceSets.ohosArm64Test.get().dependsOn.map { it.name }.toSet())
+            assertContainsDependencies(sourceSets.ohosMain.get().implementationConfigurationName, "my:ohosMain:library")
+            assertContainsDependencies(sourceSets.ohosArm64Main.get().implementationConfigurationName, "my:ohosArm64Main:library")
+            assertContainsDependencies(sourceSets.ohosTest.get().implementationConfigurationName, "my:ohosTest:library")
+            assertContainsDependencies(sourceSets.ohosArm64Test.get().implementationConfigurationName, "my:ohosArm64Test:library")
+        }
+    }
+    // endregion
 }

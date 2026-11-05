@@ -168,6 +168,12 @@ private val defaultKotlinHierarchyTemplate = KotlinHierarchyTemplate {
             group("androidNative") {
                 withAndroidNative()
             }
+
+            // region @Tencent: Group declared OHOS targets under ohosMain and ohosTest.
+            group("ohos") {
+                withOhos()
+            }
+            // endregion
         }
 
         group("web") {

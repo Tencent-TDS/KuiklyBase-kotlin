@@ -41,12 +41,16 @@ class KotlinHierarchyDslTest {
         )
 
         assertEquals(
-            stringSetOf("androidNativeMain", "appleMain", "linuxMain", "mingwMain"),
+            // region @Tencent: Include ohosMain in the default native hierarchy.
+            stringSetOf("androidNativeMain", "appleMain", "linuxMain", "mingwMain", "ohosMain"),
+            // endregion
             kotlin.dependingSourceSetNames("nativeMain")
         )
 
         assertEquals(
-            stringSetOf("androidNativeTest", "appleTest", "linuxTest", "mingwTest"),
+            // region @Tencent: Include ohosTest in the default native hierarchy.
+            stringSetOf("androidNativeTest", "appleTest", "linuxTest", "mingwTest", "ohosTest"),
+            // endregion
             kotlin.dependingSourceSetNames("nativeTest")
         )
 
@@ -111,14 +115,30 @@ class KotlinHierarchyDslTest {
         )
 
         assertEquals(
-            stringSetOf("mingwX64Main"),
+            // region @Tencent: Include mingwArm64Main and mingwX86Main under mingwMain.
+            stringSetOf("mingwArm64Main", "mingwX64Main", "mingwX86Main"),
+            // endregion
             kotlin.dependingSourceSetNames("mingwMain")
         )
 
         assertEquals(
-            stringSetOf("mingwX64Test"),
+            // region @Tencent: Include mingwArm64Test and mingwX86Test under mingwTest.
+            stringSetOf("mingwArm64Test", "mingwX64Test", "mingwX86Test"),
+            // endregion
             kotlin.dependingSourceSetNames("mingwTest")
         )
+
+        // region @Tencent: Verify ohosMain and ohosTest children in the default hierarchy.
+        assertEquals(
+            stringSetOf("ohosArm64Main"),
+            kotlin.dependingSourceSetNames("ohosMain")
+        )
+
+        assertEquals(
+            stringSetOf("ohosArm64Test"),
+            kotlin.dependingSourceSetNames("ohosTest")
+        )
+        // endregion
 
         assertEquals(
             stringSetOf("androidNativeArm32Main", "androidNativeArm64Main", "androidNativeX64Main", "androidNativeX86Main"),
@@ -177,8 +197,12 @@ class KotlinHierarchyDslTest {
                 │   ├── linuxMain
                 │   │   ├── linuxArm64Main
                 │   │   └── linuxX64Main
-                │   └── mingwMain
-                │       └── mingwX64Main
+                │   ├── mingwMain
+                │   │   ├── mingwArm64Main
+                │   │   ├── mingwX64Main
+                │   │   └── mingwX86Main
+                │   └── ohosMain
+                │       └── ohosArm64Main
                 ├── wasmWasiMain
                 └── webMain
                     ├── jsMain
@@ -215,8 +239,12 @@ class KotlinHierarchyDslTest {
                 │   ├── linuxTest
                 │   │   ├── linuxArm64Test
                 │   │   └── linuxX64Test
-                │   └── mingwTest
-                │       └── mingwX64Test
+                │   ├── mingwTest
+                │   │   ├── mingwArm64Test
+                │   │   ├── mingwX64Test
+                │   │   └── mingwX86Test
+                │   └── ohosTest
+                │       └── ohosArm64Test
                 ├── wasmWasiTest
                 └── webTest
                     ├── jsTest
@@ -247,6 +275,30 @@ class KotlinHierarchyDslTest {
             kotlin.sourceSets.toSet()
         )
     }
+
+    // region @Tencent: Test the default hierarchy for ohosArm64.
+    @Test
+    fun `test - hierarchy default - only ohosArm64`() {
+        kotlin.apply {
+            applyDefaultHierarchyTemplate()
+            kotlin.ohosArm64()
+        }
+
+        val commonMain = kotlin.sourceSets.getByName("commonMain")
+        val commonTest = kotlin.sourceSets.getByName("commonTest")
+        val nativeMain = kotlin.sourceSets.getByName("nativeMain")
+        val nativeTest = kotlin.sourceSets.getByName("nativeTest")
+        val ohosMain = kotlin.sourceSets.getByName("ohosMain")
+        val ohosTest = kotlin.sourceSets.getByName("ohosTest")
+        val ohosArm64Main = kotlin.sourceSets.getByName("ohosArm64Main")
+        val ohosArm64Test = kotlin.sourceSets.getByName("ohosArm64Test")
+
+        assertEquals(
+            setOf(commonMain, commonTest, nativeMain, nativeTest, ohosMain, ohosTest, ohosArm64Main, ohosArm64Test),
+            kotlin.sourceSets.toSet()
+        )
+    }
+    // endregion
 
     @Test
     fun `test - hierarchy default - is only applied to main and test compilations`() = project.runLifecycleAwareTest {
@@ -596,7 +648,13 @@ class KotlinHierarchyDslTest {
                         linuxArm64Main,
                         linuxX64Main,
                         mingwMain,
+                        // region @Tencent: Include mingwArm64Main, mingwX86Main, ohosMain, and ohosArm64Main in expected static accessors.
+                        mingwArm64Main,
                         mingwX64Main,
+                        mingwX86Main,
+                        ohosMain,
+                        ohosArm64Main,
+                        // endregion
                         wasmWasiMain,
                         webMain,
                         jsMain,
@@ -629,7 +687,13 @@ class KotlinHierarchyDslTest {
                         linuxArm64Test,
                         linuxX64Test,
                         mingwTest,
+                        // region @Tencent: Include mingwArm64Test, mingwX86Test, ohosTest, and ohosArm64Test in expected static accessors.
+                        mingwArm64Test,
                         mingwX64Test,
+                        mingwX86Test,
+                        ohosTest,
+                        ohosArm64Test,
+                        // endregion
                         wasmWasiTest,
                         webTest,
                         jsTest,
