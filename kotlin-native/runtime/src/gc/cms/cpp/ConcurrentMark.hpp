@@ -136,6 +136,23 @@ public:
         return markTerminationGuard;
     }
 
+    // region @Tencent: Provide non-blocking weak read lock helpers to avoid spinning during mark termination.
+    auto tryWeakReadProtector() noexcept {
+        return std::shared_lock{markTerminationMutex_, std::try_to_lock};
+    }
+
+    auto weakRefReadFlagProtector() noexcept {
+        return std::shared_lock{weakRefReadMutex_};
+    }
+
+    /**
+     * Should be protected by [weakRefReadMutex_].
+     */
+    void setWeakRefReadFlag() noexcept {
+        weakRefReadFlag_.store(true, std::memory_order_relaxed);
+    }
+    // endregion
+
     /** Ensures that the mark phase would not be run during the execution of the guarded code. Use with care. */
     auto markMutex() noexcept {
         return std::shared_lock{markMutex_};
@@ -158,6 +175,10 @@ private:
 
     RWSpinLock markTerminationMutex_;
     RWSpinLock markMutex_;
+    // region @Tencent: Synchronize fallback weak reference reads with mark termination.
+    RWSpinLock weakRefReadMutex_;
+    std::atomic<bool> weakRefReadFlag_ = false;
+    // endregion
 };
 
 namespace test_support {

@@ -204,7 +204,68 @@ NO_INLINE ObjHeader* weakRefReadInWeakSweepSlowPath(ObjHeader* weakReferee) noex
 PERFORMANCE_INLINE ObjHeader* gc::barriers::weakRefReadBarrier(std_support::atomic_ref<ObjHeader*> weakReferee) noexcept {
     if (__builtin_expect(currentPhase() != BarriersPhase::kDisabled, false)) {
         // Mark dispatcher requires weak reads be protected by the following:
-        auto weakReadProtector = markDispatcher().weakReadProtector();
+        // region @Tencent: Avoid blocking on markTerminationMutex_ when GC is terminating mark.
+        // Running in `kRunnable` guarantees two invariants throughout this barrier:
+        // 1. GC cannot enter STW to call `disableBarriers()`, so `currentPhase()` stays in
+        //    `kMarkClosure` or `kWeakProcessing` and never transitions to `kDisabled`.
+        // 2. GC's `flushMutatorQueues()` sees `suspendedOrNative() == false` for this thread
+        //    and will never concurrently touch this thread's local `markQueue()`.
+        AssertThreadState(ThreadState::kRunnable);
+        {
+            // Lock-free fast path: cleared weak references and permanent objects never need
+            // mark-queue insertion or liveness checks.
+            auto weak = weakReferee.load(std::memory_order_relaxed);
+            if (!weak) return nullptr;
+            if (weak->permanent()) return weak;
+        }
+
+        auto& dispatcher = markDispatcher();
+        // Use non-blocking `try_to_lock` on `markTerminationMutex_`. Blocking here (as upstream's
+        // `weakReadProtector()` does) forces this thread to spin until every `kRunnable` mutator
+        // reaches a safepoint in `flushMutatorQueues()`. On Apple targets, `_tryRetain` enters this
+        // barrier while `libobjc` holds a global `SideTable` spinlock; spinning here while another
+        // `kRunnable` thread waits for the same `SideTable` lock causes a 3-way deadlock (KT-80769).
+        auto weakReadProtector = dispatcher.tryWeakReadProtector();
+        if (!weakReadProtector) {
+            // `markTerminationMutex_` is currently held by the GC thread in `tryTerminateMark()`.
+            // Fall back to `weakRefReadMutex_` (shared lock): GC only acquires its unique lock
+            // *after* `flushMutatorQueues()` finishes, for a nanosecond-scale check and phase switch
+            // without waiting on any mutator.
+            auto weakRefReadFlagProtector = dispatcher.weakRefReadFlagProtector();
+
+            // Reload after acquiring `weakRefReadMutex_` in case GC already switched to
+            // `kWeakProcessing` and nulled out `weakReferee` in `processWeaks()`.
+            auto weak = weakReferee.load(std::memory_order_relaxed);
+            if (!weak) return nullptr;
+
+            auto phase = currentPhase();
+            BarriersLogDebug(phase, "Weak read (fallback) %p", weak);
+
+            // Case 1: GC already finished mark termination and entered `kWeakProcessing` before we
+            // acquired `weakRefReadMutex_`. The mark closure is finalized; return `weak` iff marked.
+            if (__builtin_expect(phase == BarriersPhase::kWeakProcessing, false)) {
+                return weakRefReadInWeakSweepSlowPath(weak);
+            }
+
+            // Case 2: Still in `kMarkClosure` (GC has not yet acquired `weakRefReadMutex_` to switch
+            // phases, or already aborted termination and started a new mark iteration). Holding the
+            // shared lock prevents GC from switching to `kWeakProcessing` until we finish below.
+            assertPhase(BarriersPhase::kMarkClosure);
+            if (gc::isMarked(weak)) {
+                // Already marked (in the mark closure or already queued); safe to return directly.
+                return weak;
+            }
+
+            // `weak` is unmarked and about to be resurrected. Because this thread might have already
+            // executed its safepoint flush for the ongoing `flushMutatorQueues()` pass, pushing `weak`
+            // into the thread-local `markQueue` alone may not increment `batchesEverShared()` before
+            // GC checks it. Setting `weakRefReadFlag_` forces `tryTerminateMark()` to reject termination
+            // and run another mark + flush iteration so `weak` and its subgraph are fully traced.
+            dispatcher.setWeakRefReadFlag();
+            weakRefReadInMarkSlowPath(weak);
+            return weak;
+        }
+        // endregion
         AssertThreadState(ThreadState::kRunnable);
 
         auto weak = weakReferee.load(std::memory_order_relaxed);

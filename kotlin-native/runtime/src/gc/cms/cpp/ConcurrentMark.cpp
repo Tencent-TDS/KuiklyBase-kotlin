@@ -57,6 +57,9 @@ void gc::mark::ConcurrentMark::setupBeforeSTW(GCHandle gcHandle) {
 void gc::mark::ConcurrentMark::endMarkingEpoch() {
     parallelProcessor_.destroy();
     resetMutatorFlags();
+    // region @Tencent: Clear weakRefReadFlag_ in case mark was terminated in STW.
+    weakRefReadFlag_.store(false, std::memory_order_relaxed);
+    // endregion
     lockedMutatorsList_ = std::nullopt;
 }
 
@@ -156,11 +159,15 @@ bool gc::mark::ConcurrentMark::tryTerminateMark(std::size_t& everSharedBatches) 
     // 2. AND were empty before the flush request was made,
     // 3. AND the last attempt at completing mark closure encountered 0 new objects // FIXME this is actually redundant
     const auto nowSharedBatches = parallelProcessor_->batchesEverShared();
-    if (nowSharedBatches > everSharedBatches) {
+    // region @Tencent: Continue marking if unmarked weak referents were read during mark termination.
+    std::unique_lock weakProcessingGuard(weakRefReadMutex_);
+    if (nowSharedBatches > everSharedBatches || weakRefReadFlag_.load(std::memory_order_relaxed)) {
+        weakRefReadFlag_.store(false, std::memory_order_relaxed);
         everSharedBatches = nowSharedBatches;
         parallelProcessor_->resetForNewWork();
         return false;
     }
+    // endregion
     RuntimeAssert(nowSharedBatches == everSharedBatches, "This number must never decrease");
 
     barriers::switchToWeakProcessingBarriers();

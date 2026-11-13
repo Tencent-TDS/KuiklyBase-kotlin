@@ -96,18 +96,13 @@ TYPED_TEST_P(TracingGCTest, WeakResurrectionAtMarkTermination) {
         future.wait();
     }
 
-    for (int i = 0; i < kDefaultThreadCount; ++i) {
-        mutators[i]
-                .Execute([&, i](mm::ThreadData&, Mutator&) noexcept {
-                    if (auto weakReferee = weaks[i]->get()) {
-                        auto& extraObj = *mm::ExtraObjectData::Get(weakReferee);
-                        extraObj.ClearRegularWeakReferenceImpl();
-                        extraObj.Uninstall();
-                        alloc::destroyExtraObjectData(extraObj);
-                    }
-                })
-                .wait();
-    }
+    // @Tencent: Removed upstream's manual ExtraObjectData teardown loop here.
+    // Upstream blocked `weaks[i]->get()` on `markTerminationMutex_` until `kWeakProcessing`, so `weaks[i]->get()`
+    // always returned `nullptr` and the loop body was dead code. With the non-blocking weak read barrier, referents
+    // can now actually be resurrected during mark termination, which exposed a double-`Uninstall()` null-pointer crash
+    // on `legacy_alloc` (`extraObj.Uninstall()` nulled out the base object before `alloc::destroyExtraObjectData` and
+    // `Allocator::clearForTests` called `Uninstall()` again). As in `WeakResurrectionInMark`, `~ConcurrentMarkAndSweepTest`
+    // already cleans up resurrected objects and their `ExtraObjectData` via `allocator().clearForTests()`.
 }
 
 TYPED_TEST_P(TracingGCTest, ReleaseStableRefDuringRSCollection) {
@@ -214,10 +209,123 @@ TYPED_TEST_P(TracingGCTest, TerminateInSTW) {
     }
 }
 
+// region @Tencent: Verify weak reference reads do not block when another mutator delays mark termination.
+TYPED_TEST_P(TracingGCTest, WeakReadNotBlockedDuringMarkTermination) {
+    constexpr int kChainLength = 50000;
+
+    std::vector<Mutator> mutators(2);
+    test_support::RegularWeakReferenceImpl* weakRef = nullptr;
+    test_support::Object<Payload>* root = nullptr;
+    test_support::Object<Payload>* weakObj = nullptr;
+    test_support::Object<Payload>* weakChild = nullptr;
+
+    mutators[0]
+            .Execute([&](mm::ThreadData& threadData, Mutator& mutator) {
+                root = &AllocateObject(threadData);
+                mutator.AddGlobalRoot(root->header());
+
+                // Give concurrent mark enough work after STW1 so mutators reliably wake up before tryTerminateMark().
+                ObjHeader* head = nullptr;
+                for (int i = 0; i < kChainLength; ++i) {
+                    auto& node = AllocateObject(threadData);
+                    node->field1 = head;
+                    head = node.header();
+                }
+                (*root)->field2 = head;
+
+                weakChild = &AllocateObject(threadData);
+                weakObj = &AllocateObject(threadData);
+                (*weakObj)->field1 = weakChild->header();
+
+                ObjHolder holder;
+                weakRef = &test_support::InstallWeakReference(threadData, weakObj->header(), holder.slot());
+                EXPECT_EQ(weakRef->get(), weakObj->header());
+                mutator.AddGlobalRoot(weakRef->header());
+            })
+            .wait();
+    mutators[1].Execute([](mm::ThreadData&, Mutator&) {}).wait();
+
+    std::atomic<int> readyMutators = 0;
+    std::atomic<bool> flushObservedByBlocker = false;
+    std::atomic<bool> caughtFlushInMark = false;
+    std::atomic<bool> weakReadCompleted = false;
+    std::atomic<bool> gcDone = false;
+
+    auto readerFuture = mutators[0].Execute([&](mm::ThreadData& threadData, Mutator& mutator) noexcept {
+        ++readyMutators;
+        while (!mm::IsThreadSuspensionRequested()) {
+        }
+        mm::safePoint(threadData);
+
+        while (!flushObservedByBlocker.load(std::memory_order_acquire) && !gcDone.load(std::memory_order_relaxed)) {
+            mm::safePoint(threadData);
+        }
+
+        bool resurrected = false;
+        if (caughtFlushInMark.load(std::memory_order_relaxed)) {
+            // At this point mutators[1] is holding back flushMutatorQueues(), so GC holds markTerminationMutex_.
+            // Reading weakRef must not block on markTerminationMutex_ and must resurrect weakObj and weakChild.
+            auto* referent = weakRef->get();
+            EXPECT_EQ(referent, weakObj->header());
+            (*root)->field1 = referent;
+            resurrected = referent != nullptr;
+        }
+
+        weakReadCompleted.store(true, std::memory_order_release);
+
+        while (!gcDone.load(std::memory_order_relaxed)) {
+            mm::safePoint(threadData);
+        }
+
+        if (resurrected) {
+            EXPECT_EQ(weakRef->get(), weakObj->header());
+            EXPECT_THAT(mutator.Alive(), testing::AllOf(testing::Contains(weakObj->header()), testing::Contains(weakChild->header())));
+        }
+    });
+
+    auto blockerFuture = mutators[1].Execute([&](mm::ThreadData& threadData, Mutator&) noexcept {
+        ++readyMutators;
+        while (!mm::IsThreadSuspensionRequested()) {
+        }
+        mm::safePoint(threadData);
+
+        while (!gc::mark::test_support::flushActionRequested() && !gcDone.load(std::memory_order_relaxed)) {
+        }
+
+        if (!gcDone.load(std::memory_order_relaxed)) {
+            caughtFlushInMark.store(true, std::memory_order_relaxed);
+            flushObservedByBlocker.store(true, std::memory_order_release);
+
+            // Stay in kRunnable without hitting a safepoint until mutators[0] finishes reading weakRef.
+            while (!weakReadCompleted.load(std::memory_order_acquire) && !gcDone.load(std::memory_order_relaxed)) {
+            }
+        } else {
+            flushObservedByBlocker.store(true, std::memory_order_release);
+        }
+
+        while (!gcDone.load(std::memory_order_relaxed)) {
+            mm::safePoint(threadData);
+        }
+    });
+
+    while (readyMutators.load() < 2) {
+    }
+
+    mm::GlobalData::Instance().gcScheduler().scheduleAndWaitFinalized();
+    gcDone.store(true, std::memory_order_relaxed);
+
+    readerFuture.wait();
+    blockerFuture.wait();
+}
+// endregion
+
 REGISTER_TYPED_TEST_SUITE_WITH_LISTS(
         TracingGCTest, TRACING_GC_TEST_LIST,
         WeakResurrectionAtMarkTermination,
         ReleaseStableRefDuringRSCollection,
-        TerminateInSTW
+        TerminateInSTW,
+        // region @Tencent: Register WeakReadNotBlockedDuringMarkTermination test.
+        WeakReadNotBlockedDuringMarkTermination
+        // endregion
 );
 INSTANTIATE_TYPED_TEST_SUITE_P(CMS, TracingGCTest, ConcurrentMarkAndSweepTest);
