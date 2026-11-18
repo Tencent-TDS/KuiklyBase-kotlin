@@ -18,6 +18,13 @@ struct WritableTypeInfo;
 
 struct ObjHeader;
 struct TypeInfo;
+// region @Tencent: Forward-declare theStringTypeInfo for TypeInfo::IsString().
+#ifdef __cplusplus
+extern "C" {
+extern const TypeInfo* theStringTypeInfo;
+}
+#endif
+// endregion
 
 struct AssociatedObjectTableRecord {
   const TypeInfo* key;
@@ -147,6 +154,9 @@ struct TypeInfo {
     inline VTableElement* vtable() { return reinterpret_cast<VTableElement*>(this + 1); }
 
     inline bool IsArray() const { return instanceSize_ < 0; }
+    // region @Tencent: Check whether this TypeInfo represents kotlin.String.
+    inline bool IsString() const { return this == theStringTypeInfo; }
+    // endregion
 
     bool IsLayoutCompatible(const TypeInfo* rhs) const noexcept {
         // TODO: Use debug info if it's present?

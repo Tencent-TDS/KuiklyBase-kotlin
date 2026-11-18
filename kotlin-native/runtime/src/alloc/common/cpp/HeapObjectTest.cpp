@@ -10,6 +10,9 @@
 
 #include "Natives.h"
 #include "Types.h"
+// region @Tencent: Include <array> for HeapObjectStringSizeTest.
+#include <array>
+// endregion
 
 using namespace kotlin;
 
@@ -79,3 +82,30 @@ TYPED_TEST(HeapObjectTest, ArrayAlignment) {
             reinterpret_cast<uint8_t*>(TypeParam::addressOfElementAt(heapArray.array(), kArraySize)),
             testing::Le(reinterpret_cast<uint8_t*>(&heapArray) + descriptor.size()));
 }
+
+// region @Tencent: Verify HeapObject::size() returns physical header size for external/proxy strings.
+TEST(HeapObjectStringSizeTest, ExternalStringReportsHeaderOnlySize) {
+    using HeapObj = alloc::HeapObject<uint64_t>;
+    using HeapArr = alloc::HeapArray<uint64_t>;
+    constexpr size_t kStorageSize = 64;
+    constexpr uint64_t kExternalLengthBytes = 4096;
+    constexpr uint32_t kInlineElementCount = 100;
+
+    alignas(kObjectAlignment) std::array<uint8_t, kStorageSize> storage{};
+    auto* fakeString = reinterpret_cast<StringHeader*>(storage.data() + sizeof(uint64_t));
+    fakeString->typeInfoOrMeta_ = const_cast<TypeInfo*>(theStringTypeInfo);
+    fakeString->flags_ = static_cast<uint16_t>(StringType::kExternal) << StringHeader::TYPE_OFFSET;
+    fakeString->adjustForExternal(kExternalLengthBytes);
+
+    auto& heapObj = HeapObj::from(reinterpret_cast<ObjHeader*>(fakeString));
+    const auto expectedPhysicalSize = HeapArr::descriptorFrom(
+            theStringTypeInfo, StringHeader::extraLength(0) / sizeof(KChar)).size();
+    EXPECT_EQ(heapObj.size(), expectedPhysicalSize);
+
+    // Default inline string reports full count_-based size.
+    fakeString->flags_ = 0;
+    fakeString->count_ = kInlineElementCount;
+    const auto expectedInlineSize = HeapArr::descriptorFrom(theStringTypeInfo, kInlineElementCount).size();
+    EXPECT_EQ(heapObj.size(), expectedInlineSize);
+}
+// endregion

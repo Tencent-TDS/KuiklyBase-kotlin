@@ -6,6 +6,9 @@
 #pragma once
 
 #include "KObject.hpp"
+// region @Tencent: Include KString.h to compute physical heap size of external/proxy strings.
+#include "KString.h"
+// endregion
 
 namespace kotlin::alloc {
 
@@ -68,6 +71,11 @@ size_t HeapObject<HeapHeader>::size() noexcept {
     const auto* typeInfo = obj->type_info();
     if (!typeInfo->IsArray())
         return descriptorFrom(typeInfo).size();
+    // region @Tencent: External/proxy strings store logical length in count_, use physical allocated count.
+    if (typeInfo->IsString()) {
+        return HeapArray<HeapHeader>::descriptorFrom(typeInfo, StringHeader::of(obj)->allocatedCount()).size();
+    }
+    // endregion
     return HeapArray<HeapHeader>::descriptorFrom(typeInfo, obj->array()->count_).size();
 }
 

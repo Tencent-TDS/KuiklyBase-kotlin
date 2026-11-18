@@ -23,22 +23,50 @@
 
 #import <Foundation/Foundation.h>
 #include "KAssert.h"
+#include "Memory.h"
 #import "NSStringWithExternalStorage.h"
+
+namespace {
+
+void defaultFreeCallback(void* mem, void* /*context*/) noexcept {
+    std::free(mem);
+}
+
+} // namespace
 
 @implementation NSStringWithExternalStorage {
     char* _data;
     BOOL _isLatin1;
     uint32_t _length;
+    KStringFreeCallback _freeCallback;
+    void* _freeContext;
 }
 
 - (instancetype)initWithLength:(uint32_t)length isLatin1:(BOOL)isLatin1 {
     if (self = [super init]) {
         _isLatin1 = isLatin1;
         _length = length;
+        _freeCallback = &defaultFreeCallback;
+        _freeContext = nullptr;
         const size_t sizeInBytes = _isLatin1 ? _length : static_cast<size_t>(_length) * sizeof(UniChar);
         _data = static_cast<char*>(std::malloc(sizeInBytes));
         RuntimeCheck(_data != nullptr, "Failed to allocate %zu bytes", sizeInBytes);
         std::memset(_data, 0, sizeInBytes);
+    }
+    return self;
+}
+
+- (instancetype)initWithOwnedData:(void*)data
+                           length:(uint32_t)length
+                         isLatin1:(BOOL)isLatin1
+                     freeCallback:(KStringFreeCallback)freeCallback
+                      freeContext:(void*)freeContext {
+    if (self = [super init]) {
+        _data = static_cast<char*>(data);
+        _isLatin1 = isLatin1;
+        _length = length;
+        _freeCallback = freeCallback;
+        _freeContext = freeContext;
     }
     return self;
 }
@@ -61,8 +89,12 @@
 
 - (void)dealloc {
     if (_data != nullptr) {
-        std::free(_data);
+        char* data = _data;
         _data = nullptr;
+        if (_freeCallback != nullptr) {
+            const kotlin::NativeOrUnregisteredThreadGuard guard(/*reentrant=*/ true);
+            _freeCallback(data, _freeContext);
+        }
     }
     [super dealloc];
 }
@@ -72,5 +104,19 @@
 }
 
 @end
+
+void* CreateNSStringWithExternalStorage(
+    void* data,
+    uint32_t length,
+    bool isLatin1,
+    KStringFreeCallback freeCallback,
+    void* freeContext
+) {
+    return [[NSStringWithExternalStorage alloc] initWithOwnedData:data
+                                                           length:length
+                                                         isLatin1:isLatin1 ? YES : NO
+                                                     freeCallback:freeCallback
+                                                      freeContext:freeContext];
+}
 
 #endif // KONAN_OBJC_INTEROP

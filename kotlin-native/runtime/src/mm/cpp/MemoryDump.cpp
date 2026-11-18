@@ -149,6 +149,24 @@ private:
         size_t dataSize = elementSize * count;
         DumpU32(dataSize);
 
+        // region @Tencent: Dump external/proxy string characters from data() instead of overreading the inline heap header.
+        if (type->IsString()) {
+            const auto* header = StringHeader::of(arr->obj());
+            if (header->type() != StringType::kDefault) {
+                const size_t inlineHeaderSize = offsetof(StringHeader, data_) - dataOffset;
+                DumpSpan(std_support::span<const uint8_t>(reinterpret_cast<const uint8_t*>(arr) + dataOffset, inlineHeaderSize));
+                const size_t externalBytes = header->size();
+                if (externalBytes > 0) {
+                    DumpSpan(std_support::span<const uint8_t>(reinterpret_cast<const uint8_t*>(header->data()), externalBytes));
+                }
+                if (header->flags_ & StringHeader::IGNORE_LAST_BYTE) {
+                    DumpU8(0);
+                }
+                return;
+            }
+        }
+        // endregion
+
         uint8_t* data = reinterpret_cast<uint8_t*>(arr) + dataOffset;
         DumpSpan(std_support::span<uint8_t>(data, dataSize));
     }
@@ -264,12 +282,9 @@ private:
             Enqueue(baseObj);
         }
 
-        void* associatedObject =
-#ifdef KONAN_OBJC_INTEROP
-                extraObj->AssociatedObject();
-#else
-                nullptr;
-#endif
+        // region @Tencent: Dump associated object pointer on all targets.
+        void* associatedObject = extraObj->AssociatedObject();
+        // endregion
         DumpId(associatedObject);
     }
 

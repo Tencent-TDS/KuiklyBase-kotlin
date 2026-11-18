@@ -19,6 +19,9 @@
 
 #if KONAN_OBJC_INTEROP
 
+#include "KString.h"
+
+#ifdef __OBJC__
 #import <Foundation/Foundation.h>
 
 @interface NSStringWithExternalStorage : NSString
@@ -27,6 +30,21 @@
 
 - (instancetype)initWithLength:(uint32_t)length isLatin1:(BOOL)isLatin1;
 
+- (instancetype)initWithOwnedData:(void*)data
+                           length:(uint32_t)length
+                         isLatin1:(BOOL)isLatin1
+                     freeCallback:(KStringFreeCallback)freeCallback
+                      freeContext:(void*)freeContext;
+
 @end
+#endif // __OBJC__
+
+void* CreateNSStringWithExternalStorage(
+    void* data,
+    uint32_t length,
+    bool isLatin1,
+    KStringFreeCallback freeCallback,
+    void* freeContext
+);
 
 #endif // KONAN_OBJC_INTEROP

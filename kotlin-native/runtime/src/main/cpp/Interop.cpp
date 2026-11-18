@@ -29,3 +29,33 @@ extern "C" OBJ_GETTER(Kotlin_Interop_pinnable, KRef any) {
     }
     RETURN_OBJ(any);
 }
+
+// region @Tencent: Bindings for creating Kotlin Strings from owned UTF-8/UTF-16 C buffers.
+extern "C" OBJ_GETTER(Kotlin_Interop_toKStringFromOwnedUtf8, char* utf8, KInt length) {
+    RETURN_RESULT_OF(CreateStringFromOwnedUtf8, utf8, length);
+}
+
+extern "C" OBJ_GETTER(
+    Kotlin_Interop_toKStringFromOwnedUtf8WithFreeCallback,
+    char* utf8,
+    KInt length,
+    KStringFreeCallback freeCallback,
+    void* freeContext
+) {
+    RETURN_RESULT_OF(CreateStringFromOwnedUtf8WithFreeCallback, utf8, length, freeCallback, freeContext);
+}
+
+extern "C" OBJ_GETTER(Kotlin_Interop_toKStringFromOwnedUtf16, KChar* utf16, KInt length) {
+    RETURN_RESULT_OF(CreateStringFromOwnedUtf16, utf16, length);
+}
+
+extern "C" OBJ_GETTER(
+    Kotlin_Interop_toKStringFromOwnedUtf16WithFreeCallback,
+    KChar* utf16,
+    KInt length,
+    KStringFreeCallback freeCallback,
+    void* freeContext
+) {
+    RETURN_RESULT_OF(CreateStringFromOwnedUtf16WithFreeCallback, utf16, length, freeCallback, freeContext);
+}
+// endregion

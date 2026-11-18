@@ -46,9 +46,9 @@ public:
     void Uninstall() noexcept;
     void UnlinkFromBaseObject() noexcept;
 
-#ifdef KONAN_OBJC_INTEROP
+    // region @Tencent: Enable associated objects on all targets.
     std::atomic<void*>& AssociatedObject() noexcept { return associatedObject_; }
-#endif
+    // endregion
     bool HasAssociatedObject() noexcept;
     void ReleaseAssociatedObject() noexcept;
 
@@ -91,9 +91,9 @@ private:
 
     std::atomic<uint32_t> flags_ = 0;
 
-#ifdef KONAN_OBJC_INTEROP
+    // region @Tencent: Enable associated objects on all targets.
     std::atomic<void*> associatedObject_ = nullptr;
-#endif
+    // endregion
 
     std::atomic<ObjHeader*> weakReferenceOrBaseObject_;
 };

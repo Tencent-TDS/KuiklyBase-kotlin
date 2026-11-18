@@ -83,9 +83,15 @@ struct StringHeader {
     }
 
     // region @Tencent: Adjust StringHeader count and flags for external/proxy strings.
-    ALWAYS_INLINE void adjustForExternal(uint32_t lengthInBytes) {
+    ALWAYS_INLINE void adjustForExternal(uint64_t lengthInBytes) {
         flags_ |= IGNORE_LAST_BYTE * (lengthInBytes % 2);
-        count_ = (lengthInBytes + extraLength(flags_)) / sizeof(KChar);
+        count_ = static_cast<uint32_t>((lengthInBytes + extraLength(flags_)) / sizeof(KChar));
+    }
+
+    ALWAYS_INLINE uint32_t allocatedCount() const noexcept {
+        return __builtin_expect(type() == StringType::kDefault, true)
+            ? count_
+            : static_cast<uint32_t>(extraLength(0) / sizeof(KChar));
     }
     // endregion
 };
@@ -157,6 +163,14 @@ OBJ_GETTER(CreateStringFromCString, const char* cstring);
 OBJ_GETTER(CreateStringFromUtf8, const char* utf8, uint32_t length);
 OBJ_GETTER(CreateStringFromUtf8OrThrow, const char* utf8, uint32_t length);
 OBJ_GETTER(CreateStringFromUtf16, const KChar* utf16, uint32_t length);
+// region @Tencent: Declare Owned UTF-8/UTF-16 string creation APIs with optional free callback.
+using KStringFreeCallback = void (*)(void* mem, void* context);
+
+RUNTIME_EXPORT OBJ_GETTER(CreateStringFromOwnedUtf8, char* utf8, int32_t length);
+RUNTIME_EXPORT OBJ_GETTER(CreateStringFromOwnedUtf16, KChar* utf16, int32_t length);
+RUNTIME_EXPORT OBJ_GETTER(CreateStringFromOwnedUtf8WithFreeCallback, char* utf8, int32_t length, KStringFreeCallback freeCallback, void* freeContext);
+RUNTIME_EXPORT OBJ_GETTER(CreateStringFromOwnedUtf16WithFreeCallback, KChar* utf16, int32_t length, KStringFreeCallback freeCallback, void* freeContext);
+// endregion
 OBJ_GETTER(CreateUninitializedString, StringEncoding encoding, uint32_t length);
 OBJ_GETTER(ConvertStringToUtf16, KRef kstring);
 
@@ -183,5 +197,11 @@ namespace kotlin {
 
 template <KStringConversionMode mode>
 std::string to_string(KConstRef kstring, size_t start = 0, size_t size = std::string::npos) noexcept(mode != KStringConversionMode::CHECKED);
+
+// region @Tencent: Expose ASCII fast-check helper for external string creation.
+namespace internal {
+bool utf8StringIsASCII(const char* utf8, size_t lengthBytes) noexcept;
+} // namespace internal
+// endregion
 
 }

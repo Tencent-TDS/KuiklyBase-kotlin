@@ -27,8 +27,7 @@
 
 using namespace kotlin;
 
-#ifdef KONAN_OBJC_INTEROP
-
+// region @Tencent: Enable associated objects on all targets.
 PERFORMANCE_INLINE void* ObjHeader::GetAssociatedObject() const {
     auto metaObject = meta_object_or_null();
     if (metaObject == nullptr) {
@@ -39,6 +38,7 @@ PERFORMANCE_INLINE void* ObjHeader::GetAssociatedObject() const {
 
 PERFORMANCE_INLINE void ObjHeader::SetAssociatedObject(void* obj) {
     auto& extraObject = mm::ExtraObjectData::FromMetaObjHeader(meta_object());
+#ifdef KONAN_OBJC_INTEROP
     // TODO: Consider additional filtering based on types:
     //       * have some kind of an allowlist that can be populated by the user
     //         to specify that objects of these types must be finalized only on
@@ -49,20 +49,24 @@ PERFORMANCE_INLINE void ObjHeader::SetAssociatedObject(void* obj) {
     if (pthread_main_np() == 1) {
         extraObject.setFlag(mm::ExtraObjectData::FLAGS_RELEASE_ON_MAIN_QUEUE);
     }
+#endif
     return extraObject.AssociatedObject().store(obj, std::memory_order_release);
 }
 
 PERFORMANCE_INLINE void* ObjHeader::CasAssociatedObject(void* expectedObj, void* obj) {
     auto& extraObject = mm::ExtraObjectData::FromMetaObjHeader(meta_object());
+#ifdef KONAN_OBJC_INTEROP
     bool success = extraObject.AssociatedObject().compare_exchange_strong(expectedObj, obj);
     // TODO: Consider additional filtering outlined above.
     if (success && pthread_main_np() == 1) {
         extraObject.setFlag(mm::ExtraObjectData::FLAGS_RELEASE_ON_MAIN_QUEUE);
     }
+#else
+    extraObject.AssociatedObject().compare_exchange_strong(expectedObj, obj);
+#endif
     return expectedObj;
 }
-
-#endif // KONAN_OBJC_INTEROP
+// endregion
 
 // static
 MetaObjHeader* ObjHeader::createMetaObject(ObjHeader* object) {

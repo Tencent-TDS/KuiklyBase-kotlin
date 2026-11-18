@@ -90,11 +90,11 @@ struct ObjHeader {
 
   MetaObjHeader* meta_object_or_null() const noexcept { return AsMetaObject(typeInfoOrMetaAcquire()); }
 
-#ifdef KONAN_OBJC_INTEROP
+  // region @Tencent: Enable associated objects on all targets.
   void* GetAssociatedObject() const;
   void SetAssociatedObject(void* obj);
   void* CasAssociatedObject(void* expectedObj, void* obj);
-#endif
+  // endregion
 
   inline bool stack() const {
     return getPointerBits(typeInfoOrMetaRelaxed(), OBJECT_TAG_MASK) == OBJECT_TAG_STACK;

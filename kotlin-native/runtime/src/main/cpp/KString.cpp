@@ -173,6 +173,12 @@ PERFORMANCE_INLINE inline auto boundsCheckedIteratorAt(T string, KInt index) {
 
 } // namespace
 
+// region @Tencent: Expose utf8StringIsASCII in kotlin::internal for external string creation.
+bool kotlin::internal::utf8StringIsASCII(const char* utf8, size_t lengthBytes) noexcept {
+    return ::utf8StringIsASCII(utf8, lengthBytes);
+}
+// endregion
+
 extern "C" OBJ_GETTER(CreateStringFromCString, const char* cstring) {
     RETURN_RESULT_OF(CreateStringFromUtf8, cstring, cstring ? strlen(cstring) : 0);
 }

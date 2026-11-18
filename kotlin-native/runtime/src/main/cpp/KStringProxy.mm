@@ -103,13 +103,27 @@ OBJ_GETTER(Kotlin_Interop_CreateKStringProxyFromImmutableCFString, CFStringRef s
     return result;
 }
 
+#else // KONAN_OBJC_INTEROP
+
+#include "AssociatedObject.hpp"
+
+namespace {
+
+ALWAYS_INLINE char *KStringExternalGetDataPtr(const StringHeader *header) {
+    auto *holder = static_cast<kotlin::mm::ExternalBufferAssociatedObject *>(
+            reinterpret_cast<const ObjHeader *>(header)->GetAssociatedObject());
+    return static_cast<char *>(holder->data());
+}
+
+} // namespace
+
 #endif // KONAN_OBJC_INTEROP
 
 char *StringHeader::dataProxy() const {
     switch (type()) {
-#if KONAN_OBJC_INTEROP
         case StringType::kExternal:
             return KStringExternalGetDataPtr(this);
+#if KONAN_OBJC_INTEROP
         case StringType::kCFString:
             if (encoding() == StringEncoding::kUTF16) {
                 return const_cast<char*>(KStringProxyGetUtf16Ptr(this));
@@ -117,7 +131,6 @@ char *StringHeader::dataProxy() const {
                 return const_cast<char*>(KStringProxyGetLatin1Ptr(this));
             }
 #else
-        case StringType::kExternal:
         case StringType::kCFString:
 #endif
         case StringType::kDefault:

@@ -10,6 +10,10 @@
 
 #ifdef KONAN_OBJC_INTEROP
 #include "ObjCMMAPI.h"
+// region @Tencent: Include AssociatedObject wrapper for non-Apple associated objects.
+#else
+#include "AssociatedObject.hpp"
+// endregion
 #endif
 
 using namespace kotlin;
@@ -51,12 +55,17 @@ void mm::ExtraObjectData::UnlinkFromBaseObject() noexcept {
 }
 
 void mm::ExtraObjectData::ReleaseAssociatedObject() noexcept {
-#ifdef KONAN_OBJC_INTEROP
+// region @Tencent: Release associated objects on all targets under Native thread state.
     if (void* associatedObject = associatedObject_) {
+#ifdef KONAN_OBJC_INTEROP
         Kotlin_ObjCExport_releaseAssociatedObject(associatedObject);
+#else
+        const NativeOrUnregisteredThreadGuard guard(/*reentrant=*/ true);
+        delete static_cast<mm::AssociatedObject*>(associatedObject);
+#endif
         associatedObject_ = nullptr;
     }
-#endif
+// endregion
 }
 
 void mm::ExtraObjectData::Uninstall() noexcept {
@@ -65,11 +74,9 @@ void mm::ExtraObjectData::Uninstall() noexcept {
 }
 
 bool mm::ExtraObjectData::HasAssociatedObject() noexcept {
-#ifdef KONAN_OBJC_INTEROP
+// region @Tencent: Enable associated object check on all targets.
     return associatedObject_ != nullptr;
-#else
-    return false;
-#endif
+// endregion
 }
 
 void mm::ExtraObjectData::ClearRegularWeakReferenceImpl() noexcept {
@@ -89,8 +96,8 @@ mm::ExtraObjectData::~ExtraObjectData() {
     }
     RuntimeAssert(weakReference == nullptr, "ExtraObjectData %p must have cleared weak reference %p", this, weakReference);
 
-#ifdef KONAN_OBJC_INTEROP
+// region @Tencent: Verify associated object cleanup on all targets.
     auto* associatedObject = associatedObject_.load(std::memory_order_relaxed);
     RuntimeAssert(associatedObject == nullptr, "ExtraObjectData %p must have cleared associated object %p", this, associatedObject);
-#endif
+// endregion
 }

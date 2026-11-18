@@ -16,6 +16,109 @@ internal fun encodeToUtf8(str: String): ByteArray = str.encodeToByteArray()
 @ExperimentalForeignApi
 internal external fun CPointer<ByteVar>.toKStringFromUtf8Impl(): String
 
+// region @Tencent: Create Kotlin Strings from owned UTF-8/UTF-16 C buffers with optional free callback.
+/**
+ * C callback `(mem, context) -> void` invoked to release an owned native memory buffer (`mem`)
+ * with an optional opaque user `context`.
+ */
+@ExperimentalForeignApi
+public typealias NativeFreeCallback = CPointer<CFunction<(mem: COpaquePointer?, context: COpaquePointer?) -> Unit>>
+
+/**
+ * Converts an owned UTF-8 C string buffer to a Kotlin [String] (zero-copy when pure ASCII).
+ *
+ * Ownership of [this] buffer is transferred to the runtime: the caller must NOT mutate or free it afterwards.
+ * The buffer must have been allocated with standard C `malloc`/`calloc`/`realloc` so it can be released via `free()`.
+ * Non-ASCII strings are decoded into a newly allocated UTF-16 [String] and [this] buffer is freed immediately.
+ *
+ * @param length The byte length of the UTF-8 buffer, or negative to compute length via `strlen`.
+ */
+@GCUnsafeCall("Kotlin_Interop_toKStringFromOwnedUtf8")
+@ExperimentalForeignApi
+public external fun CPointer<ByteVar>.toKStringFromOwnedUtf8(length: Int = -1): String
+
+/**
+ * Converts an owned UTF-8 C string buffer to a Kotlin [String] (zero-copy when pure ASCII) with a custom release callback.
+ *
+ * Ownership of [this] buffer is transferred to the runtime: the caller must NOT mutate it afterwards.
+ * When the buffer is no longer needed (either immediately on empty/non-ASCII fallback, or when the [String] is garbage collected),
+ * if [freeCallback] is non-null, `freeCallback(mem, freeContext)` is invoked; if [freeCallback] is `null`, no deallocation is performed.
+ *
+ * @param length The byte length of the UTF-8 buffer, or negative to compute length via `strlen`.
+ * @param freeCallback Optional C callback invoked to release the buffer, or `null` for no-op release.
+ * @param freeContext Optional opaque user context forwarded to [freeCallback].
+ */
+@GCUnsafeCall("Kotlin_Interop_toKStringFromOwnedUtf8WithFreeCallback")
+@ExperimentalForeignApi
+public external fun CPointer<ByteVar>.toKStringFromOwnedUtf8(
+    length: Int = -1,
+    freeCallback: NativeFreeCallback?,
+    freeContext: COpaquePointer? = null,
+): String
+
+/**
+ * Converts an owned UTF-16LE C string buffer to a Kotlin [String] (zero-copy when 2-byte aligned).
+ *
+ * Ownership of [this] buffer is transferred to the runtime: the caller must NOT mutate or free it afterwards.
+ * The buffer must have been allocated with standard C `malloc`/`calloc`/`realloc` so it can be released via `free()`.
+ *
+ * @param length The number of 16-bit UTF-16 code units (`Char`s), or negative to scan until `0u`.
+ */
+@GCUnsafeCall("Kotlin_Interop_toKStringFromOwnedUtf16")
+@ExperimentalForeignApi
+public external fun CPointer<UShortVar>.toKStringFromOwnedUtf16(length: Int = -1): String
+
+/**
+ * Converts an owned UTF-16LE C string buffer to a Kotlin [String] (zero-copy when 2-byte aligned) with a custom release callback.
+ *
+ * Ownership of [this] buffer is transferred to the runtime: the caller must NOT mutate it afterwards.
+ * When the buffer is no longer needed (either immediately on empty/unaligned fallback, or when the [String] is garbage collected),
+ * if [freeCallback] is non-null, `freeCallback(mem, freeContext)` is invoked; if [freeCallback] is `null`, no deallocation is performed.
+ *
+ * @param length The number of 16-bit UTF-16 code units (`Char`s), or negative to scan until `0u`.
+ * @param freeCallback Optional C callback invoked to release the buffer, or `null` for no-op release.
+ * @param freeContext Optional opaque user context forwarded to [freeCallback].
+ */
+@GCUnsafeCall("Kotlin_Interop_toKStringFromOwnedUtf16WithFreeCallback")
+@ExperimentalForeignApi
+public external fun CPointer<UShortVar>.toKStringFromOwnedUtf16(
+    length: Int = -1,
+    freeCallback: NativeFreeCallback?,
+    freeContext: COpaquePointer? = null,
+): String
+
+/**
+ * Converts an owned UTF-16LE C string buffer to a Kotlin [String] (zero-copy when 2-byte aligned).
+ *
+ * Ownership of [this] buffer is transferred to the runtime: the caller must NOT mutate or free it afterwards.
+ * The buffer must have been allocated with standard C `malloc`/`calloc`/`realloc` so it can be released via `free()`.
+ *
+ * @param length The number of 16-bit UTF-16 code units (`Char`s), or negative to scan until `0`.
+ */
+@GCUnsafeCall("Kotlin_Interop_toKStringFromOwnedUtf16")
+@ExperimentalForeignApi
+public external fun CPointer<ShortVar>.toKStringFromOwnedUtf16(length: Int = -1): String
+
+/**
+ * Converts an owned UTF-16LE C string buffer to a Kotlin [String] (zero-copy when 2-byte aligned) with a custom release callback.
+ *
+ * Ownership of [this] buffer is transferred to the runtime: the caller must NOT mutate it afterwards.
+ * When the buffer is no longer needed (either immediately on empty/unaligned fallback, or when the [String] is garbage collected),
+ * if [freeCallback] is non-null, `freeCallback(mem, freeContext)` is invoked; if [freeCallback] is `null`, no deallocation is performed.
+ *
+ * @param length The number of 16-bit UTF-16 code units (`Char`s), or negative to scan until `0`.
+ * @param freeCallback Optional C callback invoked to release the buffer, or `null` for no-op release.
+ * @param freeContext Optional opaque user context forwarded to [freeCallback].
+ */
+@GCUnsafeCall("Kotlin_Interop_toKStringFromOwnedUtf16WithFreeCallback")
+@ExperimentalForeignApi
+public external fun CPointer<ShortVar>.toKStringFromOwnedUtf16(
+    length: Int = -1,
+    freeCallback: NativeFreeCallback?,
+    freeContext: COpaquePointer? = null,
+): String
+// endregion
+
 @ExperimentalForeignApi
 @TypedIntrinsic(IntrinsicType.INTEROP_BITS_TO_FLOAT)
 public external fun bitsToFloat(bits: Int): Float
